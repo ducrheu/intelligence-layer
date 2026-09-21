@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+import os
+import sys
+from pathlib import Path
+
+
 import json
 import os
 import tempfile
@@ -20,11 +37,9 @@ SKILL_FILES = {
     "scripts/helper.py": "print('helper')\n",
 }
 
-
 def _dir(status: str) -> str:
     return {"candidate": "candidates", "experimental": "experimental", "validated": "validated",
             "approved": "approved"}.get(status, status)
-
 
 def skill_artifact(artifact_id: str = "layout-demo", status: str = "experimental",
                    version: str = "1.0.0") -> dict:
@@ -65,7 +80,6 @@ def skill_artifact(artifact_id: str = "layout-demo", status: str = "experimental
         },
     }
 
-
 def knowledge_artifact(artifact_id: str = "plain-note") -> dict:
     now = utc_now()
     return {
@@ -79,7 +93,6 @@ def knowledge_artifact(artifact_id: str = "plain-note") -> dict:
         "review_interval_days": None, "tests": [], "evidence": [],
         "supersedes": None, "superseded_by": None, "metadata": {},
     }
-
 
 class ArtifactLifecycleTests(unittest.TestCase):
     """A status change carries the artifact's files, and ids cannot be shadowed."""
@@ -238,7 +251,6 @@ class ArtifactLifecycleTests(unittest.TestCase):
             forged["verified_at"] = utc_now()
             self.gateway.submit_candidate(self.actors["local-agent"], forged)
 
-
 class GovernanceEventStreamTests(unittest.TestCase):
     """The feedback channel: a metadata-only stream a consumer can catch up on."""
 
@@ -305,7 +317,6 @@ class GovernanceEventStreamTests(unittest.TestCase):
             with self.subTest(since=since, max_items=max_items):
                 with self.assertRaises(ValueError):
                     self.gateway.read_events(self.actors["local-hermes"], since, max_items)
-
 
 class WithdrawTests(unittest.TestCase):
     """Retracting an unpublished artifact: self-service for the author, reason kept.
@@ -430,7 +441,6 @@ class WithdrawTests(unittest.TestCase):
         audit = (self.root / "qa" / "audit.jsonl").read_text(encoding="utf-8")
         self.assertIn('"action": "withdraw"', audit)
         self.assertIn('"result": "denied_not_author"', audit)
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

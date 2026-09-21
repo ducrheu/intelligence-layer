@@ -6,6 +6,18 @@ out to be useless.
 """
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import json
 import os
 import sys
@@ -13,8 +25,6 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 # Retrieval runs lexical-only in unit tests: fast, deterministic, and independent of
 # whether a model server happens to be running on the machine.
@@ -28,7 +38,6 @@ from AI_Platform.intelligence.gateway.telemetry import (  # noqa: E402
 
 TRUSTED = "local-agent"
 READER = "local-hermes"
-
 
 def note(**overrides) -> dict:
     """A knowledge artifact shaped the way the write surface produces one."""
@@ -60,14 +69,12 @@ def note(**overrides) -> dict:
     artifact.update(overrides)
     return artifact
 
-
 def released(**overrides) -> dict:
     """An artifact a reader can retrieve - the only kind a review looks at."""
     defaults = dict(status="approved", verified=True, verified_by="local-human",
                     verified_at=datetime.now(timezone.utc).isoformat())
     defaults.update(overrides)
     return note(**defaults)
-
 
 class UsageRecordingTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -131,7 +138,6 @@ class UsageRecordingTests(unittest.TestCase):
         self.assertEqual(entry["count"], 3)
         self.assertIsNotNone(entry["last_at"])
 
-
 class ReviewFlagTests(unittest.TestCase):
     """Flags decide what a human looks at. They never delete anything."""
 
@@ -172,7 +178,6 @@ class ReviewFlagTests(unittest.TestCase):
         self.assertEqual(days_since("2026-09-19T12:00:00+00:00", now), 1.0)
         self.assertIsNone(days_since(None, now))
         self.assertIsNone(days_since("not-a-timestamp", now))
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

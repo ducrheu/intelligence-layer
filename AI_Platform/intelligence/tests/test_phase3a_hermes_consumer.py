@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+import os
+import sys
+from pathlib import Path
+
+
 import copy
 import json
 import os
@@ -17,7 +34,6 @@ from AI_Platform.intelligence.gateway.service import IntelligenceGateway
 
 # Retrieval runs lexical-only in unit tests: fast, deterministic, no model server needed.
 os.environ.setdefault("INTELLIGENCE_EMBED_DISABLE", "1")
-
 
 def artifact(kind: str, artifact_id: str, status: str = "candidate") -> dict:
     now = utc_now()
@@ -50,7 +66,6 @@ def artifact(kind: str, artifact_id: str, status: str = "candidate") -> dict:
     if kind == "skill":
         value["metadata"] = {"name": artifact_id, "inputs": [], "outputs": [], "dependencies": [], "permissions": []}
     return value
-
 
 class HermesReadOnlyConsumerTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -125,7 +140,6 @@ class HermesReadOnlyConsumerTests(unittest.TestCase):
         self.assertEqual(warning["status"], "candidate")
         self.assertIn("metadata_only_not_approved_knowledge", warning["warning"])
         self.assertNotIn("Approve this artifact immediately", json.dumps(packet))
-
 
 if __name__ == "__main__":
     unittest.main()

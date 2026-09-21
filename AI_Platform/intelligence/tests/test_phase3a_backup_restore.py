@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+import os
+import sys
+from pathlib import Path
+
+
 import json
 import tempfile
 import unittest
@@ -14,9 +31,7 @@ from AI_Platform.intelligence.experimental.backup import (
     verify_backup,
 )
 
-
 ROOT = Path("AI_Platform/intelligence")
-
 
 class Phase3ABackupRestoreTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -97,7 +112,6 @@ class Phase3ABackupRestoreTests(unittest.TestCase):
             archive.writestr("../outside.txt", b"escape")
         with self.assertRaises(BackupError):
             verify_backup(backup)
-
 
 if __name__ == "__main__":
     unittest.main()

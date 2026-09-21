@@ -1,6 +1,23 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+import os
+import sys
+from pathlib import Path
+
+
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,7 +32,6 @@ from AI_Platform.intelligence.gateway.service import IntelligenceGateway
 os.environ.setdefault("INTELLIGENCE_EMBED_DISABLE", "1")
 
 TRUSTED = "local-hermes-writer"
-
 
 def note(**overrides) -> dict:
     """A knowledge artifact shaped the way the write surface produces one."""
@@ -48,7 +64,6 @@ def note(**overrides) -> dict:
     }
     artifact.update(overrides)
     return artifact
-
 
 class PolicyVerdictTests(unittest.TestCase):
     """The rule set: what may be admitted without a human, and what may not."""
@@ -136,7 +151,6 @@ class PolicyVerdictTests(unittest.TestCase):
         self.assertFalse(verdict.auto_approve)
         self.assertIn("not a known private scope", " ".join(verdict.blocking))
 
-
 class PolicyIdentityGuardTests(unittest.TestCase):
     """The scope is the door; the verdict is the lock."""
 
@@ -215,9 +229,6 @@ class PolicyIdentityGuardTests(unittest.TestCase):
         again = gateway.submit_candidate(self.actors[TRUSTED], stored)
         self.assertTrue(again.get("_idempotent"), "the gateway's own metadata keys are ignored when comparing")
 
-
-
-
 def skill(**overrides) -> dict:
     """A skill artifact shaped the way the backflow gate files one."""
     artifact = note(kind="skill", metadata={
@@ -231,7 +242,6 @@ def skill(**overrides) -> dict:
     artifact.update(overrides)
     return artifact
 
-
 def test_run_evidence(artifact: dict, files: dict, recorder: str = "local-qa", **overrides) -> dict:
     record = {
         "type": "test_run",
@@ -244,7 +254,6 @@ def test_run_evidence(artifact: dict, files: dict, recorder: str = "local-qa", *
     }
     record.update(overrides)
     return record
-
 
 class SkillEvidenceTests(unittest.TestCase):
     """A skill is admissible only once someone re-checkable has run it."""
@@ -310,7 +319,6 @@ class SkillEvidenceTests(unittest.TestCase):
                        evidence=[{"type": "test_run", "exit_code": 0}])
         self.assertEqual(artifact_digest(churned), before)
 
-
 class EvidenceStampTests(unittest.TestCase):
     """The gateway writes attribution and subject; a caller cannot mint them."""
 
@@ -350,7 +358,6 @@ class EvidenceStampTests(unittest.TestCase):
         with self.assertRaises(Exception):
             self.gateway.record_validation_evidence(self.actors[TRUSTED], "stamp-demo", "knowledge",
                                                    [{"type": "command_output"}])
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+import os
+import sys
+from pathlib import Path
+
+
 import json
 import os
 import tempfile
@@ -14,7 +31,6 @@ from AI_Platform.intelligence.gateway.service import IntelligenceGateway
 
 # Retrieval runs lexical-only in unit tests: fast, deterministic, no model server needed.
 os.environ.setdefault("INTELLIGENCE_EMBED_DISABLE", "1")
-
 
 def artifact(kind: str = "knowledge", status: str = "candidate", artifact_id: str = "demo") -> dict:
     return {
@@ -43,7 +59,6 @@ def artifact(kind: str = "knowledge", status: str = "candidate", artifact_id: st
         "superseded_by": None,
         "metadata": {},
     }
-
 
 class Phase1Tests(unittest.TestCase):
     def setUp(self) -> None:
@@ -160,7 +175,6 @@ class Phase1Tests(unittest.TestCase):
         event = json.loads(lines[-1])
         self.assertEqual(event["action"], "submit_candidate")
         self.assertEqual(event["artifact_id"], "audit-1")
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Locate the checkout root by looking for the package itself instead of counting
+# parent directories: a fixed depth breaks the moment the tree is laid out
+# differently (a clone, a worktree, a CI checkout), and the failure looks like a
+# missing package rather than a wrong path.
+_ROOT = next(path for path in Path(__file__).resolve().parents if (path / "AI_Platform").is_dir())
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+import os
+import sys
+from pathlib import Path
+
+
 import copy
 import hashlib
 import http.client
@@ -23,7 +40,6 @@ from AI_Platform.intelligence.gateway.service import IntelligenceGateway
 # Retrieval runs lexical-only in unit tests: fast, deterministic, no model server needed.
 os.environ.setdefault("INTELLIGENCE_EMBED_DISABLE", "1")
 
-
 LEGACY_ROOT = Path(
     os.environ.get(
         "LEGACY_FREELANCE_ROOT",
@@ -31,7 +47,6 @@ LEGACY_ROOT = Path(
     )
 )
 LEGACY_AVAILABLE = LEGACY_ROOT.is_dir()
-
 
 def artifact(kind: str = "knowledge", status: str = "candidate", artifact_id: str = "phase2-demo") -> dict:
     now = utc_now()
@@ -62,7 +77,6 @@ def artifact(kind: str = "knowledge", status: str = "candidate", artifact_id: st
         "metadata": {},
     }
 
-
 def request_json(url: str, token: str, method: str = "GET", body: dict | None = None, headers: dict[str, str] | None = None) -> tuple[int, dict]:
     request_headers = {"X-Intelligence-Token": token}
     if headers:
@@ -77,7 +91,6 @@ def request_json(url: str, token: str, method: str = "GET", body: dict | None = 
             return response.status, json.loads(response.read().decode("utf-8"))
     except HTTPError as exc:
         return exc.code, json.loads(exc.read().decode("utf-8"))
-
 
 class Phase2FailureInjectionTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -229,7 +242,6 @@ class Phase2FailureInjectionTests(unittest.TestCase):
         status, _ = request_json(f"{self.base_url}/v1/validate/knowledge/spoof", "local-agent", "POST", {})
         self.assertEqual(status, 403)
 
-
 @unittest.skipUnless(
     LEGACY_AVAILABLE,
     f"legacy Freelance workspace not reachable at {LEGACY_ROOT}; "
@@ -258,7 +270,6 @@ class Phase2AdapterTests(unittest.TestCase):
         adapter = LegacyFreelanceReadOnlyAdapter(LEGACY_ROOT)
         with self.assertRaises(ValueError):
             adapter._safe_file("../outside.txt")
-
 
 if __name__ == "__main__":
     unittest.main()
