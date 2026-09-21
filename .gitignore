@@ -1,8 +1,14 @@
+# Python
 __pycache__/
 *.py[cod]
-*.tmp
-*.bak
-*.orig
+*.pytest_cache/
+.pytest_cache/
+.venv/
+venv/
+
+# Editor / OS
+.idea/
+.vscode/
 .DS_Store
 
 # 向量缓存：由产物正文确定性重算（换模型即失效），不进版本控制

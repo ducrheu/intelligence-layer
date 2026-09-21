@@ -6,7 +6,7 @@ name: tests
 # is the first thing that will say so.
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
