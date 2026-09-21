@@ -1,0 +1,144 @@
+{
+  "id": "governed-readonly-mcp-onboarding",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "validated",
+  "version": "0.1.0",
+  "title": "\u63a5\u5165\u53d7\u6cbb\u7406\u53ea\u8bfb MCP\uff1a\u6ce8\u518c\u3001\u4fe1\u4efb\u59ff\u6001\u4e0e\u53cd\u5411\u9a8c\u6536",
+  "content": "\u628a\u4e00\u4e2a agent \u8fd0\u884c\u65f6\u63a5\u8fdb\u53d7\u6cbb\u7406\u7684\u53ea\u8bfb\u77e5\u8bc6\u670d\u52a1\uff1a\u53ea\u7ed9\u68c0\u7d22/\u8bfb\u53d6\u5df2\u6279\u51c6\u4ea7\u7269\u7684\u80fd\u529b\uff0c\u4e0d\u7ed9\u5199\u5165\u3001\u4e0d\u7ed9\u5ba1\u6279\u3001\u4e0d\u7ed9\u53ef\u81ea\u8bc1\u7684\u5199\u8eab\u4efd\u3002\n\n\u56db\u6b65\u5951\u7ea6\uff08\u9a8c\u6536\u6d4b\u8bd5\u9010\u6761\u65ad\u8a00\uff0c8/8 \u624d\u7b97\u5b8c\u6210\uff09\uff1a\n1. \u914d\u7f6e\u524d\u5148\u63a2\u6d4b\uff1a\u4e0d\u5e26 token \u7684 GET /v1/search/<kind> \u5fc5\u987b 403\uff1b\u8fd4\u56de\u6570\u636e\u8bf4\u660e\u7f51\u5173\u6ca1\u5728\u5f3a\u5236\u8eab\u4efd\uff0c\u7acb\u5373\u505c\u6b62\u3002\n2. \u6ce8\u518c\u9002\u914d\u5668\u65f6\u663e\u5f0f\u58f0\u660e\u53ea\u8bfb\u5de5\u5177\u5141\u8bb8\u5217\u8868\u2014\u2014\u4e0d\u80fd\u53ea\u4f9d\u8d56\u201c\u670d\u52a1\u7aef\u6ca1\u6709\u5199\u5de5\u5177\u201d\uff0c\u5ba2\u6237\u7aef\u4e5f\u8981\u8fc7\u6ee4\u3002\n3. \u4fe1\u4efb\u59ff\u6001\u8bbe\u4e3a untrusted\uff08\u8fd4\u56de\u5185\u5bb9\u5f53\u6570\u636e\uff0c\u4e0d\u5f53\u6307\u4ee4\uff09\u3002\n4. \u7528\u8fd0\u884c\u65f6\u81ea\u5df1\u7684\u5ba2\u6237\u7aef\u505a\u4e00\u6b21\u771f\u5b9e\u7aef\u5230\u7aef\u8bfb\u53d6\uff08\u4e0d\u662f curl\uff09\uff0c\u518d\u505a\u53cd\u5411\u6d4b\u8bd5\uff08\u65e0 token\u3001\u9519 scope \u8eab\u4efd\uff09\uff0c\u628a\u547d\u4ee4\u3001\u5de5\u5177\u5217\u8868\u3001HTTP \u7801\u8bb0\u6210\u8bc1\u636e\u3002\n\n\u4e09\u79cd\u771f\u5b9e\u5931\u8d25\u6a21\u5f0f\uff1a\nA. readOnlyHint \u8bfb\u6210\u5e8f\u5217\u5316\u522b\u540d\uff1apydantic \u5bf9\u8c61\u5b57\u6bb5\u540d\u662f read_only_hint\uff0c\u5ba2\u6237\u7aef\u6309 alias \u53d6\u503c\u6052\u4e3a None\uff0c\u4e8e\u662f\u771f\u53ea\u8bfb\u5de5\u5177\u88ab\u5224\u4e3a\u53ef\u5199\uff0c\u5728 trust: untrusted \u4e0b\u88ab\u62d2\uff0c\u65e0\u4eba\u503c\u5b88\u88ab\u5361\u6b7b\u3002\u4fee\u6cd5\uff1a\u4e24\u79cd\u62fc\u5199\u90fd\u8bfb\uff0c\u4fdd\u6301 fail-closed\u3002\nB. MCP \u5ba2\u6237\u7aef\u5e93\u662f\u53ef\u9009 extra\uff1a\u6700\u5c0f\u5b89\u88c5\u6309\u8bbe\u8ba1\u4e0d\u542b mcp SDK\uff0c\u62a5 \"requires the 'mcp' Python SDK\"\uff1b\u663e\u5f0f\u88c5 extra\u3002\nC. \u8fde\u5f97\u4e0a\u4f46\u6ca1\u6743\u9650\uff1atools/list \u6b63\u5e38\u3001\u68c0\u7d22 403\u2014\u2014\u8fd9\u662f\u8eab\u4efd\u95ee\u9898\u4e0d\u662f\u8fde\u901a\u6027\u95ee\u9898\uff0c\u9002\u914d\u5668\u5fc5\u987b\u5e26\u7ea6\u5b9a token \u5934\uff0c\u672a\u77e5\u6216\u7f3a\u5931\u4e00\u5f8b\u62d2\u3002\n\n\u505c\u6b62\u6761\u4ef6\uff1a\u4efb\u4e00\u68c0\u67e5\u4e0d\u8fc7\u5c31\u4e0d\u80fd\u8bb0\u4e3a\u5b8c\u6210\uff0c\u66f4\u4e0d\u5141\u8bb8\u4e3a\u4e86\u201c\u8ba9\u5b83\u8dd1\u8d77\u6765\u201d\u800c\u653e\u5bbd\u5de5\u5177\u8fc7\u6ee4\u3002",
+  "created_by": "atlas-main",
+  "created_at": "2026-09-19T12:45:00Z",
+  "updated_at": "2026-09-19T12:43:20Z",
+  "source": [
+    {
+      "type": "governed_artifact",
+      "path": "experience/approved/governed-readonly-mcp-onboarding.json",
+      "retrieved_at": "2026-09-19T12:45:00Z",
+      "note": "approved experience artifact this skill operationalises"
+    },
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/OpenClaw/tools/intelligence-mcp/server.py",
+      "retrieved_at": "2026-09-19T12:45:00Z",
+      "note": "the read-only stdio MCP adapter under test"
+    },
+    {
+      "type": "local_repository",
+      "path": "$HOME/hermes/patches/apply-mcp-readonly-hint-patch.py",
+      "retrieved_at": "2026-09-19T12:45:00Z",
+      "note": "failure mode A patch, with --check and fail-closed semantics"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "session_evidence",
+      "runtime": "wsl2-ubuntu-24.04",
+      "agent": "atlas-main",
+      "created_at": "2026-09-19T12:45:00Z",
+      "observations": [
+        "experience artifact governed-readonly-mcp-onboarding approved by local-human 2026-09-19T12:34:40Z",
+        "acceptance test executed against live adapter + live gateway",
+        "first test run exposed a false positive in the write-surface check (substring 'approve' inside 'search_approved')"
+      ]
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "mcp",
+    "hermes",
+    "openclaw",
+    "governance"
+  ],
+  "compatibility": [
+    "intelligence-gateway experimental http api",
+    "hermes-agent 0.21.3",
+    "mcp protocol 2025-06-18"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [
+    {
+      "name": "governed-readonly-mcp-onboarding-acceptance",
+      "path": "skills/validated/governed-readonly-mcp-onboarding/tests/test_onboarding.py",
+      "command": "python3 tests/test_onboarding.py",
+      "result": "pass 8/8",
+      "exit_code": 0,
+      "run_at": "2026-09-19T12:45:00Z",
+      "runtime": "wsl2-ubuntu-24.04 / python3 stdlib only",
+      "checks": [
+        "mcp.tools_list",
+        "mcp.no_write_surface",
+        "e2e.approved_read",
+        "e2e.provenance_only",
+        "auth.missing_token_403",
+        "auth.agent_cannot_validate",
+        "auth.no_http_approve_endpoint",
+        "governance.approved_are_verified"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "type": "command_output",
+      "command": "python3 tests/test_onboarding.py",
+      "result": "8/8 checks passed \u2014 ACCEPTANCE: PASS",
+      "observed_at": "2026-09-19T12:45:00Z"
+    },
+    {
+      "type": "command_output",
+      "command": "curl -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8765/v1/search/skill?query=excel'",
+      "result": "403 AuthorizationError: missing or invalid experimental identity",
+      "observed_at": "2026-09-19T12:45:00Z"
+    },
+    {
+      "type": "command_output",
+      "command": "curl -o /dev/null -w '%{http_code}' -H 'X-Intelligence-Token: local-hermes' 'http://127.0.0.1:8765/v1/search/skill?query=excel'",
+      "result": "200, items[0].id=excel-merge, status=approved",
+      "observed_at": "2026-09-19T12:45:00Z"
+    },
+    {
+      "type": "qa",
+      "actor": "local-qa",
+      "validated_at": "2026-09-19T12:43:20Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "governed-readonly-mcp-onboarding",
+    "inputs": [
+      "path to the stdio MCP adapter",
+      "gateway base url (loopback only)",
+      "identity token the runtime may present",
+      "runtime MCP client config file"
+    ],
+    "outputs": [
+      "runtime config entry with an explicit read-only tool filter",
+      "passing acceptance run recorded as artifact evidence"
+    ],
+    "dependencies": [
+      "python3 stdlib (adapter side, no third-party imports)",
+      "running intelligence gateway on 127.0.0.1:8765",
+      "runtime MCP client: hermes >= 0.21.3 or openclaw mcp add"
+    ],
+    "permissions": [
+      "read:approved",
+      "write:runtime-mcp-config",
+      "forbidden: approve, write:candidate, read:candidate"
+    ],
+    "steps": [
+      "probe unauthenticated access -> expect 403",
+      "register adapter with read-only tool allow-list",
+      "set trust posture to untrusted",
+      "diff tools/list against the expected 4-tool set",
+      "one real end-to-end read via the runtime client",
+      "reverse tests: no token, wrong-scope identity",
+      "record command / tool list / http codes as evidence"
+    ],
+    "acceptance": "4-point checklist, executed as tests/test_onboarding.py (8 checks)",
+    "stop_condition": "any failing check means not complete; never widen the tool filter to pass",
+    "derived_from_experience": "governed-readonly-mcp-onboarding@1.0.0"
+  }
+}

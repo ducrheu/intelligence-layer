@@ -1,0 +1,61 @@
+{
+  "id": "excel-merge",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "0.1.0",
+  "title": "Excel merge legacy Skill adapter",
+  "content": "Governed metadata representation of the existing approved excel-merge Skill. Execution remains in the legacy Freelance workspace during Phase 1.",
+  "created_by": "legacy-freelance-migration",
+  "created_at": "2026-09-16T00:00:00Z",
+  "updated_at": "2026-09-16T00:00:00Z",
+  "source": [
+    {
+      "type": "local_workspace",
+      "path": "<USERPROFILE>\\Documents\\Codex\\2026-09-11\\openclaw-openclaw-openclaw-codex-ai-1\\skills\\approved\\excel-merge",
+      "retrieved_at": "2026-09-16T00:00:00Z",
+      "content_hash": "not-computed-in-phase1"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "legacy_skill_registry",
+      "runtime": "openclaw",
+      "agent": "main",
+      "created_at": "2026-09-16T00:00:00Z",
+      "source_jobs": ["job_20260911_002", "job_20260911_003", "job_20260911_004"]
+    }
+  ],
+  "verified": true,
+  "verified_by": "phase1-migration-of-existing-approved-skill",
+  "verified_at": "2026-09-16T00:00:00Z",
+  "applies_to": ["freelance", "excel-merge"],
+  "compatibility": ["legacy-freelance-job-runner"],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [
+    {
+      "name": "legacy-excel-merge-regression",
+      "path": "legacy:skills/approved/excel-merge/tests/test_regression.py",
+      "result": "existing-approved-evidence"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "approval_history",
+      "path": "legacy:skills/approval_history.json",
+      "validated_jobs": ["job_20260911_002", "job_20260911_003", "job_20260911_004"]
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "excel-merge",
+    "inputs": ["compatible .xlsx workbooks"],
+    "outputs": ["merged CSV"],
+    "dependencies": ["Python", "legacy job runner"],
+    "permissions": ["read:job-input", "write:job-output", "read:qa"],
+    "legacy_execution_path": "skills/approved/excel-merge",
+    "adapter_only": true
+  }
+}

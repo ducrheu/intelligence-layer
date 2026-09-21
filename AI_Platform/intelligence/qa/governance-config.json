@@ -1,0 +1,4 @@
+{
+  "auto_admission": "enforce",
+  "comment": "shadow records verdicts only; enforce lets the policy-auto identity admit what the policy allows. Read by the gateway and every tool, so they never disagree."
+}

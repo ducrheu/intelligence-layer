@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "artifact.schema.json",
+  "title": "Skill Artifact",
+  "allOf": [{"properties": {"kind": {"const": "skill"}}}],
+  "description": "Skill artifacts require metadata name, inputs, outputs, dependencies, permissions and at least one test."
+}

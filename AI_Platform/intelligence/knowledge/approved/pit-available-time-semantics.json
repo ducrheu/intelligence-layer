@@ -1,0 +1,151 @@
+{
+  "id": "pit-available-time-semantics",
+  "kind": "knowledge",
+  "scope": "project",
+  "status": "validated",
+  "version": "0.1.0",
+  "title": "PIT available_time semantics",
+  "content": "event_time is when an economic or market event occurred. available_time is the earliest time the information could legitimately be known by the strategy or data consumer. processing_time is when the platform ingested, normalized, or processed the record. revision_id identifies a revision of the same logical observation. A backtest must not use a record before available_time, even when event_time is earlier and the record is present in a later snapshot. This separation prevents look-ahead bias. Example: an earnings release with event_time 2026-01-10 and available_time 2026-01-11 08:00 UTC must not affect a decision at 2026-01-10 close.",
+  "created_by": "phase1-domain-seed",
+  "created_at": "2026-09-16T00:00:00Z",
+  "updated_at": "2026-09-19T12:44:01Z",
+  "source": [
+    {
+      "type": "user-provided-domain-context",
+      "project": "D:\\quant-data-project",
+      "retrieved_at": "2026-09-16T00:00:00Z",
+      "content_hash": "not-computed-in-phase1"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "human-authored",
+      "created_by": "user",
+      "created_at": "2026-09-16T00:00:00Z",
+      "note": "Initial domain artifact created from the platform requirements; not a claim of repository verification."
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "pit-database",
+    "backtesting",
+    "factor-calculation",
+    "financial-research"
+  ],
+  "compatibility": [
+    "pit-schema-v0"
+  ],
+  "expires_at": null,
+  "review_interval_days": 30,
+  "tests": [
+    {
+      "name": "available-time-gates-usage",
+      "type": "semantic-assertion",
+      "assertion": "usable_at >= available_time"
+    },
+    {
+      "name": "revision-preserved",
+      "type": "semantic-assertion",
+      "assertion": "revision_id is retained when observations are revised"
+    }
+  ],
+  "evidence": [
+    {
+      "claim": "event_time",
+      "status": "CONFIRMED",
+      "location": "README.md:11, src/domain/financial.py:12, src/repositories/financial.py:31, tests/test_financal_repository.py:24",
+      "evidence": "Documented as report period; modeled as datetime; persisted in financial_fact; used in repository tests."
+    },
+    {
+      "claim": "available_time",
+      "status": "CONFIRMED",
+      "location": "README.md:12, src/domain/financial.py:14, src/repositories/financial.py:119, tests/test_financal_repository.py:188",
+      "evidence": "Documented as market first-known time; modeled and persisted; get_pit filters available_time <= as_of_time; future unavailable record returns None."
+    },
+    {
+      "claim": "processing_time",
+      "status": "CONFIRMED",
+      "location": "src/domain/financial.py:16, src/repositories/financial.py:39, src/normalizers/financial.py:29",
+      "evidence": "Modeled and persisted; normalizer maps it from raw.ingest_time."
+    },
+    {
+      "claim": "revision_id",
+      "status": "PARTIALLY_CONFIRMED",
+      "location": "README.md:61, README.md:149, src/domain/financial.py:20, src/repositories/financial.py:56, tests/test_financal_repository.py:63",
+      "evidence": "Implementation and tests support revision_id=2 and latest available version; README known limitation says revision_id currently defaults to/was planned as constant 1, creating documentation conflict."
+    },
+    {
+      "claim": "look-ahead protection",
+      "status": "CONFIRMED",
+      "location": "README.md:15, src/repositories/financial.py:119, tests/test_financal_repository.py:188",
+      "evidence": "Repository query gates rows by available_time <= as_of_time; test asserts unavailable future data returns None."
+    },
+    {
+      "claim": "release-time example",
+      "status": "CONFIRMED",
+      "location": "README.md:17, tests/test_financal_repository.py:193-206",
+      "evidence": "README example and tests cover an event_time later visible only after available_time."
+    },
+    {
+      "claim": "repository_identity",
+      "status": "CONFIRMED",
+      "location": "git metadata",
+      "evidence": "branch master, HEAD d9e00554195d7399dd92ce3ade2a77fbfced62f7, remote origin https://github.com/ducrheu/quant-data-fabric.git"
+    },
+    {
+      "type": "qa",
+      "actor": "phase2-qa",
+      "validated_at": "2026-09-16T15:44:25Z"
+    },
+    {
+      "type": "repository_revalidation",
+      "repository": "D:\\quant-data-project",
+      "ref": "master@bf620704751bdab708658e74c2d5649b4313020a",
+      "ref_date": "2026-09-19T13:22:25+08:00",
+      "working_tree": "clean",
+      "inspected_files": [
+        "src/domain/financial.py",
+        "src/repositories/financial.py",
+        "src/normalizers/financial.py",
+        "src/validators/financial.py",
+        "tests/test_financal_repository.py"
+      ],
+      "schema_evidence": "financial_fact DDL in src/repositories/financial.py::_create_table (symbol, metric_name, value, event_time, available_time, processing_time, source, revision_id; UNIQUE(symbol, metric_name, event_time, revision_id))",
+      "field_checks": {
+        "event_time": "present \u2014 src/domain/financial.py:12, DDL column, populated from raw end_date",
+        "available_time": "present \u2014 src/domain/financial.py:14, DDL column, populated from raw ann_date",
+        "processing_time": "present \u2014 src/domain/financial.py:16, DDL column, populated from raw.ingest_time",
+        "revision_id": "present \u2014 src/domain/financial.py:20 default 1, in DDL and in the UNIQUE key"
+      },
+      "point_in_time_enforcement": "src/repositories/financial.py::get_pit filters `available_time <= as_of_time` and orders by event_time DESC, available_time DESC \u2014 no row can be read before its available_time",
+      "test_evidence": {
+        "command": ".venv/Scripts/python.exe -m pytest tests/test_financal_repository.py -q  (cwd D:\\quant-data-project @ bf620704751b)",
+        "result": "6 passed in 3.56s",
+        "covers": [
+          "test_pit_query_returns_latest_available_version",
+          "test_pit_result_does_not_depend_on_insert_order",
+          "test_pit_tracks_multiple_report_periods",
+          "test_get_pit_return_none_when_event_not_available_yet (look-ahead guard)",
+          "test_save_is_idempotent",
+          "test_save_returns_inserted_count"
+        ]
+      },
+      "outcome": "semantics confirmed for financial_fact; artifact is repository-grounded as of this ref",
+      "gaps_found": [
+        "PIT semantics are implemented only on the financial side: neither src/domain/price.py nor src/repositories/price.py carries available_time, so the artifact's applies_to entries 'backtesting' and 'factor-calculation' are not yet enforced outside financial_fact",
+        "revision_id exists as a column and in the UNIQUE key, but there is no revision-writing path: save() uses ON CONFLICT DO NOTHING, so a corrected value at the same (symbol, metric_name, event_time, revision_id) is silently dropped instead of becoming a new revision",
+        "no ordering invariant is validated (ann_date >= end_date is never asserted in src/validators/financial.py), so available_time < event_time would pass silently"
+      ],
+      "recorded_by": "local-qa",
+      "recorded_at": "2026-09-19T12:55:00Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "requires_repository_revalidation": true,
+    "production_code_modified": false
+  }
+}

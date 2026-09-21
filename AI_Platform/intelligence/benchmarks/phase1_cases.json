@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "cases": [
+    {"id": "create-knowledge-candidate", "operation": "submit_candidate", "kind": "knowledge"},
+    {"id": "create-experience-candidate", "operation": "submit_candidate", "kind": "experience"},
+    {"id": "create-skill-candidate", "operation": "submit_candidate", "kind": "skill"},
+    {"id": "validate-artifact", "operation": "validate_candidate"},
+    {"id": "reject-invalid-artifact", "operation": "submit_candidate", "expected": "error"},
+    {"id": "reject-unauthorized-approval", "operation": "approve", "expected": "authorization_error"},
+    {"id": "approve-candidate", "operation": "approve", "expected": "approved"},
+    {"id": "deprecate-artifact", "operation": "deprecate", "expected": "deprecated"},
+    {"id": "rollback-supersede", "operation": "supersede", "expected": "old_deprecated_new_candidate"},
+    {"id": "candidate-isolation", "operation": "search", "expected": "candidate_hidden_from_approved_only"},
+    {"id": "provenance-validation", "operation": "validate_artifact", "expected": "error_when_missing_provenance"},
+    {"id": "schema-validation", "operation": "validate_artifact", "expected": "error_when_invalid_version"}
+  ]
+}

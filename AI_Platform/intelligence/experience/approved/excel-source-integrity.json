@@ -1,0 +1,54 @@
+{
+  "id": "excel-source-integrity",
+  "kind": "experience",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Excel transformations require source-integrity QA",
+  "content": "For file transformations, record source SHA-256 values before execution and independently verify readability, schema, total source rows, output rows, and unchanged source hashes after execution. A correct-looking output is not enough.",
+  "created_by": "legacy-freelance-migration",
+  "created_at": "2026-09-16T00:00:00Z",
+  "updated_at": "2026-09-16T00:00:00Z",
+  "source": [
+    {
+      "type": "legacy_experience",
+      "path": "experience/accepted/exp_excel_source_integrity_001.md",
+      "retrieved_at": "2026-09-16T00:00:00Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "legacy_agent_run_summary",
+      "runtime": "openclaw",
+      "task_id": "job_20260911_002",
+      "created_at": "2026-09-16T00:00:00Z",
+      "result_hash": "not-computed-in-phase1"
+    }
+  ],
+  "verified": true,
+  "verified_by": "phase1-migration-of-existing-approved-experience",
+  "verified_at": "2026-09-16T00:00:00Z",
+  "applies_to": ["excel", "csv", "file-transformation"],
+  "compatibility": ["excel-merge-0.1.0"],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [
+    {
+      "name": "source-hash-preservation",
+      "path": "legacy:skills/approved/excel-merge/tests/test_regression.py",
+      "result": "existing-approved-evidence"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "validated_job",
+      "job_id": "job_20260911_002",
+      "qa": "PASS"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "raw_transcript_imported": false
+  }
+}

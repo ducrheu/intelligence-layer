@@ -1,0 +1,80 @@
+{
+  "id": "governed-readonly-mcp-onboarding",
+  "kind": "experience",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u7ed9 agent \u63a5\u4e00\u4e2a\u53d7\u6cbb\u7406\u7684\u53ea\u8bfb MCP\uff1a\u4e09\u79cd\u5178\u578b\u5931\u8d25\u6a21\u5f0f",
+  "content": "\u76ee\u6807\uff1a\u8ba9\u4e24\u4e2a agent \u8fd0\u884c\u65f6\uff08Hermes \u4e0e OpenClaw\uff09\u5171\u7528\u540c\u4e00\u4e2a\u53d7\u6cbb\u7406\u7684\u53ea\u8bfb\u77e5\u8bc6\u670d\u52a1\uff0c\u540c\u65f6\u4e0d\u8d4b\u4e88\u4efb\u4f55\u4e00\u65b9\u5199\u5165\u6216\u5ba1\u6279\u80fd\u529b\u3002\n\n\u53ef\u7528\u67b6\u6784\uff1a\u4e00\u4e2a\u96f6\u7b2c\u4e09\u65b9\u4f9d\u8d56\u7684 stdio MCP \u9002\u914d\u5668\uff0c\u628a MCP \u5ba2\u6237\u7aef\u6865\u63a5\u5230\u4e00\u4e2a\u53ea\u7ed1 loopback \u7684 HTTP gateway\uff08127.0.0.1:8765\uff09\u3002gateway \u72ec\u5360\u4ea7\u7269\u5b58\u50a8\u3001\u8eab\u4efd\u8868\u4e0e\u5ba1\u6279\u751f\u547d\u5468\u671f\u3002\u8fd4\u56de\u5185\u5bb9\u4e00\u5f8b\u5f53\u4f5c\u6570\u636e\u3001\u7edd\u4e0d\u5f53\u4f5c\u6307\u4ee4\u3002\n\n\u5931\u8d25\u6a21\u5f0f\u4e00\uff1areadOnlyHint \u8bfb\u9519\u4e86\u5c5e\u6027\u3002\n\u75c7\u72b6\uff1a\u5728 trust: untrusted \u7684\u670d\u52a1\u5668\u4e0a\uff0c\u771f\u6b63\u53ea\u8bfb\u7684\u5de5\u5177\u88ab\u62d2\u7edd\u6267\u884c\uff0c\u62a5 \"The user did not approve running write-capable MCP tool ...\"\uff0c\u5bfc\u81f4\u65e0\u4eba\u503c\u5b88\u8fd0\u884c\u88ab\u5361\u6b7b\u3002\n\u539f\u56e0\uff08Hermes 0.21.3\uff09\uff1a\u4fe1\u4efb\u95f8\u95e8\u7528 getattr(annotations, \"readOnlyHint\") \u8bfb\u7684\u662f pydantic \u7684\u5e8f\u5217\u5316\u522b\u540d\uff1b\u89e3\u6790\u540e\u5bf9\u8c61\u7684\u5c5e\u6027\u540d\u662f\u5b57\u6bb5\u540d read_only_hint\uff0c\u56e0\u6b64\u53d6\u503c\u6052\u4e3a None\uff0c\u5de5\u5177\u88ab\u5224\u4e3a\u53ef\u5199\u3002\n\u5b9a\u4f4d\u65b9\u6cd5\uff1a\u5148\u7528 MCP SDK \u76f4\u8fde\u670d\u52a1\u5668\u5e76\u6253\u5370 annotations \u5bf9\u8c61\u2014\u2014\u82e5 read_only_hint \u4e3a True\uff0c\u8bf4\u660e\u670d\u52a1\u5668\u6ca1\u95ee\u9898\uff0c\u95ee\u9898\u5728\u5ba2\u6237\u7aef\u3002\n\u4fee\u6cd5\uff08\u672c\u5730\u8865\u4e01\uff09\uff1a\u4e24\u79cd\u62fc\u5199\u90fd\u8bfb\uff1b\u4fdd\u6301 fail-closed\uff08\u975e\u5b57\u9762 True \u4ecd\u6309\u53ef\u5199\u5904\u7406\uff09\u3002\n\n\u5931\u8d25\u6a21\u5f0f\u4e8c\uff1aMCP \u5ba2\u6237\u7aef\u5e93\u662f\u53ef\u9009 extra\u3002\n\u75c7\u72b6\uff1a\"MCP server 'x' requires the 'mcp' Python SDK, but it is not installed.\"\n\u539f\u56e0\uff1aHermes \u7684\u6700\u5c0f\u5b89\u88c5\u6309\u8bbe\u8ba1\u4e0d\u542b MCP extra\uff08\u4f9d\u8d56\u7206\u70b8\u534a\u5f84\u7b56\u7565\uff09\u3002\u663e\u5f0f\u5b89\u88c5\uff1auv pip install -e '.[mcp]'\u3002\n\n\u5931\u8d25\u6a21\u5f0f\u4e09\uff1a\u8fde\u5f97\u4e0a\uff0c\u4f46\u6ca1\u6709\u6743\u9650\u3002\n\u75c7\u72b6\uff1a\u8fde\u63a5\u6210\u529f\u3001tools/list \u8fd4\u56de\u5de5\u5177\uff0c\u4f46\u68c0\u7d22\u8fd4\u56de 403\u3002\n\u539f\u56e0\uff1a\u8fd9\u662f\u8eab\u4efd\u95ee\u9898\u800c\u975e\u8fde\u901a\u6027\u95ee\u9898\u3002\u9002\u914d\u5668\u5fc5\u987b\u643a\u5e26\u7ea6\u5b9a\u7684 token \u5934\uff1bgateway \u628a token \u6620\u5c04\u5230 actor \u518d\u6620\u5c04\u5230 scopes\uff0c\u672a\u77e5\u6216\u7f3a\u5931\u7684 token \u4e00\u5f8b\u62d2\u7edd\u3002\n\u53cd\u5411\u9a8c\u8bc1\uff1a\u6545\u610f\u4e0d\u5e26 token \u5fc5\u987b\u5f97\u5230 403\uff1b\u53ea\u8bfb\u8eab\u4efd\u4e0d\u5f97\u51fa\u73b0\u5728\u4efb\u4f55\u5199\u5165\u6216\u5ba1\u6279\u8def\u5f84\u4e0a\u3002\n\n\u63a5\u5165\u53d7\u6cbb\u7406\u53ea\u8bfb MCP \u7684\u9a8c\u6536\u6e05\u5355\uff1a\n1. Hermes \u4fa7 hermes mcp test <server>\uff1bOpenClaw \u4fa7 openclaw mcp doctor \u4e0e openclaw mcp probe <server>\u2014\u2014\u4e24\u4fa7\u90fd\u5fc5\u987b\u53ea\u5217\u51fa\u9884\u671f\u7684\u5de5\u5177\u96c6\u5408\u3002\n2. \u6bcf\u4e2a\u5ba2\u6237\u7aef\u5404\u505a\u4e00\u6b21\u771f\u5b9e\u7aef\u5230\u7aef\u8c03\u7528\uff0c\u4e14\u80fd\u53d6\u56de\u5df2\u77e5\u7684\u5df2\u6279\u51c6\u4ea7\u7269\u3002\n3. \u53cd\u5411\u6d4b\u8bd5\uff1a\u4e0d\u5e26 token \u5fc5\u987b 403\u3002\n4. \u786e\u8ba4 MCP \u8868\u9762\u5b8c\u5168\u6ca1\u6709\u66b4\u9732\u5199\u5165\u6216\u5ba1\u6279\u5de5\u5177\u3002\n\n\u672c\u8bb0\u5f55\u4e0d\u542b\u4efb\u4f55\u51ed\u636e\uff1b\u4e0a\u8ff0\u7ed3\u8bba\u5747\u7531\u672c\u673a\u5b9e\u6d4b\u5f97\u51fa\uff082026-09-19\uff09\u3002",
+  "created_by": "atlas-main",
+  "created_at": "2026-09-19T12:30:00Z",
+  "updated_at": "2026-09-19T12:34:40Z",
+  "source": [
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/OpenClaw/tools/intelligence-mcp/server.py",
+      "retrieved_at": "2026-09-19T12:30:00Z",
+      "note": "stdio MCP adapter, zero third-party dependencies"
+    },
+    {
+      "type": "local_repository",
+      "path": "$HOME/hermes/patches/apply-mcp-readonly-hint-patch.py",
+      "retrieved_at": "2026-09-19T12:30:00Z",
+      "note": "idempotent patch + --check for the annotation lookup bug"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "session_evidence",
+      "runtime": "wsl2-ubuntu-24.04",
+      "agent": "atlas-main",
+      "created_at": "2026-09-19T12:30:00Z",
+      "observations": [
+        "hermes mcp test intelligence -> connected, 4 tools",
+        "openclaw mcp doctor -> ok; openclaw mcp probe intelligence -> 4 tools",
+        "hermes -z 'call search_approved' blocked before patch; returned excel-merge/approved after patch",
+        "unauthenticated GET /v1/search/skill -> 403",
+        "MCP SDK probe: read_only_hint=True (server correct), alias lookup None (client bug)"
+      ]
+    }
+  ],
+  "verified": true,
+  "applies_to": [
+    "mcp",
+    "hermes",
+    "openclaw",
+    "governance"
+  ],
+  "compatibility": [
+    "intelligence-gateway experimental http api",
+    "hermes-agent 0.21.3"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "command_output",
+      "path": "shell:hermes -z 'call search_approved (kind=skill, query=excel)'",
+      "result": "artifact id: excel-merge / status: approved"
+    },
+    {
+      "type": "qa",
+      "actor": "local-qa",
+      "validated_at": "2026-09-19T12:25:18Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "failure_modes": [
+      "annotation_alias_vs_field_name",
+      "optional_extra_not_installed",
+      "identity_scope_denied"
+    ],
+    "owner_verified": false,
+    "approval_action": "human_approval"
+  },
+  "verified_by": "local-human",
+  "verified_at": "2026-09-19T12:34:40Z"
+}

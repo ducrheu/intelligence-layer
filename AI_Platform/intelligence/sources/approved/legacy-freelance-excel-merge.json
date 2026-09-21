@@ -1,0 +1,55 @@
+{
+  "id": "source-legacy-freelance-excel-merge",
+  "kind": "source",
+  "scope": "project",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Legacy Freelance excel-merge Skill source",
+  "content": "Read-only reference to the existing Freelance excel-merge Skill, registry, approval history, accepted experience, and regression test.",
+  "created_by": "phase1-migration",
+  "created_at": "2026-09-16T00:00:00Z",
+  "updated_at": "2026-09-16T00:00:00Z",
+  "source": [
+    {
+      "type": "local_workspace",
+      "path": "<USERPROFILE>\\Documents\\Codex\\2026-09-11\\openclaw-openclaw-openclaw-codex-ai-1",
+      "retrieved_at": "2026-09-16T00:00:00Z",
+      "content_hash": "not-computed-in-phase1"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "manual_inspection",
+      "created_by": "codex",
+      "created_at": "2026-09-16T00:00:00Z",
+      "note": "Read-only inspection; no source files were modified."
+    }
+  ],
+  "verified": true,
+  "verified_by": "phase1-human-approved-existing-source",
+  "verified_at": "2026-09-16T00:00:00Z",
+  "applies_to": ["freelance", "excel-merge"],
+  "compatibility": ["legacy-freelance-workspace"],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [
+    {
+      "name": "legacy-regression",
+      "path": "skills/approved/excel-merge/tests/test_regression.py",
+      "result": "existing-approved-evidence"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "approval_history",
+      "path": "skills/approval_history.json",
+      "approved_jobs": ["job_20260911_002", "job_20260911_003", "job_20260911_004"]
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "read_only_adapter": true,
+    "production_integration": false
+  }
+}

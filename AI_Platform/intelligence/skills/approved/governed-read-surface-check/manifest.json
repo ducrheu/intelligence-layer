@@ -1,0 +1,106 @@
+{
+  "id": "governed-read-surface-check",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "governed-read-surface-check (backflow from Hermes)",
+  "content": "# Governed Read Surface Check Skill\n\nRun one acceptance check that proves a governed knowledge-base read identity\nstill cannot write, cannot see unapproved bodies, and cannot escape its\nretrieval bounds. It is the regression gate for the read side of the\nIntelligence Layer: run it before and after any identity or scope change.\n\nIt checks an HTTP surface, not a document. It does not review content quality.\n\n## When to Use\n\n- Before and after touching the identity table, scopes, or MCP tool filters \u2014\n  the change that gives one identity write access must not widen the reader.\n- When a new runtime (a second agent, a QA identity) is added and you need\n  evidence that the reader still sees approved artifacts only.\n- When an incident is suspected: a read identity returning unapproved bodies,\n  unbounded result sets, or a successful write.\n\n## Prerequisites\n\n- The Intelligence Layer gateway reachable over loopback (default\n  `http://127.0.0.1:8765`), or any server implementing the same experimental\n  HTTP API.\n- The token of the identity under test. Default `local-hermes`, overridable\n  with `--token` or the `INTELLIGENCE_TOKEN` environment variable. Never pass a\n  token on a command line that gets recorded, and never paste one into chat.\n- Python 3 with the standard library only. No third-party dependency.\n\n## Contract\n\n- inputs: gateway base URL, the token of the read identity under test, and a list of probe queries\n- outputs: one PASS/FAIL line per invariant plus `ACCEPTANCE: PASS|FAIL`, exit code 0 or 1\n- dependencies: python3 standard library only (`urllib`, `http.server` in self-test mode)\n- permissions: read-only - the only POST is a deliberately unpersistable probe that the gateway must reject; it can never create or change an artifact under any identity\n\n## How to Run\n\n```bash\n# hermetic self-test: drives the checks against a local fake gateway that is\n# deliberately correct and deliberately broken. No network, no real gateway.\npython3 tests/read_surface.py\n\n# live acceptance against the real gateway\npython3 tests/read_surface.py --live --base-url http://127.0.0.1:8765 --token local-hermes\n\n# choose the probe queries (defaults cover approved and pending-only terms)\npython3 tests/read_surface.py --live --query collaboration --query pit\n```\n\nThe live mode exits non-zero when any invariant breaks, so it is safe to use as\na pre-commit or post-deploy step.\n\n## Quick Reference\n\n| Invariant | What a failure means |\n|---|---|\n| `auth_required` | an unauthenticated caller reads the KB |\n| `bogus_token_rejected` | an unknown token is treated as valid |\n| `health_ok` | the surface is down or bound to a non-loopback address |\n| `search_returns_approved_only` | a read identity sees unapproved bodies |\n| `search_respects_max_items` | retrieval is unbounded |\n| `search_respects_max_chars` | a single artifact body is returned past its cap |\n| `metadata_warning_has_no_content` | the metadata-only warning leaks the body it warns about |\n| `write_surface_closed` | the read identity can write candidates |\n| `no_http_approve_endpoint` | approval became reachable over HTTP |\n| `malformed_selector_rejected` | path-like artifact selectors are accepted |\n| `approved_artifact_roundtrip` | an approved id cannot be fetched, or returns a non-approved record |\n\n## Procedure\n\n1. Confirm the gateway is the one you think it is: `health_ok` reports the bind\n   address, which must be `127.0.0.1`.\n2. Run the self-test first (`python3 tests/read_surface.py`). It proves the\n   checker itself fails when it should \u2014 a checker that cannot fail is not\n   evidence.\n3. Run `--live` with the identity under test. Queries default to terms that\n   match both approved and pending artifacts (`collaboration`, `pit`,\n   `onboarding`, `governed`), so a visibility leak shows up rather than being\n   masked by an empty result set.\n4. Read the failures, not the score. Each failing line names the invariant and\n   the observed status code. A `write_surface_closed` result of `400` instead of\n   `403` is recorded as OK-with-note: authorization is open but the gateway's\n   own schema guard still refused the write.\n5. When the surface is shared, re-run it after every identity-table edit and\n   keep the output as evidence for the artifact that describes the change.\n\n## Pitfalls\n\n- **A substring match on a tool name is not a tool.** A write-surface check that\n  searches a tool list for the text `approve` matches `search_approved` and\n  reports a false positive. Check the identity's scopes and the HTTP status of a\n  real call instead of pattern-matching names.\n- **An empty result set proves nothing.** Asserting \"no unapproved item\n  appeared\" passes trivially when the query matched nothing. Always probe with\n  terms that are known to match pending artifacts.\n- **The probe must be unpersistable, not just unauthorized.** The probe payload\n  carries `status: \"approved\"` and omits required records, so the gateway\n  rejects it on the status check and again on schema validation. A probe that is\n  merely unauthorized would create a real candidate the moment someone grants\n  the identity write access.\n- **Checking the MCP tool list is not checking the surface.** Tool visibility\n  and authorization are separate layers; only a call proves the second.\n- **Do not treat a green run as approval.** This checks that the reader cannot\n  write. It says nothing about whether any candidate is worth approving.\n\n## Verification\n\n`python3 tests/read_surface.py` must print `SELF-TEST: PASS` and exit 0. Every\nscenario in it asserts that a specific broken fake gateway produces a specific\nfailure, so a green run means the checks can actually fail. `--live` must print\n`ACCEPTANCE: PASS` with all invariants listed; any `FAIL` line is the finding.\n",
+  "created_by": "atlas-backflow",
+  "created_at": "2026-09-20T01:53:20Z",
+  "updated_at": "2026-09-20T01:54:29Z",
+  "source": [
+    {
+      "type": "hermes_skill",
+      "path": "$HOME/.hermes/skills/local/governed-read-surface-check/SKILL.md",
+      "retrieved_at": "2026-09-20T01:53:20Z",
+      "content_hash": "sha256:a755882d45d843e1101bfc1c118a3b2df3e00c0d74f5cc4b35e1d760c596da23"
+    },
+    {
+      "type": "hermes_skill_test",
+      "path": "$HOME/.hermes/skills/local/governed-read-surface-check/tests/read_surface.py",
+      "retrieved_at": "2026-09-20T01:53:20Z",
+      "content_hash": "sha256:c0ae66e8e7373c81e220d1771dd27d03c1622921165ecd0d02b5c860f7c3a1c5"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "skill_backflow",
+      "runtime": "hermes",
+      "agent": "HUYI (operator), Hermes Agent",
+      "created_at": "2026-09-20T01:53:20Z",
+      "observations": [
+        "authored by Hermes in its own home: $HOME/.hermes/skills/local/governed-read-surface-check",
+        "frontmatter: name=governed-read-surface-check version=1.0.0 platforms=None",
+        "converted and submitted by the backflow gate; validation and approval remain separate identities"
+      ]
+    }
+  ],
+  "verified": true,
+  "verified_by": "local-human",
+  "verified_at": "2026-09-20T01:54:29Z",
+  "applies_to": [
+    "governance",
+    "intelligence-layer",
+    "acceptance-test",
+    "read-only",
+    "mcp"
+  ],
+  "compatibility": [
+    "hermes-agent skill format v1.0.0",
+    "intelligence-gateway experimental http api"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [
+    {
+      "command": "python3 $HOME/.hermes/skills/local/governed-read-surface-check/tests/read_surface.py",
+      "exit_code": 0,
+      "result": "pass",
+      "ran_at": "2026-09-20T01:53:17Z",
+      "output_tail": "PASS  correct-gateway fixture: 11/11 invariants hold\nPASS  leaky_items: caught by search_returns_approved_only\nPASS  open_write: caught by write_surface_closed\nPASS  leaky_warnings: caught by metadata_warning_has_no_content\nPASS  unbounded_items: caught by search_respects_max_items\nPASS  unbounded_chars: caught by search_respects_max_chars\nPASS  auth_off: caught by auth_required\n\nSELF-TEST: PASS  (7 scenarios, 0 failure(s))",
+      "path": "skills/approved/governed-read-surface-check/tests/read_surface.py",
+      "source_path": "$HOME/.hermes/skills/local/governed-read-surface-check/tests/read_surface.py"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "test_run",
+      "command": "python3 $HOME/.hermes/skills/local/governed-read-surface-check/tests/read_surface.py",
+      "exit_code": 0,
+      "output_tail": "PASS  correct-gateway fixture: 11/11 invariants hold\nPASS  leaky_items: caught by search_returns_approved_only\nPASS  open_write: caught by write_surface_closed\nPASS  leaky_warnings: caught by metadata_warning_has_no_content\nPASS  unbounded_items: caught by search_respects_max_items\nPASS  unbounded_chars: caught by search_respects_max_chars\nPASS  auth_off: caught by auth_required\n\nSELF-TEST: PASS  (7 scenarios, 0 failure(s))",
+      "observed_at": "2026-09-20T01:53:17Z"
+    },
+    {
+      "type": "qa",
+      "actor": "local-qa",
+      "validated_at": "2026-09-20T01:53:43Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "governed-read-surface-check",
+    "inputs": [
+      "gateway base URL",
+      "the token of the read identity under test",
+      "and a list of probe queries"
+    ],
+    "outputs": [
+      "one PASS/FAIL line per invariant plus `ACCEPTANCE: PASS|FAIL",
+      "exit code 0 or 1"
+    ],
+    "dependencies": [
+      "python3 standard library only (`urllib",
+      "http.server` in self-test mode)"
+    ],
+    "permissions": [
+      "read-only - the only POST is a deliberately unpersistable probe that the gateway must reject; it can never create or change an artifact under any identity"
+    ],
+    "description": "Verify a governed KB read surface is still write-free.",
+    "backflow_source": "$HOME/.hermes/skills/local/governed-read-surface-check",
+    "backflow_gate": "hermes-skill-backflow.py",
+    "promotion_requires": "local-qa validate + local-human approve",
+    "approval_action": "human_approval"
+  }
+}

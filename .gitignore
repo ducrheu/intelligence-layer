@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.tmp
+*.bak
+*.orig
+.DS_Store
+
+# 向量缓存：由产物正文确定性重算（换模型即失效），不进版本控制
+# 运行时状态（审计、事件、使用计数、令牌哈希）由 INTELLIGENCE_STATE 指向仓库之外，
+# 默认位置 ~/.local/state/intelligence-layer —— 仓库本身保持可公开。
+AI_Platform/intelligence/qa/audit.jsonl
+AI_Platform/intelligence/qa/events.jsonl
+AI_Platform/intelligence/qa/usage.json
+AI_Platform/intelligence/qa/identity_tokens.json
+AI_Platform/intelligence/qa/embeddings.json
+AI_Platform/intelligence/qa/*.tmp
+
+# 明文凭据一律不进仓库（本项目把令牌明文刻意放在仓库之外）
+*.local.json
+.env
+*.pem
+
+# 生成物：只读面板的快照（可随时重新生成）
+dashboard.html

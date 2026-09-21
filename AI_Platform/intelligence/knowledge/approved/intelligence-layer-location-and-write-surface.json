@@ -1,0 +1,81 @@
+{
+  "id": "intelligence-layer-location-and-write-surface",
+  "kind": "knowledge",
+  "scope": "shared",
+  "status": "candidate",
+  "version": "1.1.0",
+  "title": "Intelligence Layer: store root, identities, surfaces and the loop",
+  "content": "# Where the governed store lives\n\n`/mnt/d/intelligence-layer/AI_Platform/intelligence` - moved off the C: Codex workspace on 2026-09-20.\nGateway `http://127.0.0.1:8765`, loopback only, systemd user unit `intelligence-gateway.service`.\n\n## Identities (experimental, source-visible tokens)\n\n| identity | scopes |\n|---|---|\n| `local-hermes` | read:approved, read:governance-metadata |\n| `local-hermes-writer` | + read:candidate, write:candidate, request:promotion, withdraw |\n| `local-agent` | read:approved, write:candidate, request:promotion, withdraw |\n| `local-qa` | read:candidate, validate:candidate |\n| `local-human` | approve, deprecate, rollback, withdraw:any |\n\n## Surfaces and tools\n\nTwo MCP surfaces, deliberately separate programs. Read adapter `server.py` exposes five read\ntools - `search_approved`, `get_approved_artifact`, `get_governance_metadata`, `get_provenance`,\n`get_governance_events` - and contains no write path at all. Write adapter `write_server.py`\nexposes the same five plus `submit_candidate`, `request_promotion` and `withdraw_candidate`.\n\nNeither surface has validate/approve/deprecate/supersede, and there is no HTTP approve endpoint.\n\n## The loop, with tools\n\n1. `hermes-skill-backflow.py --source ~/.hermes/skills/local/<name>` (dry run) then `--apply` -\n   files a skill candidate as `local-agent`, after running the skill's own tests.\n2. `intelligence-validate.py --kind skill --id <id>` (dry run) then `--apply` - QA re-runs the\n   artifact's recorded tests from the governed copy and refuses to validate what fails.\n3. `intelligence-approve.py --kind skill --id <id> --apply` - the human approves. Never automate.\n\nArtifacts written through the MCP write surface instead follow: `submit_candidate` ->\nvalidate -> `request_promotion` -> approve.\n\n## Rules that decide most questions\n\n- A candidate may not shadow a live id (`approved`/`stale`/`deprecated`); an `archived` id is\n  reusable, because an archived record is inert.\n- `withdraw_candidate` retracts an unpublished artifact. Nothing is deleted: the status becomes\n  `archived` with the reason kept, and it leaves the reading surface. Allowed for the identity\n  that filed it (read from the append-only audit log, not from a claimant-controlled field) or for\n  the human.\n- `verified: true` only ever comes from approval; the write surface forces it false.\n- Ids are path segments in the store, so they must match `[A-Za-z0-9][A-Za-z0-9._-]{0,127}`.\n- A status change moves the artifact's whole directory and rewrites its recorded test paths.\n\n## Feedback\n\n`qa/events.jsonl` carries metadata-only lifecycle events (id, kind, from/to status, actor, never\ncontent) behind `GET /v1/events?since=<line-offset cursor>`, or the `get_governance_events` tool.\nA monitor-gated cron job (`governance-feedback`, every 3h) pulls the increment and reports.\n",
+  "source": [
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/intelligence-layer/AI_Platform/intelligence/gateway/service.py",
+      "retrieved_at": "2026-09-20T05:10:55Z",
+      "note": "lifecycle, identities in policy, withdraw and event emission"
+    },
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/OpenClaw/tools/intelligence-mcp/write_server.py",
+      "retrieved_at": "2026-09-20T05:10:55Z",
+      "note": "the write surface: tool list and normalisation"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "session_evidence",
+      "runtime": "wsl2-ubuntu-24.04",
+      "agent": "hermes",
+      "created_at": "2026-09-20T05:10:55Z",
+      "observations": [
+        "v1.1.0 corrects v1.0.0: the read surface has five tools (get_governance_events was added), and the write surface has three (withdraw_candidate was added)",
+        "v1.0.0 was withdrawn before validation for that reason, not because its claims were wrong"
+      ]
+    },
+    {
+      "type": "mcp_write_surface",
+      "runtime": "hermes",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-20T05:10:55Z",
+      "observations": [
+        "submitted through the Hermes write surface; validation and approval are separate identities"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "type": "command_output",
+      "command": "python3 -m unittest discover -s /mnt/d/OpenClaw/tools/intelligence-mcp/tests -t /mnt/d/OpenClaw/tools/intelligence-mcp",
+      "result": "Ran 30 tests - OK",
+      "observed_at": "2026-09-20T05:10:55Z"
+    },
+    {
+      "type": "command_output",
+      "command": "python3 AI_Platform/intelligence/tests/test_artifact_lifecycle.py",
+      "result": "OK (lifecycle, event stream and withdraw suites)",
+      "observed_at": "2026-09-20T05:10:55Z"
+    }
+  ],
+  "tests": [],
+  "applies_to": [
+    "hermes",
+    "openclaw",
+    "collaboration",
+    "governance"
+  ],
+  "compatibility": [
+    "intelligence-gateway experimental http api",
+    "hermes-agent MCP write surface"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "metadata": {
+    "audience": "hermes+openclaw",
+    "human_gate": "approval by local-human is required before anything may rely on this"
+  },
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-09-20T05:10:55Z",
+  "updated_at": "2026-09-20T05:10:55Z",
+  "verified": false,
+  "supersedes": null,
+  "superseded_by": null
+}

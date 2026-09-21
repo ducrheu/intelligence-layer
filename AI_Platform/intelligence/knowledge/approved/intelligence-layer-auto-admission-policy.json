@@ -1,0 +1,85 @@
+{
+  "id": "intelligence-layer-auto-admission-policy",
+  "kind": "knowledge",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Auto-admission policy 1.0.0: what the KB admits without a human",
+  "content": "# What may be admitted without a human (policy 1.0.0)\n\nThe gateway evaluates every submission and records a verdict in `metadata.auto_admission`.\nWhile the gateway runs in `shadow` mode the verdict is recorded and nothing moves; in\n`enforce` mode the `policy-auto` identity may act on it, and only on it.\n\n## Admissible (T2) - all of these must hold\n\n- `scope` is `domain` or `local`: the artifact never leaves this machine's runtimes.\n- `kind` is `knowledge` or `experience`: no executable payload for the policy to run.\n- the submitting identity and `created_by` are in the trusted producer list.\n- `review_interval_days` is set: an admission without a validity horizon cannot be revisited.\n- `metadata.permissions` claims no authority (anything matching write/execute/admin/\n  network/credential stops the policy).\n- no field outside the schema's known set: unrecognised input fails closed instead of\n  being ignored.\n\n## Never admitted automatically\n\n- `scope: shared` - anything another party can read is a human's call.\n- `kind: skill` - the gateway cannot verify it without executing the author's tests.\n- an artifact claiming `verified: true` - only an approval may set that.\n- unknown producers, and any artifact whose decision needs judgement rather than rules.\n\n## Control surface\n\n| control | where |\n|---|---|\n| policy rules and version | `gateway/auto_admission.py`, `POLICY_VERSION` |\n| enforce vs shadow | `INTELLIGENCE_AUTO_ADMISSION` on the gateway service |\n| per-action guard | `IntelligenceGateway._assert_policy_may` (scope is the door, verdict is the lock) |\n| doing the admitting | `tools/intelligence-auto-admit.py` (local only, `--max` caps a run) |\n| revocation | `deprecate` by the human, `withdraw` by the author |\n\nAn admission is a verdict, not a fact: it is recorded with the policy version that produced\nit, so a later rule change can be reconciled against what was already admitted.\n",
+  "source": [
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/intelligence-layer/AI_Platform/intelligence/gateway/auto_admission.py",
+      "retrieved_at": "2026-09-20T05:26:41Z",
+      "note": "the rule set this artifact documents"
+    },
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/OpenClaw/tools/intelligence-auto-admit.py",
+      "retrieved_at": "2026-09-20T05:26:41Z",
+      "note": "the driver that applies verdicts in enforce mode"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "session_evidence",
+      "runtime": "wsl2-ubuntu-24.04",
+      "agent": "hermes",
+      "created_at": "2026-09-20T05:26:41Z",
+      "observations": [
+        "written to document the tiering that replaced 'a human approves everything'",
+        "the rule set follows supply-chain practice: trusted producer, fail-closed on unknown input, evidence the gateway can check itself"
+      ]
+    },
+    {
+      "type": "mcp_write_surface",
+      "runtime": "hermes",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-20T05:26:41Z",
+      "observations": [
+        "submitted through the Hermes write surface; validation and approval are separate identities"
+      ]
+    }
+  ],
+  "tests": [],
+  "applies_to": [
+    "hermes",
+    "openclaw",
+    "governance"
+  ],
+  "compatibility": [
+    "intelligence-gateway experimental http api"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "metadata": {
+    "audience": "hermes+openclaw",
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, knowledge is non-executable",
+        "knowledge carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  },
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-09-20T05:26:41Z",
+  "updated_at": "2026-09-20T05:28:03Z",
+  "verified": true,
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-09-20T05:28:03Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-09-20T05:28:03Z"
+}

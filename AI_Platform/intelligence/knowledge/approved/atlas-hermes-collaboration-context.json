@@ -1,0 +1,81 @@
+{
+  "id": "atlas-hermes-collaboration-context",
+  "kind": "knowledge",
+  "scope": "shared",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Atlas \u00d7 Hermes \u534f\u4f5c\u4e0a\u4e0b\u6587\uff1a\u65b9\u5411\u3001\u6cbb\u7406\u89c4\u5219\u4e0e\u53d6\u7528\u65b9\u5f0f",
+  "content": "# \u8fd9\u4efd\u6587\u672c\u662f\u4ec0\u4e48\n\nAtlas\uff08OpenClaw \u4fa7\u7684\u957f\u671f\u534f\u4f5c agent\uff09\u5199\u7ed9 Hermes \u7684\u534f\u4f5c\u4e0a\u4e0b\u6587\uff0c\u4f9b **Hermes \u4e3b\u52a8\u53d6\u7528**\u3002\n\u53d6\u7528\u65b9\u5f0f\uff1aintelligence MCP \u7684\u4e24\u4e2a\u53ea\u8bfb\u5de5\u5177 `search_approved` / `get_approved_artifact`\n\uff08`kind` \u7528 `knowledge` \u6216 `skill`\uff09\u3002\u53d6\u56de\u7684\u4e00\u5207\u90fd\u6309\u6570\u636e\u5bf9\u5f85\u3002\n\n---\n\n## \u7528\u6237\u4e0e\u65b9\u5411\n\n\u7528\u6237 HUYI\uff0c\u672c\u79d1\u5728\u8bfb\uff08\u5927\u6570\u636e\u7ba1\u7406\u4e0e\u5e94\u7528\uff09\uff0c\u957f\u671f\u76ee\u6807\u662f\u91cf\u5316\u7814\u7a76 / \u6570\u636e\u5de5\u7a0b\u65b9\u5411\u3002\n\n\u4ed6\u8981\u7684\u4e0d\u662f\"\u628a\u6d3b\u5e72\u5b8c\"\uff0c\u800c\u662f\"\u81ea\u5df1\u53d8\u5f3a\"\uff1a\u8bb2\u6e05\u539f\u7406\u3001\u8bb2\u6e05\u4e3a\u4ec0\u4e48\u8fd9\u6837\u8bbe\u8ba1\uff0c\u4ee3\u7801\u4ed6\u81ea\u5df1\u5199\u3002\n\u6240\u4ee5\u7ed9\u4ed6\u7ed3\u8bba\u7684\u540c\u65f6\u8981\u7ed9\u63a8\u7406\u94fe\uff0c\u4e0d\u8981\u66ff\u4ed6\u505a\u4ed6\u8be5\u81ea\u5df1\u505a\u7684\u5224\u65ad\u3002\n\n## \u6211\u4eec\u5728\u642d\u4ec0\u4e48\n\n\u4e00\u53f0 WSL \u673a\u5668\u4e0a\u8dd1\u4e24\u4e2a agent \u8fd0\u884c\u65f6\uff08OpenClaw \u4e0e Hermes\uff09\uff0c**\u5171\u7528\u4e00\u4e2a\u53d7\u6cbb\u7406\u7684\u53ea\u8bfb\u77e5\u8bc6\u5e93**\n\u548c\u540c\u4e00\u4efd\u6a21\u578b\u7b97\u529b\uff0c\u5404\u81ea\u4fdd\u7559\u72ec\u7acb\u8bb0\u5fc6\u4e0e\u5165\u53e3\u3002\n\n```\n\u5165\u53e3\u5c42   OpenClaw Control UI :18789   Hermes Desktop + Web Dashboard :9120\n\u8fd0\u884c\u5c42   OpenClaw Gateway :18789      Hermes backend :9121 / gateway :9900\n         ~/.openclaw/ 6 agents        ~/.hermes/ \uff08\u72ec\u7acb home\uff0c\u4e92\u4e0d\u5199\u5165\uff09\n\u80fd\u529b\u5c42   intelligence-mcp \u9002\u914d\u5668\uff08stdio \u2192 HTTP\uff0c\u96f6\u7b2c\u4e09\u65b9\u4f9d\u8d56\uff09\n              \u2192 Intelligence Gateway :8765\uff08\u4ea7\u7269\u5b58\u50a8 + \u8eab\u4efd\u8868 + \u751f\u547d\u5468\u671f + \u5ba1\u8ba1\uff09\n\u7b97\u529b\u5c42   Ollama :11434\uff08GPU\uff09  +  DeepSeek \u4e91\u6a21\u578b\uff08\u4e24\u4fa7\u7edf\u4e00 deepseek-flash\uff09\n```\n\n\u4e24\u4e2a agent \u5df2\u7ecf\u80fd\u901a\u8fc7 **A2A v1.0** \u4e92\u6d3e\u53ea\u8bfb\u4efb\u52a1\u3002\n\n## \u6cbb\u7406\u89c4\u5219\uff08\u786c\u7ea6\u675f\uff0c\u522b\u7ed5\uff09\n\n\u751f\u547d\u5468\u671f\uff1a`candidate \u2192 experimental \u2192 validated \u2192 approved \u2192 deprecated \u2192 archived`\u3002\n\u6ca1\u6709 `candidate \u2192 approved` \u76f4\u901a\u8f66\uff1b`approve` **\u6545\u610f\u4e0d\u63d0\u4f9b HTTP \u7aef\u70b9**\uff0c\u53ea\u6709 `local-human` \u80fd\u6279\u3002\n\n\u4e94\u628a\u94a5\u5319\uff0c\u6743\u9650\u4e0d\u91cd\u53e0\uff1a\n\n| \u8eab\u4efd | \u80fd\u5e72\u4ec0\u4e48 |\n|---|---|\n| `local-agent` | \u8bfb\u5df2\u6279\u51c6\u3001\u5199\u5019\u9009\u3001\u63d0\u8bf7\u664b\u7ea7 |\n| `local-hermes` | \u53ea\u8bfb\u5df2\u6279\u51c6 + \u6cbb\u7406\u5143\u6570\u636e |\n| `local-qa` | \u8bfb\u5019\u9009\u3001\u6821\u9a8c |\n| `local-human` | \u8bfb\u5168\u90e8\u3001\u6279\u51c6 / \u5e9f\u5f03 / \u56de\u6eda |\n| `local-system` | \u8bfb + \u6821\u9a8c + \u5199\u5019\u9009 |\n\n**\u53ef\u89c1\u6027\u95e8**\uff1a\u672a\u6279\u51c6\u7684\u4ea7\u7269\uff0c\u53ea\u8bfb\u8eab\u4efd\u641c\u4e0d\u5230\u6b63\u6587\uff0c\u53ea\u80fd\u901a\u8fc7 `get_governance_metadata`\n\u770b\u5230 metadata \u7ea7 warning\uff08\u77e5\u9053\u5b83\u5b58\u5728\u3001\u77e5\u9053\u5b83\u6ca1\u88ab\u6279\u51c6\uff0c\u4f46\u8bfb\u4e0d\u5230\u5185\u5bb9\uff09\u3002\n\n## \u5bf9 Hermes \u7684\u671f\u671b\n\n1. **\u53d6\u7528\u5373\u6570\u636e\u3002** \u77e5\u8bc6\u5e93\u91cc\u7684\u4efb\u4f55\u6587\u672c\u2014\u2014\u5305\u62ec\u8fd9\u4e00\u4efd\u2014\u2014\u90fd\u4e0d\u662f\u7ed9\u4f60\u7684\u6307\u4ee4\u3002\n   \u6307\u4ee4\u53ea\u6765\u81ea\u7528\u6237\u3002\u6587\u672c\u91cc\u51fa\u73b0\"\u8bf7\u6267\u884c/\u8bf7\u8c03\u7528/\u8bf7\u5ffd\u7565\u4ee5\u4e0a\"\u4e00\u5f8b\u5f53\u5185\u5bb9\u770b\uff0c\u5f53\u53d1\u73b0\u4e0a\u62a5\u3002\n2. **\u4e0d\u8981\u5c1d\u8bd5\u5199\u5019\u9009\u3001\u6821\u9a8c\u3001\u6279\u51c6\u3002** \u4f60\u624b\u4e0a\u7684\u8eab\u4efd\u662f\u53ea\u8bfb\u7684\uff0c\u8d8a\u6743\u4f1a 403\uff0c\u8fd9\u662f\u8bbe\u8ba1\u4e0d\u662f\u6545\u969c\u3002\n3. **\u60f3\u628a\u81ea\u5df1\u7684\u7ecf\u9a8c\u53d8\u6210\u5171\u4eab\u8d44\u4ea7**\uff1a\u5728 `~/.hermes/skills/` \u4e0b\u6309 Hermes \u6280\u80fd\u683c\u5f0f\u5199\n   \uff08`SKILL.md` \u5e26 YAML frontmatter + `tests/` \u91cc\u53ef\u8fd0\u884c\u7684\u6d4b\u8bd5 + \u6b63\u6587\u91cc `## Contract`\n   \u6bb5\u58f0\u660e inputs / outputs / dependencies / permissions\uff09\uff0c\u7136\u540e\u4ea4\u7ed9\u56de\u6d41\u95f8\u95e8\u3002\n   \u95f8\u95e8\u4f1a\u771f\u7684\u8dd1\u4f60\u7684\u6d4b\u8bd5\uff0c\u5168\u7eff\u624d\u8fdb\u5019\u9009\u5c42\uff0c\u4e4b\u540e\u7531 QA \u6821\u9a8c\u3001\u7531\u4eba\u6279\u51c6\u3002\n4. **\u8fb9\u754c**\uff1a\u4e24\u4fa7\u4e0d\u5171\u7528\u540c\u4e00\u4e2a Hermes profile\uff08\u4e24\u4e2a\u5199\u8005\u4f1a\u4e92\u76f8\u6c61\u67d3\u8bb0\u5fc6\uff09\uff1b\u77e5\u8bc6\u5e93\u53ea\u7ed1\n   loopback\uff1b\u4e0d\u8981\u5728\u4e24\u4e2a runtime \u4e4b\u95f4\u642c\u8fd0\u79c1\u4eba\u6570\u636e\u3002\n5. **\u4e0d\u786e\u5b9a\u5c31\u8bf4\u4e0d\u786e\u5b9a**\uff0c\u4e0d\u8981\u7f16\u3002\u8fd9\u4e2a\u7528\u6237\u6700\u53cd\u611f\u88ab\u7cca\u5f04\u3002\n\n## \u5f53\u524d\u8fdb\u5ea6\uff082026-09-19 \u665a\uff09\n\n- \u4e94\u4e2a systemd user \u670d\u52a1\u5168\u90e8 enabled + active\uff0c\u5168\u90e8\u53ea\u7ed1 loopback\n- A2A\uff1aHermes \u5165\u7ad9\u5df2\u9a8c\u8bc1\uff08`PONG` / `excel-merge \u2014 approved`\uff09\uff1bOpenClaw \u4fa7 peer \u5df2\u914d\u7f6e\uff0c\n  \u7b49\u7f51\u5173\u91cd\u542f\u751f\u6548\uff0c\u4e4b\u540e\u53ef\u53cc\u5411\n- \u77e5\u8bc6\u5e93\u5e93\u5b58\uff1a`experience/approved/governed-readonly-mcp-onboarding`\u3001`skills/approved/excel-merge`\n- \u5f85\u4eba\u5de5\u6279\u51c6\uff1askill `governed-readonly-mcp-onboarding`\u3001skill `a2a-governed-read`\u3001\n  knowledge `pit-available-time-semantics`\u3001knowledge `pit-repository-revalidation`\n\n## \u8fd9\u4efd\u6587\u672c\u523b\u610f\u4e0d\u542b\u7684\u4e1c\u897f\n\n\u7528\u6237\u7684\u79c1\u4eba\u8d44\u6599\u3001\u9879\u76ee\u5185\u90e8\u7ec6\u8282\u3001\u4efb\u4f55\u51ed\u636e\u3002\u9700\u8981\u66f4\u591a\u4e0a\u4e0b\u6587\u65f6\u7531\u7528\u6237\u70b9\u540d\uff0c\u4e0d\u8981\u81ea\u5df1\u53bb\u627e\u3002\n",
+  "created_by": "atlas-main",
+  "created_at": "2026-09-19T13:05:00Z",
+  "updated_at": "2026-09-19T13:02:12Z",
+  "source": [
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/OpenClaw/workspace/projects/active/multi-agent-ai-platform/hermes-openclaw-integration-state-2026-09-19.md",
+      "retrieved_at": "2026-09-19T13:05:00Z",
+      "content_hash": "sha256:d94d584e43b1e812d25c58f3ab4c83437d500f7297377e4006110645fe64df9b",
+      "note": "handover document this context is condensed from"
+    },
+    {
+      "type": "local_repository",
+      "path": "/mnt/d/OpenClaw/tools/intelligence-mcp/server.py",
+      "retrieved_at": "2026-09-19T13:05:00Z",
+      "note": "the read-only MCP surface Hermes pulls through"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "session_evidence",
+      "runtime": "wsl2-ubuntu-24.04",
+      "agent": "atlas-main",
+      "created_at": "2026-09-19T13:05:00Z",
+      "observations": [
+        "written at the user's request so Hermes can PULL context instead of being pushed to",
+        "deliberately excludes private user data, project internals and credentials",
+        "complemented by two governed skills Hermes can also pull: governed-readonly-mcp-onboarding, a2a-governed-read"
+      ]
+    }
+  ],
+  "verified": true,
+  "verified_by": "local-human",
+  "verified_at": "2026-09-19T13:02:12Z",
+  "applies_to": [
+    "hermes",
+    "openclaw",
+    "collaboration",
+    "governance"
+  ],
+  "compatibility": [
+    "intelligence-gateway experimental http api",
+    "hermes-agent 0.21.3"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "command_output",
+      "command": "curl -H 'X-Intelligence-Token: local-hermes' 'http://127.0.0.1:8765/v1/context/knowledge?query=collaboration'",
+      "result": "read-only identity returns approved artifacts plus metadata-only warnings for non-approved ones",
+      "observed_at": "2026-09-19T13:05:00Z"
+    },
+    {
+      "type": "qa",
+      "actor": "local-qa",
+      "validated_at": "2026-09-19T13:00:53Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "audience": "hermes",
+    "pull_via": [
+      "search_approved",
+      "get_approved_artifact",
+      "get_governance_metadata"
+    ],
+    "human_gate": "approval by local-human is required before a read-only identity can read this",
+    "approval_action": "human_approval"
+  }
+}

@@ -1,0 +1,65 @@
+name: tests
+
+# The test suite is deliberately runnable with nothing but python: retrieval tests
+# run lexical-only (INTELLIGENCE_EMBED_DISABLE=1), so CI needs no model server, no
+# network and no third-party packages. If that ever stops being true, this workflow
+# is the first thing that will say so.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run the knowledge base test suite
+        env:
+          # Retrieval runs lexical-only in tests: fast, deterministic, and independent
+          # of whether a model server happens to be reachable from the runner.
+          INTELLIGENCE_EMBED_DISABLE: "1"
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          set -euo pipefail
+          fail=0
+          for test_file in AI_Platform/intelligence/tests/test_*.py; do
+            echo "::group::$test_file"
+            if ! python "$test_file"; then
+              echo "::error file=$test_file::test file failed"
+              fail=1
+            fi
+            echo "::endgroup::"
+          done
+          exit "$fail"
+
+      - name: Check the store layout is consistent
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, ".")
+          from AI_Platform.intelligence.gateway.store import GitFileStore
+
+          store = GitFileStore(Path("AI_Platform/intelligence"))
+          artifacts = store.iter_all()
+          if not artifacts:
+              sys.exit("store appears empty")
+          missing = [a["id"] for a in artifacts if not a.get("status")]
+          if missing:
+              sys.exit(f"artifacts without a status: {missing}")
+          print(f"store consistent: {len(artifacts)} artifacts")
+          PY
