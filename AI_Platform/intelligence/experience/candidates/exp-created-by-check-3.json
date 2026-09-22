@@ -1,0 +1,68 @@
+{
+  "id": "exp-created-by-check-3",
+  "kind": "experience",
+  "scope": "local",
+  "version": "1.0.0",
+  "title": "created_by \u6233\u8bb0\u81ea\u68c0\uff08\u4fee\u590d\u540e\uff09",
+  "content": "\u9a8c\u8bc1 MCP \u5199\u9762\u5199\u5165\u7684 created_by \u662f\u8eab\u4efd\u540d\u800c\u975e\u4ee4\u724c\u3002",
+  "source": [
+    {
+      "type": "self_check",
+      "ref": "c3",
+      "retrieved_at": "2026-09-21T14:52:00Z"
+    }
+  ],
+  "applies_to": [
+    "hermes"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "provenance": [
+    {
+      "type": "self_check",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-21T14:52:00Z"
+    },
+    {
+      "type": "mcp_write_surface",
+      "runtime": "hermes",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-21T14:36:42Z",
+      "observations": [
+        "submitted through the Hermes write surface; validation and approval are separate identities"
+      ]
+    }
+  ],
+  "status": "archived",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-09-21T14:36:42Z",
+  "updated_at": "2026-09-21T14:36:43Z",
+  "verified": false,
+  "tests": [],
+  "evidence": [],
+  "expires_at": null,
+  "review_interval_days": null,
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": [
+        "no review_interval_days: an admission without a validity horizon cannot be revisited"
+      ]
+    },
+    "withdraw": {
+      "by": "local-hermes-writer",
+      "at": "2026-09-21T14:36:43Z",
+      "from_status": "candidate",
+      "reason": "created_by stamping self-check; removed after the fix was verified"
+    }
+  }
+}

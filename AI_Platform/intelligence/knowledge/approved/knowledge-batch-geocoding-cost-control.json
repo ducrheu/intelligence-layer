@@ -1,0 +1,75 @@
+{
+  "id": "knowledge-batch-geocoding-cost-control",
+  "kind": "knowledge",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u6279\u91cf\u5730\u7406\u8ba1\u7b97\u7684\u4e09\u6761\u6210\u672c\u63a7\u5236\u7ecf\u9a8c\uff08\u6e90\u81ea\u6267\u884c\u4fa7\u6c89\u6dc0\uff09",
+  "content": "## \u9002\u7528\u573a\u666f\n\n\u4e00\u6b21\u6027\u5bf9\u51e0\u5341\u5230\u51e0\u767e\u4e2a\u5730\u70b9\u505a\u5730\u7406\u7f16\u7801\u3001\u901a\u52e4\u77e9\u9635\u6216\u8def\u5f84\u8ba1\u7b97\u65f6\u3002\n\n## \u7ecf\u9a8c\n\n1. **\u5148\u7f13\u5b58\u518d\u6279\u91cf\u3002** \u5730\u7406\u7f16\u7801\u7ed3\u679c\u6309\u5730\u5740\u5f52\u4e00\u5316\u540e\u843d\u7f13\u5b58\uff0c\u91cd\u590d\u8fd0\u884c\u4e0d\u91cd\u590d\u8ba1\u8d39\u2014\u2014\u6ca1\u6709\u7f13\u5b58\u5c42\uff0c\u91cd\u8dd1\u5c31\u662f\u91cd\u4ed8\u3002\n2. **\u9010\u70b9\u8bf7\u6c42\u5fc5\u7136\u88ab\u9650\u6d41\u3002** \u6309\u70b9\u4e32\u884c\u8c03\u7528\u516c\u5171\u5730\u7406\u670d\u52a1\u4f1a\u88ab\u9650\u6d41\u6253\u65ad\uff1b\u6539\u5206\u5757 + \u6307\u6570\u9000\u907f\u540e\u7a33\u5b9a\uff0c\u5757\u5927\u5c0f\u6309\u670d\u52a1\u65b9\u9650\u6d41\u7a97\u53e3\u5b9a\u3002\n3. **\u5148\u4f30\u89c4\u6a21\u518d\u52a8\u624b\u3002** N \u4e2a\u70b9\u4e24\u4e24\u77e9\u9635\u662f N\u00b2 \u8ba1\u7b97\u91cf\uff0c128\u00d7128 \u5df2\u63a5\u8fd1\u5355\u673a\u53ef\u63a5\u53d7\u4e0a\u9650\uff0c\u66f4\u5927\u8981\u5206\u7247\u5e76\u843d\u4e2d\u95f4\u7ed3\u679c\u3002\n\n## \u8fb9\u754c\n\n\u6267\u884c\u4fa7\u6c89\u6dc0\u7684\u84b8\u998f\uff0c\u672a\u5728\u4efb\u4f55\u771f\u5b9e\u9879\u76ee\u4e0a\u505a\u8fc7\u56de\u5f52\u9a8c\u8bc1\u3002\u539f\u6c89\u6dc0\u89c1 `experience/exp-osrm-20260921`\uff08\u5019\u9009\u6001\uff09\u3002\n\n## \u4e0d\u9002\u7528\n\n\u5b9e\u65f6\u6beb\u79d2\u7ea7\u8def\u7531\uff1b\u5546\u4e1a\u670d\u52a1\u7684\u8ba1\u8d39\u7ec6\u8282\u4ee5\u5404\u5bb6\u5b9a\u4ef7\u4e3a\u51c6\u3002",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-09-21T00:25:33Z",
+  "updated_at": "2026-09-22T00:14:30Z",
+  "source": [
+    {
+      "type": "agent_artifact",
+      "ref": "experience:exp-osrm-20260921",
+      "retrieved_at": "2026-09-21T00:25:33Z"
+    },
+    {
+      "type": "agent_artifact",
+      "ref": "knowledge:atlas-hermes-collaboration-context",
+      "retrieved_at": "2026-09-21T00:25:33Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-21T00:25:33Z",
+      "note": "distilled by the learning side from another agent's deposit; cites the source artifact"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-09-22T00:14:30Z",
+  "applies_to": [
+    "openclaw",
+    "hermes"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "local-qa",
+      "validated_at": "2026-09-21T14:37:46Z"
+    }
+  ],
+  "metadata": {
+    "name": "knowledge-batch-geocoding-cost-control",
+    "tags": [
+      "geocoding",
+      "batch",
+      "cost"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, knowledge is non-executable",
+        "knowledge carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

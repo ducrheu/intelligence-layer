@@ -1,0 +1,68 @@
+{
+  "id": "exp-osrm-20260921",
+  "kind": "experience",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u7528 OSRM \u7b97\u901a\u52e4\u65f6\u95f4\u77e9\u9635",
+  "content": "## \u505a\u4e86\u4ec0\u4e48\n\u7528 OSRM \u7b97\u901a\u52e4\u65f6\u95f4\u77e9\u9635\n\n## \u6709\u6548\u7684\u505a\u6cd5\n\u5148\u7f13\u5b58\u5730\u7406\u7f16\u7801\u518d\u6279\u91cf\u8bf7\u6c42\uff0c\u91cd\u590d\u8fd0\u884c\u4e0d\u91cd\u590d\u8ba1\u8d39\n\n## \u65e0\u6548\u6216\u8e29\u8fc7\u7684\u5751\n\u9010\u70b9\u8bf7\u6c42\u88ab\u9650\u6d41\uff0c\u6539\u5206\u5757+\u9000\u907f\u540e\u7a33\u5b9a\n\n## \u8bc1\u636e\n- 128x128 \u77e9\u9635\uff0ctools/commute_matrix.py",
+  "created_by": "local-agent",
+  "created_at": "2026-09-21T00:21:39+00:00",
+  "updated_at": "2026-09-22T00:14:30Z",
+  "source": [
+    {
+      "type": "session_evidence",
+      "ref": "session:openclaw-20260920",
+      "retrieved_at": "2026-09-21T00:21:39+00:00"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "agent_deposit",
+      "agent": "local-agent",
+      "created_at": "2026-09-21T00:21:39+00:00",
+      "note": "recorded by the runtime that did the work"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-09-22T00:14:30Z",
+  "applies_to": [
+    "openclaw"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "local-qa",
+      "validated_at": "2026-09-21T14:37:46Z"
+    }
+  ],
+  "metadata": {
+    "name": "exp-osrm",
+    "tags": [
+      "commute",
+      "osrm"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-agent' is trusted, scope 'domain' is local, experience is non-executable",
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

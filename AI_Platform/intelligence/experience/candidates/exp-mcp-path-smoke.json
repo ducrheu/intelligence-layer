@@ -1,0 +1,70 @@
+{
+  "id": "exp-mcp-path-smoke",
+  "kind": "experience",
+  "scope": "local",
+  "version": "1.0.0",
+  "title": "MCP 写面在令牌迁移后的连通性自检",
+  "content": "仅用于验证：身份名 -> 令牌解析器在 MCP 服务进程内生效。可撤销。",
+  "source": [
+    {
+      "type": "self_check",
+      "ref": "smoke",
+      "retrieved_at": "2026-09-21T00:25:33Z"
+    }
+  ],
+  "applies_to": [
+    "hermes"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "provenance": [
+    {
+      "type": "self_check",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-21T00:25:33Z"
+    },
+    {
+      "type": "mcp_write_surface",
+      "runtime": "hermes",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-09-21T00:26:26Z",
+      "observations": [
+        "submitted through the Hermes write surface; validation and approval are separate identities"
+      ]
+    }
+  ],
+  "status": "archived",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-09-21T00:26:26Z",
+  "updated_at": "2026-09-21T14:34:28Z",
+  "verified": false,
+  "tests": [],
+  "evidence": [],
+  "expires_at": null,
+  "review_interval_days": null,
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": [
+        "created_by 'local-hermes-writer' is not in the trusted producer list",
+        "no review_interval_days: an admission without a validity horizon cannot be revisited"
+      ]
+    },
+    "withdraw": {
+      "by": "local-hermes-writer",
+      "at": "2026-09-21T14:34:28Z",
+      "from_status": "candidate",
+      "reason": "self-check artifact; it must not store a credential value"
+    },
+    "credential_hint_removed": "created_by was stamped with a token value by the MCP write surface; replaced by the identity name"
+  }
+}
