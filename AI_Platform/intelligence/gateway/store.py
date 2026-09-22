@@ -128,14 +128,30 @@ class GitFileStore:
     def relocate(self, old_artifact: dict[str, Any], new_artifact: dict[str, Any]) -> Path:
         """Move an artifact to its new status location, its files included.
 
-        A status change moves the whole skill directory - manifest, SKILL.md,
-        tests, and any support files - so a skill is never split across two
-        status directories, and recorded test paths are rewritten to point at
-        where the files actually are. `save()` alone moves the manifest only.
+        For a SKILL the status directory IS the artifact, so a status change moves
+        the whole directory - manifest, SKILL.md, tests, and any support files -
+        and recorded test paths are rewritten to point at where the files actually
+        are. `save()` alone moves the manifest only.
+
+        For a flat kind (knowledge / experience / source) the status directory is
+        NOT the artifact: every artifact of that status lives in it side by side.
+        Moving the directory there drags unrelated siblings along and deletes the
+        emptied directory (measured: approving one knowledge artifact swept three
+        others into `approved/`, leaving their status fields behind), which then
+        makes them unreachable for `load(id, kind, ("validated",))`. Flat kinds
+        therefore move the one file and nothing else.
         """
         old_dir = self.artifact_dir(old_artifact)
         new_dir = self.artifact_dir(new_artifact)
         if old_dir == new_dir:
+            return self.save(new_artifact)
+        if new_artifact.get("kind") != "skill":
+            self._rewrite_recorded_paths(old_dir, new_dir, new_artifact)
+            old_path = self._path(old_artifact)
+            new_path = self._path(new_artifact)
+            if old_path != new_path and old_path.exists():
+                new_path.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(old_path, new_path)
             return self.save(new_artifact)
         self._rewrite_recorded_paths(old_dir, new_dir, new_artifact)
         for source in (old_dir, *self._stranded_dirs(new_artifact["id"], new_dir)):
