@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .audit_chain import append_audit_record
 from .errors import ArtifactNotFoundError, ArtifactValidationError
 from .attestation import GATEWAY_METADATA_KEYS, artifact_digest
 from .auto_admission import POLICY_VERSION, evaluate
@@ -16,6 +19,7 @@ from .models import Actor, utc_now
 from .policy import can_read_approved, can_read_candidate, can_write_candidate, require
 from .schema import validate_artifact
 from .store import GitFileStore
+from .telemetry import FRESH, freshness
 
 MAX_EVENTS = 200
 POLICY_IDENTITY = "policy-auto"
@@ -136,8 +140,11 @@ class IntelligenceGateway:
         }
         if kind is not None:
             event["kind"] = kind
-        with self.audit_path.open("a", encoding="utf-8", newline="\n") as handle:
-            handle.write(json.dumps(event, ensure_ascii=True) + "\n")
+        # Chained to the previous record and appended under an exclusive lock: the audit
+        # log is the root of trust for ownership and trust decisions, so one rewritten
+        # line has to be detectable. Why both parts are required, and what the chain
+        # still cannot catch: gateway/audit_chain.py.
+        append_audit_record(self.audit_path, event)
 
     def _last_submitter(self, artifact_id: str, kind: str) -> str | None:
         """Who filed this artifact, taken from the append-only audit log.
@@ -341,6 +348,50 @@ class IntelligenceGateway:
         self._event(actor, "withdrawn", artifact, previous_status, "archived", correlation_id)
         return artifact
 
+    @staticmethod
+    def content_fingerprint(artifact: dict[str, Any]) -> str:
+        """A digest of the artifact's *text*, independent of its id.
+
+        ``artifact_digest`` cannot serve here: it covers ``id`` by design, so it never
+        collides across two ids and would miss exactly the duplicate this is looking for.
+        Whitespace and case are normalised because two copies differing only in
+        formatting are still one record.
+        """
+        body = " ".join((artifact.get("content") or "").split()).casefold()
+        return "sha256:" + hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+    def _content_collision(self, artifact: dict[str, Any]) -> dict[str, Any] | None:
+        """An existing *live* record whose text is identical to this one's, if any.
+
+        This **reports; it does not refuse**, and that is a deliberate reversal of the
+        first version of this gate. Refusing looked right - the industry pattern is
+        "id/content-hash dedup, fail closed" - but three facts in this codebase say
+        otherwise:
+
+        1. The identity here is the `id`; text is not a key. Four existing test files file
+           several records that legitimately share a body, and the withdrawal/re-file path
+           expects content to survive under a new id.
+        2. Text-level dedup "must be evaluated, not assumed correct" - the FineWeb corpus
+           work measured global deduplication making the *retained* data worse. Turning
+           that into a refusal would bake an unvalidated rule into the write path.
+        3. A refusal costs a blocked submission; a report costs a line in the weekly
+           review. For a same-text pair the human still has to decide which copy is the
+           record of record, so the refusal only moved the decision earlier and made it
+           mandatory.
+
+        Live statuses only: an archived record is inert and its id is deliberately
+        reusable, so re-filing withdrawn text stays possible.
+        """
+        fingerprint = self.content_fingerprint(artifact)
+        for other in self.store.iter_all():
+            if other.get("kind") != artifact.get("kind") or other.get("id") == artifact.get("id"):
+                continue
+            if other.get("status") not in ("candidate", "experimental", "validated", "approved"):
+                continue
+            if self.content_fingerprint(other) == fingerprint:
+                return other
+        return None
+
     def submit_candidate(self, actor: Actor, artifact: dict[str, Any], correlation_id: str | None = None) -> dict[str, Any]:
         if not can_write_candidate(actor):
             self._audit(actor, "submit_candidate", artifact.get("id"), "denied", correlation_id)
@@ -373,11 +424,19 @@ class IntelligenceGateway:
                 return result
             self._audit(actor, "submit_candidate", artifact["id"], "duplicate_conflict", correlation_id)
             raise ArtifactValidationError(f"candidate already exists with different content: {artifact['id']}")
+        collision = self._content_collision(artifact)
         path = self.store.save(artifact)
         self._audit(actor, "submit_candidate", artifact["id"], "success", correlation_id, artifact["kind"])
+        if collision is not None:
+            # Reported, not refused - see _content_collision for why. The audit line is
+            # what the weekly review reads; `_content_duplicate_of` is what the filing
+            # tool can print back at the submitter, who is the one who can act on it.
+            self._audit(actor, "submit_candidate", artifact["id"], "duplicate_content", correlation_id, artifact["kind"])
         self._event(actor, "candidate_submitted", artifact, None, artifact["status"], correlation_id)
         result = dict(artifact)
         result["_path"] = str(path)
+        if collision is not None:
+            result["_content_duplicate_of"] = f"{collision['kind']}/{collision['id']}"
         return result
 
     def get_knowledge(self, actor: Actor, artifact_id: str) -> dict[str, Any]:
@@ -475,6 +534,21 @@ class IntelligenceGateway:
             }
         return documents
 
+    def _stalest_last(self, ranked: list[dict[str, Any]],
+                      documents: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+        """Move stale records behind fresh ones, keeping the ranking otherwise intact.
+
+        Ordering, *not* exclusion. An expired record is still the answer to "what did we
+        say about X" - dropping it would turn a review flag into silent data
+        loss, and the caller would have no way to tell the difference between "we never
+        knew" and "we knew and it went stale". The sort is stable, so among equals the
+        ranking decides, and `freshness` travels with each hit so the caller can see it.
+        """
+        if not ranked:
+            return ranked
+        now = datetime.now(timezone.utc)
+        return sorted(ranked, key=lambda item: freshness(documents[item["key"]]["artifact"], now) != FRESH)
+
     def retrieve(self, actor: Actor, kind: str, query: str, scope: str | None = None,
                  max_items: int = 10, max_bytes: int = 20000, max_chars: int = 12000,
                  embed_budget: int = 24) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -485,6 +559,7 @@ class IntelligenceGateway:
             raise ValueError("invalid retrieval limits")
         documents = self._search_documents(actor, kind, scope)
         ranked, summary = self.retriever.rank(query, documents, limit=max_items, embed_budget=embed_budget)
+        ranked = self._stalest_last(ranked, documents)
         if self.retriever.cache is not None:
             self.retriever.cache.prune({document["digest"] for document in documents.values()})
             self.retriever.cache.save()
@@ -501,6 +576,7 @@ class IntelligenceGateway:
                 "provenance": artifact["provenance"][:3],
                 "score": item["score"],
                 "why": item["why"],
+                "freshness": freshness(artifact),
             }
             encoded = json.dumps(compact, ensure_ascii=False)
             if len(json.dumps(matches, ensure_ascii=False)) + len(encoded) > max_bytes:
