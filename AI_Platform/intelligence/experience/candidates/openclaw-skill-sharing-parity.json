@@ -1,0 +1,110 @@
+{
+  "id": "openclaw-skill-sharing-parity",
+  "kind": "experience",
+  "scope": "shared",
+  "status": "candidate",
+  "version": "1.1.0",
+  "title": "\u6280\u80fd\u4e0e\u7ecf\u9a8c\u7684\u8de8 agent \u5171\u4eab\uff1a\u4ece\u300c\u4fee\u597d\u4e00\u6b21\u300d\u5230\u300c\u5168 agent \u53ef\u89c1\u53ef\u7528\u300d",
+  "content": "# \u75c7\u72b6\n\n\u540c\u4e00\u7c7b\u95ee\u9898\u5728\u4e00\u4e2a agent \u4e0a\u4fee\u597d\u4e4b\u540e\uff0c**\u5176\u5b83 agent \u4f1a\u539f\u6837\u518d\u72af\u4e00\u6b21**\u3002\u672c\u8f6e\u5b9e\u4f8b\uff1aOpenClaw \u4fa7 main\n\u4e8e 2026-09-17 \u5df2\u628a\u300c\u6570\u5b66\u516c\u5f0f\u5728\u804a\u5929\u6e20\u9053\u53d8\u6e90\u7801\u300d\u6c89\u6dc0\u6210\u6280\u80fd `math-typesetting`\uff1b2026-09-23 mentor\n\u6559\u6570\u5b66\u65f6\u4ecd\u8f93\u51fa LaTeX \u6e90\u7801\uff0c\u4e14\u662f\u56de\u5934\u627e main \u624d\u62ff\u5230\u89e3\u6cd5\u3002\n\n# \u6839\u56e0\uff08\u4e24\u6761\uff0c\u90fd\u662f\u7ed3\u6784\u6027\u7684\uff09\n\n1. **\u6280\u80fd\u6309\u5de5\u4f5c\u533a\u52a0\u8f7d\uff0c\u4e14\u88ab per-agent \u5141\u8bb8\u6e05\u5355\u4e8c\u6b21\u6536\u7a84\u3002** `<workspace>/skills` \u53ea\u5bf9\u8be5 agent \u751f\u6548\uff0c\n   \u800c `/mnt/d/OpenClaw/workspace/skills/` \u6070\u662f main \u7684\u5de5\u4f5c\u533a\u5b50\u76ee\u5f55 \u2192 15 \u4e2a\u81ea\u5efa\u6280\u80fd\u53ea\u5bf9 main \u53ef\u89c1\uff1b\n   \u5176\u4f59\u56db\u4e2a\u4e13\u5bb6\u7684 `agents.entries.<id>.skills` \u662f `[]`\uff0c\u8bed\u4e49\u662f\u300c\u8be5 agent \u4e00\u4e2a\u6280\u80fd\u90fd\u4e0d\u66b4\u9732\u300d\uff08\u8fde\n   bundled \u4e5f\u4e0d\u8fdb prompt\uff09\u3002\u5b9e\u6d4b\u6a21\u578b\u4fa7\u53ef\u89c1\u6280\u80fd\u6570\uff1amain 47\uff0cmentor / study-planner /\n   project-manager / order-worker \u5404 **0**\u3002\n2. **\u53ef\u89c1 \u2260 \u53ef\u7528\u3002** \u4e13\u5bb6\u7684 `exec` \u662f `security=allowlist`\uff08`tools.exec.mode=ask`\uff09\uff0callowlist \u6a21\u5f0f\n   \u4e0b\u53ea\u6709\u300c\u5355\u6bb5\u3001\u65e0\u91cd\u5b9a\u5411\u3001\u65e0 `$()`\u300d\u7684\u547d\u4ee4\u80fd\u81ea\u52a8\u8dd1\uff1b\u800c cron / A2A \u6d3e\u53d1 / CLI \u8d77\u7684\u4f1a\u8bdd**\u6ca1\u6709\u5ba1\u6279\n   \u56de\u4f20\u901a\u9053**\uff0c\u4e00\u5f39\u5ba1\u6279\u5373\u5361\u5728 `blocked_tool_call`\uff08\u65e5\u5fd7 `approval-handler: no QQ target for <id>`\uff09\uff0c\n   \u5bf9\u5916\u8868\u73b0\u4e3a\u300cagent \u4e0d\u56de\u590d\u300d\u3002\u5b9e\u6d4b mentor \u7684\u7b2c\u4e00\u6761 `ls` \u5361\u4e86 8 \u5206\u949f\u3002\n\n# \u505a\u6cd5\uff08\u673a\u5236\uff0c\u4e0d\u662f\u63d0\u793a\u8bcd\uff09\n\n- **\u5355\u4e00\u5171\u4eab\u6280\u80fd\u5e93**\uff1a`skills.load.extraDirs = [\"/mnt/d/OpenClaw/workspace/skills\"]`\uff0c\u5bf9\u5168 agent \u53ef\u89c1\uff1b\n  \u6bcf\u4e2a agent \u518d\u7528\u663e\u5f0f `skills` \u6e05\u5355\u6309**\u4ea4\u4ed8\u7269**\u51b3\u5b9a\u770b\u5f97\u89c1\u54ea\u4e9b\uff08\u663e\u5f0f\u6e05\u5355\u662f\u6700\u7ec8\u96c6\u5408\uff0c\u4e0d\u4e0e\u9ed8\u8ba4\u5408\u5e76\uff09\u3002\n- **\u547d\u4ee4\u9762**\uff1a\u6280\u80fd\u81ea\u5e26**\u5355\u4e00\u5165\u53e3\u811a\u672c**\uff08\u81ea\u5df1\u5199\u6587\u4ef6\u3001\u8bfb\u53c2\u6570\uff0c\u4e0d\u4f9d\u8d56 shell \u91cd\u5b9a\u5411\uff09\uff0c\u914d\u4e00\u6761\u6536\u7d27\u5230\n  \u8be5\u811a\u672c\u7684\u5ba1\u6279\u5141\u8bb8\u9879\uff08`pattern=<\u89e3\u91ca\u5668\u8def\u5f84>` + `argPattern` \u9489\u6b7b\u811a\u672c\u8def\u5f84\uff0c**\u4e0d\u653e\u884c\u88f8 node**\uff09\uff1b\n  \u53ea\u8bfb\u67e5\u770b\u7c7b\uff08ls/cat/head/tail/wc/find/grep/file/stat/which\uff09\u6309 agent \u653e path-only \u5141\u8bb8\u9879\uff0c\n  \u5426\u5219 agent \u7684\u7b2c\u4e00\u6761\u63a2\u6d4b\u547d\u4ee4\u5c31\u4f1a\u5361\u4f4f\u3002\n- **\u89c4\u5219\u53ea\u5199\u4e00\u6b21**\uff1a\u7ea6\u5b9a\u5199\u8fdb\u5171\u4eab\u6280\u80fd\uff0c\u5404 agent \u7ae0\u7a0b\u53ea\u653e\u4e00\u884c\u6307\u9488 + \u53ef\u89c1\u6e05\u5355\u3002\u7ae0\u7a0b\u91cc\u70b9\u540d\u7684\u5de5\u5177\n  \u4f1a\u8fc7\u671f\uff0c\u70b9\u540d\u7684**\u98ce\u683c**\u4e0d\u4f1a\u3002\n- **\u6c89\u6dc0\u65b9\u5411\u5224\u5b9a**\uff1a\u89e3\u6cd5\u82e5\u53ef\u80fd\u590d\u73b0\u5728\u522b\u7684 agent \u8eab\u4e0a \u2192 \u5199\u8fdb\u5171\u4eab\u6280\u80fd\uff08\u6216\u672c\u5e93\u5019\u9009\uff09\uff0c\n  \u4e0d\u80fd\u53ea\u7559\u5728\u81ea\u5df1\u7684 memory / AGENTS.md\u3002\n- **\u9a8c\u6536\u53ea\u770b\u6548\u679c**\uff1a`openclaw skills list --agent <id>`\uff08\u914d\u7f6e\u5199\u4e86\u4e0d\u7b49\u4e8e\u751f\u6548\uff09+ \u6d3e\u4e00\u9053\u771f\u9898\u8bfb\u56de\u56de\u5305\u3002\n\n# \u672c\u8f6e\u540c\u65f6\u7ea0\u6b63\u7684\u4e00\u4e2a\u5224\u65ad\u9519\u8bef\n\n\u300c\u6e20\u9053\u6ca1\u6709\u6570\u5b66\u6e32\u67d3\u5668\u300d\uff08\u4e8b\u5b9e\uff09\u66fe\u88ab\u63a8\u6210\u300c\u6240\u4ee5\u5fc5\u987b\u51fa\u56fe\u300d\uff08\u63a8\u65ad\uff09\u3002\u7528\u6237\u5f53\u573a\u7ea0\u6b63\uff1a\u8981\u7684\u662f\n**Unicode \u624b\u5199\u4f53\u7eaf\u6587\u672c**\uff08`x\u00b2/(1+\u221a(1\u2212x\u00b2))`\u3001`\u222b\u2080\u00b9`\u3001`w\u1d40\u03a3w`\u3001`\u21d2`\uff09\uff0c\u4e0d\u662f\u56fe\u7247\u3002\u6559\u8bad\uff1a\u5148\u770b\u7528\u6237\u81ea\u5df1\n\u5df2\u6709\u7684\u6210\u54c1\u98ce\u683c\uff08\u5de5\u4f5c\u533a\u91cc `learning/*.md` \u7684\u5199\u6cd5\u3001\u4ed6\u65e5\u5e38\u6536\u5230\u7684\u6d88\u606f\uff09\uff0c\u518d\u52a8\u67b6\u6784\uff1b\u628a\u4e8b\u5b9e\u4e0e\u63a8\u65ad\n\u5199\u5728\u540c\u4e00\u53e5\u91cc\uff0c\u4f1a\u7167\u7740\u9519\u7684\u65b9\u5411\u6539\u3002\n\n# \u8fb9\u754c\uff08\u6ca1\u505a\u4ec0\u4e48\uff09\n\n- \u6280\u80fd\u5141\u8bb8\u6e05\u5355\u662f**\u53ef\u89c1\u6027\u4e0e\u63d0\u793a**\u5c42\uff0c\u4e0d\u662f shell \u6388\u6743\u8fb9\u754c\uff1bexec \u6388\u6743\u4ecd\u6309 agent \u9010\u6761\u3001\u6309\u9700\u7ed9\u3002\n- \u6ca1\u6709\u628a `tools.exec.mode` \u8c03\u6210 `auto`\uff08\u6a21\u578b\u5ba1\u67e5\u5668\u4ee3\u6279\uff09\u2014\u2014\u90a3\u5c5e\u4e8e\u653e\u6743\uff0c\u9700\u4f7f\u7528\u8005\u660e\u786e\u51b3\u5b9a\u3002\n- \u6ca1\u6709\u66ff\u4efb\u4f55 agent \u590d\u5236\u6280\u80fd\u526f\u672c\uff08\u590d\u5236\u5373\u5206\u53c9\uff09\uff1b\u4e5f\u6ca1\u6709\u4fee\u6539\u522b\u7684 agent \u7684\u79c1\u6709 memory\u3002\n\n# \u672c\u6761\u7684\u9a8c\u8bc1\u8303\u56f4\uff08v1.1.0 \u8ffd\u52a0\uff0c\u4f9d main \u590d\u6838\u5efa\u8bae\uff09\n\n- **\u5df2\u9a8c\u8bc1**\uff1a\u6307\u5b9a\u6280\u80fd\uff08`math-typesetting`\uff09**\u80fd\u88ab\u6bcf\u4e2a\u4e13\u5bb6 agent \u8bfb\u5230\u5e76\u4f7f\u7528**\u2014\u2014\u8bc1\u636e\u662f\n  `openclaw skills list --agent <id>` \u56db\u4e2a\u4e13\u5bb6\u5747\u547d\u4e2d\uff0c\u4e14\u540c\u4e00\u9053\u6570\u5b66\u9898\u5728 main / mentor /\n  study-planner / project-manager / order-worker \u4e94\u4e2a\u4f1a\u8bdd\u91cc\u90fd\u6309\u540c\u4e00\u5f62\u6001\u8f93\u51fa\uff08Unicode \u624b\u5199\u4f53\u3001\n  0 \u5904 LaTeX\u30010 \u5904 `$`\u30010 \u4e2a\u56fe\u7247\u9644\u4ef6\uff09\u3002\n- **\u672a\u9a8c\u8bc1**\uff1a**\u5404 agent \u7684\u53ef\u89c1\u6280\u80fd\u96c6\u5408\u5927\u5c0f\u4e00\u81f4**\u3002\u5404 agent \u7684\u6e05\u5355\u662f\u6309\u4ea4\u4ed8\u7269\u5b9a\u7684\u3001\u672c\u6765\u5c31\u4e0d\u540c\n  \uff08main 46 / mentor 4 / study-planner 4 / project-manager 3 / order-worker 7 / local-worker 42\uff09\u3002\n  **\u4e0d\u8981**\u628a\u672c\u6761\u5f53\u6210\"\u6240\u6709 agent \u80fd\u529b\u76f8\u540c\"\u7684\u4f9d\u636e\uff0c\u4e5f\u4e0d\u8981\u7528\u5b83\u53bb\u780d\u4efb\u4f55 agent \u7684\u6e05\u5355\u3002\n- **\u673a\u8bfb\u5224\u636e**\uff1a`~/.hermes/scripts/openclaw-agent-parity-check.py`\uff08\u9759\u9ed8 cron `openclaw-agent-parity`\uff09\n  \u67e5\u56db\u7c7b\u65ad\u5c42\uff1aextraDirs \u5931\u6548 / \u53ef\u89c1\u6570\u4e3a 0 / \u7ae0\u7a0b\u70b9\u540d\u5374\u770b\u4e0d\u89c1 / \u6e05\u5355\u5199\u4e86\u5374\u4e0d\u751f\u6548 / \u5ba1\u6279\u6302 >10 \u5206\u949f\u3002\n\n# \u590d\u73b0\u8bc1\u636e\uff08\u672c\u8f6e\uff09\n\n- \u5f62\u6001\u5bf9\u6bd4\uff1a`~/hermes/notes/mathstyle/<agent>.log` + `~/hermes/notes/math-style-comparison.json`\uff0c\n  \u5224\u636e\u811a\u672c `~/hermes/scripts/compare-math-style.py`\u3002\n- \u5bf9 main \u7684\u4e24\u6b21 A2A \u54a8\u8be2\uff08\u95ee\u6765\u6e90 / \u56de\u6267\u8bc1\u636e\uff09\uff1a`~/hermes/notes/main-math-style-answer.json`\u3001\n  `main-evidence-ack-20260924.json`\u3002main \u7684\u53cd\u9a73\u4e24\u5904\uff08\"\u53ea\u4fee\u4e86 mentor \u4e00\u5904\"\u3001\"\u770b\u95e8\u72d7\u53ea\u770b 0 \u4e0d\u591f\"\uff09\n  \u7ecf\u590d\u6838**\u5747\u6210\u7acb**\uff0c\u5df2\u91c7\u7eb3\u3002\n",
+  "source": [
+    {
+      "type": "workspace_file",
+      "path": "/mnt/d/OpenClaw/workspace/skills/math-typesetting/SKILL.md",
+      "retrieved_at": "2026-09-23T23:44:27Z",
+      "note": "\u5171\u4eab\u6280\u80fd\uff1b\u00a70.0 \u662f\u8d27\u5e01\u7684\u6570\u5b66\u5199\u6cd5\u7ea6\u5b9a"
+    },
+    {
+      "type": "workspace_file",
+      "path": "/home/huyi/.openclaw/openclaw.json",
+      "retrieved_at": "2026-09-23T23:44:27Z",
+      "note": "skills.load.extraDirs + agents.entries.<id>.skills"
+    },
+    {
+      "type": "workspace_file",
+      "path": "/mnt/d/OpenClaw/workspace/agents/mentor/AGENTS.md",
+      "retrieved_at": "2026-09-23T23:44:27Z",
+      "note": "\u7ae0\u7a0b\u91cc\u7684\u5171\u4eab\u6280\u80fd\u5e93\u6ce8\u8bb0"
+    },
+    {
+      "type": "workspace_file",
+      "path": "/home/huyi/hermes/notes/2026-09-23-openclaw-skill-sharing-audit.md",
+      "retrieved_at": "2026-09-23T23:44:27Z",
+      "note": "\u5ba1\u67e5\u4e0e\u9a8c\u8bc1\u8bb0\u5f55\uff08\u542b\u56de\u6eda\u65b9\u5f0f\uff09"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "agent_deposit",
+      "agent": "local-hermes",
+      "created_at": "2026-09-23T23:44:27Z",
+      "note": "Hermes \u4fa7\u5728 2026-09-23/24 \u5ba1\u67e5\u5e76\u5b9e\u65bd\uff1b\u6839\u56e0\u4e0e\u9a8c\u8bc1\u5747\u6709\u4e00\u624b\u673a\u5668\u8bc1\u636e"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "openclaw",
+    "hermes",
+    "skills",
+    "governance",
+    "multi-agent"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "command",
+      "command": "openclaw skills list --agent mentor --json",
+      "observed_at": "2026-09-23T23:44:27Z"
+    },
+    {
+      "type": "command",
+      "command": "openclaw approvals get; openclaw approvals pending",
+      "observed_at": "2026-09-23T23:44:27Z"
+    },
+    {
+      "type": "file",
+      "path": "skills/math-typesetting/SKILL.md:12-52",
+      "observed_at": "2026-09-23T23:44:27Z"
+    },
+    {
+      "type": "file",
+      "path": "~/.openclaw/openclaw.json:1622 (skills.load.extraDirs)",
+      "observed_at": "2026-09-23T23:44:27Z"
+    }
+  ],
+  "metadata": {
+    "name": "openclaw-skill-sharing-parity",
+    "tags": [
+      "skills",
+      "sharing",
+      "openclaw",
+      "permissions",
+      "agent-parity"
+    ],
+    "agent_name": "hermes",
+    "permissions": [
+      "read-only on the OpenClaw side; operator-side config edits recorded"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": [
+        "scope 'shared' is shared; an artifact another party can read needs a human"
+      ]
+    }
+  },
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-09-23T23:44:27Z",
+  "updated_at": "2026-09-23T23:44:27Z"
+}
