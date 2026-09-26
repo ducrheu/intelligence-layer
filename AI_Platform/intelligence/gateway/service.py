@@ -11,6 +11,7 @@ from typing import Any
 
 from .audit_chain import append_audit_record
 from .errors import ArtifactNotFoundError, ArtifactValidationError
+from .exposure import denied_ids, may_read, scrub_entries, scrub_references
 from .attestation import GATEWAY_METADATA_KEYS, artifact_digest
 from .auto_admission import POLICY_VERSION, evaluate
 from .lifecycle import assert_transition
@@ -452,6 +453,13 @@ class IntelligenceGateway:
         return self._get(actor, "source", artifact_id)
 
     def _get(self, actor: Actor, kind: str, artifact_id: str) -> dict[str, Any]:
+        denied = denied_ids(self.root, actor)
+        if not may_read(denied, kind, artifact_id):
+            # Same exception, same audit action as an id that never existed. A distinct
+            # "denied" answer would let a caller map the corpus by probing ids, which is
+            # the leak the denylist exists to prevent.
+            self._audit(actor, f"get_{kind}", artifact_id, "not_found")
+            raise ArtifactNotFoundError(f"{kind}/{artifact_id} not found")
         statuses = ("approved", "stale", "deprecated", "archived")
         if can_read_candidate(actor):
             statuses = ("candidate", "experimental", "validated") + statuses
@@ -465,7 +473,9 @@ class IntelligenceGateway:
         self._audit(actor, f"get_{kind}", artifact_id, "success")
         # Retrieval is the strong usage signal: the whole record was read.
         self._event(actor, "used", artifact, artifact["status"], artifact["status"], None, via="get")
-        return artifact
+        # References are ids in plain sight, so they get the same treatment as the records
+        # themselves: a source entry pointing at a withheld record would leak it.
+        return scrub_references(artifact, denied)
 
     def _build_retriever(self, root: Path) -> Retriever:
         """Hybrid retrieval, degrading to lexical when the embedder is unavailable.
@@ -507,8 +517,13 @@ class IntelligenceGateway:
         candidate scope.
         """
         documents: dict[str, dict[str, Any]] = {}
+        # Exposure control first, inside the predicate: a denied artifact must never be
+        # a candidate, so no count, score or ranking trace can reveal that it exists.
+        denied = denied_ids(self.root, actor)
         for artifact in self.store.iter_all():
             if artifact.get("kind") != kind:
+                continue
+            if not may_read(denied, kind, str(artifact.get("id", ""))):
                 continue
             if artifact.get("status") == "archived":
                 # Terminal state, kept for the audit trail rather than for reading.
@@ -558,6 +573,7 @@ class IntelligenceGateway:
         if max_items < 1 or max_items > 100 or max_bytes < 1 or max_chars < 1:
             raise ValueError("invalid retrieval limits")
         documents = self._search_documents(actor, kind, scope)
+        denied = denied_ids(self.root, actor)
         ranked, summary = self.retriever.rank(query, documents, limit=max_items, embed_budget=embed_budget)
         ranked = self._stalest_last(ranked, documents)
         if self.retriever.cache is not None:
@@ -573,7 +589,7 @@ class IntelligenceGateway:
                 "version": artifact["version"],
                 "title": artifact["title"],
                 "content": artifact["content"][:max_chars],
-                "provenance": artifact["provenance"][:3],
+                "provenance": scrub_entries(artifact["provenance"], denied)[:3],
                 "score": item["score"],
                 "why": item["why"],
                 "freshness": freshness(artifact),

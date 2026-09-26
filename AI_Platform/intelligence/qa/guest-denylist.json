@@ -1,0 +1,22 @@
+{
+  "_note": [
+    "哪些已批准制品不被外部身份读到的名单（gateway/exposure.py 读取）。",
+    "只对 Actor.external=True 的身份生效；名单缺失/损坏/没有该身份的条目 = 该外部身份什么都读不到（fail closed）。",
+    "条目可以写 id 或 kind/id。新增「关于小主人本人/他的业务」的沉淀时，记得加到这里。",
+    "为什么不用提示词挡：OWASP LLM07 —— system prompt 'should not be used as a security control'。"
+  ],
+  "local-guest-friend": [
+    "exp-2-90-2026-09-23-85-20260924",
+    "exp-22-14-308-20260924",
+    "exp-freelance-shop-products-registry-md-show-20260924",
+    "exp-im-personal-tools-xianyu-patrol-sh-tab-t-20260925",
+    "exp-wsl-huyi-quant-data-fabric-master-v0-3-t-20260925",
+    "knowledge-cross-doc-relative-path-basis-labeling",
+    "knowledge-marketplace-keyword-validity-gate",
+    "knowledge-xianyu-listing-autoship-and-reply-guardrails",
+    "atlas-hermes-collaboration-context",
+    "pit-available-time-semantics",
+    "pit-repository-revalidation",
+    "source-legacy-freelance-excel-merge"
+  ]
+}

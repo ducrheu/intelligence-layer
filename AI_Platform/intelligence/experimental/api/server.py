@@ -47,6 +47,20 @@ def default_actors() -> dict[str, Actor]:
                        "validate:candidate", "approve"}),
             "policy",
         ),
+        # The borrowed runtime: an outside user's agent, reading on someone else's
+        # behalf. Read-only, and only ever approved artifacts - no candidates, no
+        # governance metadata, no event stream, so the reasoning behind moving records
+        # stays inside. `external=True` is the flag that turns the exposure denylist on
+        # and makes an unreadable denylist fail closed instead of reading as "no
+        # restrictions" (gateway/exposure.py). Adding the identity grants nothing on its
+        # own: without a minted token nobody can present it.
+        "local-guest-friend": Actor(
+            "local-guest-friend",
+            "runtime",
+            frozenset({"read:approved"}),
+            "guest",
+            True,
+        ),
     }
 
 
@@ -223,7 +237,7 @@ def _handler(api: ExperimentalAPI):
             approved = api.gateway.search(actor, kind, query, None, max_items, max_bytes, max_chars)
             warnings: list[dict[str, Any]] = []
             if "read:governance-metadata" in actor.scopes:
-                metadata_actor = Actor(actor.actor_id, actor.role, frozenset({"read:approved", "read:candidate"}), actor.runtime)
+                metadata_actor = Actor(actor.actor_id, actor.role, frozenset({"read:approved", "read:candidate"}), actor.runtime, actor.external)
                 for item in api.gateway.search(metadata_actor, kind, query, None, max_items, max_bytes, 1):
                     if item["status"] != "approved":
                         artifact = api.gateway.store.load(item["id"], kind, ("candidate", "experimental", "validated", "stale", "deprecated"))

@@ -15,6 +15,12 @@ class Actor:
     role: str
     scopes: frozenset[str] = field(default_factory=frozenset)
     runtime: str | None = None
+    # True for identities that are not the owner: a borrowed runtime, an external
+    # user's agent. It flips the read side from "the owner reads their own library" to
+    # "someone else reads it", which is the only condition under which the exposure
+    # denylist applies - and, crucially, the only condition under which a *missing or
+    # unreadable* denylist must fail closed rather than read as "no restrictions".
+    external: bool = False
 
 
 @dataclass
