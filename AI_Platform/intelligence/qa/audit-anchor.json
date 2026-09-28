@@ -1,9 +1,9 @@
 {
-  "anchor": "sha256:b89284bcfad84c639885084372a68dc0d712a89cf0a1147a0b71814600c12e70",
-  "audit_lines": 1059,
-  "chained_records": 110,
-  "verified_at": "2026-09-27T14:30:10+00:00",
-  "store_head": "5d9ada8",
+  "anchor": "sha256:971d958b74f16d448a868bcfe20047a7e48c2e05a864eb69c0cf0900946a4655",
+  "audit_lines": 1077,
+  "chained_records": 128,
+  "verified_at": "2026-09-28T14:30:29+00:00",
+  "store_head": "b4af0b5",
   "state_dir": "/home/huyi/.local/state/intelligence-layer",
   "note": "链尾 hash。它的作用不是重复校验，而是把'日志到此为止'固定进提交历史：只改日志而不改这里，锚点就对不上；两者都改，提交历史里留痕。"
 }
