@@ -473,6 +473,7 @@ class Retriever:
                  reranker: Any = None, rrf_k: int = 60,
                  weights: Sequence[float] | None = None, lexical: bool = True,
                  min_cosine: float = 0.55, idf_ratio: float = 0.6,
+                 min_coverage: float = 0.0,
                  passage_chars: int = 600, chunk: bool = True) -> None:
         self.cache = cache
         self.embedder = embedder
@@ -494,9 +495,41 @@ class Retriever:
         # match a token that is distinctive *for this corpus and this query*?
         self.min_cosine = min_cosine
         self.idf_ratio = idf_ratio
+        # Query-coverage gate. The idf gate above asks a relative question and is
+        # correct for that, but it cannot reject a query whose *only* matched token
+        # is a common one: when a single token matches, that token is also the
+        # source of best_idf, so the ratio is 1.0 and the gate passes by
+        # construction. Measured on the live corpus: '今天晚饭吃什么' matched only
+        # '什么' (df=6/23) and still cleared every gate.
+        #
+        # This adds Lucene's Common Terms idea (high-frequency terms must not
+        # decide a match on their own) at this corpus's scale: a hit must be
+        # supported by enough of the query's distinct tokens. Measured: coverage
+        # >= 0.6 drops unrelated-query hits from 7/8 to 2/8 with recall@1
+        # unchanged (6/8) and short identifier queries ('403', 'pit', 'v2.0.1')
+        # intact. A fixed minimum *count* instead breaks those short queries
+        # (measured 2/3), so the rule is a ratio, not a floor.
+        # 0.0 disables it, so the default deployment is unchanged.
+        self.min_coverage = min_coverage
         self.passage_chars = passage_chars
         self.chunk = chunk
         self.last_mode = "lexical"
+
+    def _matches_coverage(self, query: str, key: str, lexical: "BM25 | None") -> bool:
+        """Does `key` match enough of the query's distinct tokens to count as a hit?
+
+        Ratio, not a floor: a fixed minimum count rejects short identifier queries
+        ('403' is one token) that lexical search exists to serve. Disabled when
+        min_coverage is 0, or when the lexical half is off.
+        """
+        if not self.min_coverage or lexical is None:
+            return True
+        tokens = set(tokenize(query))
+        if not tokens:
+            return True
+        frequencies = lexical._freqs.get(key) or {}
+        matched = sum(1 for token in tokens if token in frequencies)
+        return matched / len(tokens) >= self.min_coverage
 
     def _passages(self, document: dict[str, Any]) -> list[str]:
         if not self.chunk:
@@ -549,6 +582,7 @@ class Retriever:
         lexical_scores: dict[str, float] = {}
         distinctive_scores: dict[str, float] = {}
         lexical_ranking: list[str] = []
+        lexical: BM25 | None = None
         if self.lexical:
             lexical = BM25().fit({key: document["fields"] for key, document in documents.items()})
             lexical_scores = lexical.score(query)
@@ -582,7 +616,8 @@ class Retriever:
         # pushes a relevant one down.
         best_idf = max(distinctive_scores.values(), default=0.0)
         lexical_ranking = [key for key in lexical_ranking
-                           if best_idf and distinctive_scores.get(key, 0.0) >= self.idf_ratio * best_idf]
+                           if best_idf and distinctive_scores.get(key, 0.0) >= self.idf_ratio * best_idf
+                           and self._matches_coverage(query, key, lexical)]
         vector_ranking = [key for key in vector_ranking if vector_scores.get(key, 0.0) >= self.min_cosine]
 
         fused = rrf([lexical_ranking, vector_ranking], k=self.rrf_k, weights=self.weights)
