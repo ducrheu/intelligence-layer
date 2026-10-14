@@ -507,6 +507,7 @@ class IntelligenceGateway:
             chunk=os.environ.get("INTELLIGENCE_CHUNK", "1") != "0",
             idf_ratio=float(os.environ.get("INTELLIGENCE_MIN_IDF_RATIO", "0.6")),
             min_coverage=float(os.environ.get("INTELLIGENCE_MIN_MATCH_COVERAGE", "0.0")),
+            common_df_ratio=float(os.environ.get("INTELLIGENCE_COMMON_DF_RATIO", "0.0")),
         )
 
     def _search_documents(self, actor: Actor, kind: str, scope: str | None) -> dict[str, dict[str, Any]]:

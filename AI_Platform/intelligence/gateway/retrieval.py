@@ -473,7 +473,7 @@ class Retriever:
                  reranker: Any = None, rrf_k: int = 60,
                  weights: Sequence[float] | None = None, lexical: bool = True,
                  min_cosine: float = 0.55, idf_ratio: float = 0.6,
-                 min_coverage: float = 0.0,
+                 min_coverage: float = 0.0, common_df_ratio: float = 0.0,
                  passage_chars: int = 600, chunk: bool = True) -> None:
         self.cache = cache
         self.embedder = embedder
@@ -511,6 +511,15 @@ class Retriever:
         # (measured 2/3), so the rule is a ratio, not a floor.
         # 0.0 disables it, so the default deployment is unchanged.
         self.min_coverage = min_coverage
+        # Lucene's Common Terms, applied to the ratio above: a token occurring in
+        # most of the corpus carries no discriminating power, so it must count
+        # neither as a match nor in the denominator. Without this the ratio is
+        # gameable by filler: 'zzzz不存在zzzz' tokenizes to {zzzz, 不存在}, and
+        # because '不存在' is a common pairing the query clears coverage at 1/2=0.5.
+        # Measured df on the live corpus: '不存在' spans a large share of a 23-doc
+        # kind, while '闲鱼'/'退款' sit in one or two. 0.0 disables it (behaviour
+        # identical to before).
+        self.common_df_ratio = common_df_ratio
         self.passage_chars = passage_chars
         self.chunk = chunk
         self.last_mode = "lexical"
@@ -527,6 +536,17 @@ class Retriever:
         tokens = set(tokenize(query))
         if not tokens:
             return True
+        # Common Terms: drop tokens present in too large a share of the corpus, so a
+        # filler phrase cannot dilute the denominator and carry an unrelated query
+        # over the line. When every token is common there is nothing left to judge
+        # on, so the query passes (same as an empty token set).
+        if self.common_df_ratio:
+            total_docs = len(lexical._freqs) or 1
+            cutoff = self.common_df_ratio * total_docs
+            meaningful = {t for t in tokens if lexical._doc_freq.get(t, 0) <= cutoff}
+            if not meaningful:
+                return True
+            tokens = meaningful
         frequencies = lexical._freqs.get(key) or {}
         matched = sum(1 for token in tokens if token in frequencies)
         return matched / len(tokens) >= self.min_coverage
