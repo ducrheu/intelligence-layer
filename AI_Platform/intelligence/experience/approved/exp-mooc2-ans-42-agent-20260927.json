@@ -1,0 +1,72 @@
+{
+  "id": "exp-mooc2-ans-42-agent-20260927",
+  "kind": "experience",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u628a\u8d85\u661f\uff08\u5b66\u4e60\u901a mooc2-ans\uff09\u4e00\u95e8\u8bfe\u7684 42 \u8282\u8bfe\u4ef6\u6279\u91cf\u6293\u4e0b\u6765\u5e76\u62bd\u51fa\u6587\u5b57\uff0c\u4f9b agent \u901a\u8bfb",
+  "content": "## \u505a\u4e86\u4ec0\u4e48\n\u628a\u8d85\u661f\uff08\u5b66\u4e60\u901a mooc2-ans\uff09\u4e00\u95e8\u8bfe\u7684 42 \u8282\u8bfe\u4ef6\u6279\u91cf\u6293\u4e0b\u6765\u5e76\u62bd\u51fa\u6587\u5b57\uff0c\u4f9b agent \u901a\u8bfb\n\n## \u6709\u6548\u7684\u505a\u6cd5\n\u2460 \u7528 Windows \u7248 Chrome \u4ee5\u72ec\u5360 --remote-debugging-port \u542f\u52a8\uff08\u4e0d\u8981\u7528\u5df2\u5728\u8dd1\u7684\u90a3\u4e2a\u8c03\u8bd5\u7aef\u53e3\uff0c\u907f\u514d\u8fde\u5230\u522b\u7684\u81ea\u52a8\u5316\u6d4f\u89c8\u5668\uff09\uff0cLinux \u4fa7 Playwright \u8d70 connect_over_cdp \u9a71\u52a8\uff1b\u2461 \u6bcf\u8282\u7684\u8bfe\u4ef6\u662f pan-yz \u6587\u6863\u64ad\u653e\u5668\u91cc\u7684\u9644\u4ef6\uff0c\u4e0b\u8f7d\u5730\u5740\u5e26 at_/ak_/ad_ \u7b7e\u540d\uff0c\u4ece pan-yz \u5e27\u7684 fileinfo \u91cc\u53d6\uff1b\u2462 \u5173\u952e\u4e00\u6b65\uff1a\u4e0b\u8f7d\u8bf7\u6c42\u5fc5\u987b\u5e26 Referer\uff08\u6307\u5411 mooc1 \u7684 studentstudy \u9875\uff09\uff0c\u4e0d\u5e26\u4e00\u5f8b 403\uff0c\u5e26\u4e0a\u5c31\u662f 200\uff1b\u2463 \u6bcf\u4e00\u7ae0\u7684\u5404\u4e2a\u5c0f\u8282\u62ff\u5230\u7684\u5176\u5b9e\u662f\u540c\u4e00\u4efd\u6574\u7ae0 pptx\uff0c\u53bb\u91cd\u540e 10 \u7ae0\u53ea\u6709 11 \u4efd\u72ec\u7acb\u5185\u5bb9\uff0c\u522b\u91cd\u590d\u8bfb\n\n## \u65e0\u6548\u6216\u8e29\u8fc7\u7684\u5751\n\u2460 \u76f4\u63a5 HTTP \u8bf7\u6c42\u4e0b\u8f7d -> 403\uff1b\u2461 \u7528\u6d4f\u89c8\u5668\u7684 download \u4e8b\u4ef6\u4e0b\u8f7d -> canceled\uff1b\u2462 \u6bcf\u8282\u65b0\u5f00\u6807\u7b7e\u9875\u4f1a\u8d8a\u5806\u8d8a\u591a\u3001\u6587\u6863\u64ad\u653e\u5668\u4e0d\u518d\u521d\u59cb\u5316\uff0c\u6539\u6210\u590d\u7528\u540c\u4e00\u4e2a\u9875\u9762\u5e76\u7b49 networkidle \u624d\u7a33\u5b9a\uff1b\u2463 \u8fde\u7eed\u5feb\u901f\u5f00\u51e0\u5341\u6b21\u9875\u9762\u540e\uff0c\u4f1a\u8bdd\u4f1a\u88ab\u8e22\u5230 i.mooc.chaoxing.com/space/index\uff0c\u8bf4\u660e\u8bf7\u6c42\u5bc6\u5ea6\u8fc7\u9ad8\uff1b\u2464 \u7ae0\u8282\u76ee\u5f55\u4e0d\u662f a \u6807\u7b7e\uff0c\u662f onclick \u7ed1\u5b9a\u7684 div\uff0c\u53ea\u80fd\u4ece HTML \u91cc\u6b63\u5219\u51fa\u7ae0\u8282 id\uff1b\u2465 \u7eaf\u6587\u672c\u63d0\u53d6\u5bf9\u56fe\u7247\u578b\u8bfe\u4ef6\u65e0\u6548\uff0c\u56fe\u7247\u9875\u53ea\u80fd\u62ff\u5230\u6807\u9898\n\n## \u8bc1\u636e\n- /mnt/d/OpenClaw/workspace/agents/mentor/tools/cx-get.py\uff08\u6293\u53d6+\u4e0b\u8f7d\u811a\u672c\uff0c41 \u4efd\u8bfe\u4ef6 593MB \u843d\u76d8\uff09\n- /mnt/d/OpenClaw/workspace/learning/materials/\u6570\u636e\u4ed3\u5e93\u4e0e\u6570\u636e\u6316\u6398/\u8bfe\u7a0b\u5185\u5bb9\u63d0\u70bc.md\uff08\u9010\u7ae0\u901a\u8bfb\u4ea7\u7269\uff09",
+  "created_by": "local-agent",
+  "created_at": "2026-09-27T11:44:14+00:00",
+  "updated_at": "2026-09-27T11:45:07Z",
+  "source": [
+    {
+      "type": "session_evidence",
+      "ref": "session:agent:mentor:20260927-chaoxing",
+      "retrieved_at": "2026-09-27T11:44:14+00:00"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "agent_deposit",
+      "agent": "local-agent",
+      "created_at": "2026-09-27T11:44:14+00:00",
+      "agent_name": "mentor",
+      "note": "recorded by the runtime that did the work"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-09-27T11:45:07Z",
+  "applies_to": [
+    "openclaw"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-09-27T11:45:07Z"
+    }
+  ],
+  "metadata": {
+    "name": "exp-mooc2-ans-42-agent",
+    "tags": [
+      "chaoxing",
+      "mooc",
+      "playwright",
+      "scraping"
+    ],
+    "agent_name": "mentor",
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-agent' is trusted, scope 'domain' is local, experience is non-executable",
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

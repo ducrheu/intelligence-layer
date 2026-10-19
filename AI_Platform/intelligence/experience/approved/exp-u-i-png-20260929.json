@@ -1,0 +1,72 @@
+{
+  "id": "exp-u-i-png-20260929",
+  "kind": "experience",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u5728\u8fd9\u4e2a\u73af\u5883\u91cc\u753b\u4e00\u5f20\u7269\u7406\u5b9e\u9a8c\u6570\u636e\u66f2\u7ebf\u56fe\uff08U-I \u66f2\u7ebf\uff09\u5e76\u4ea4\u4ed8 PNG",
+  "content": "## \u505a\u4e86\u4ec0\u4e48\n\u5728\u8fd9\u4e2a\u73af\u5883\u91cc\u753b\u4e00\u5f20\u7269\u7406\u5b9e\u9a8c\u6570\u636e\u66f2\u7ebf\u56fe\uff08U-I \u66f2\u7ebf\uff09\u5e76\u4ea4\u4ed8 PNG\n\n## \u6709\u6548\u7684\u505a\u6cd5\n\u73af\u5883\u91cc\u6ca1\u6709 numpy/matplotlib/PIL\uff08import numpy \u76f4\u63a5 ModuleNotFoundError\uff09\uff0c\u4f46\u6709 ImageMagick convert \u4e0e rsvg-convert\uff0c\u4e14\u6709 Noto Sans SC \u4e2d\u6587\u5b57\u4f53\u3002\u8d70\u7eaf Python \u751f\u6210 SVG\uff08\u624b\u7b97\u5750\u6807\u6620\u5c04 px/py + tspan dy \u505a\u4e0b\u6807\uff09\uff0c\u518d rsvg-convert -w.. -h.. -b white \u8f6c PNG\uff0c\u4e2d\u6587\u6807\u9898/\u8f74\u6807\u7b7e\u6b63\u5e38\u6e32\u67d3\u3002\u8bfb\u56fe\u4e0a\u7684\u624b\u5199\u6570\u5b57\u65f6\uff0c\u7528 convert -crop + -resize 400%~600% -colorspace Gray -normalize \u653e\u5927\u5355\u884c/\u5355\u683c\u518d\u8fa8\u8ba4\uff0c\u6bd4\u770b\u6574\u56fe\u51c6\u786e\u5f97\u591a\u3002\n\n## \u65e0\u6548\u6216\u8e29\u8fc7\u7684\u5751\n\u5148\u8bd5 python3 -c 'import matplotlib' \u76f4\u63a5 Aborted/ModuleNotFoundError\uff0cpip3 \u4e5f\u4e0d\u5b58\u5728\uff0c\u4e0d\u8981\u5728\u8fd9\u53f0\u673a\u5668\u4e0a\u6307\u671b Python \u79d1\u5b66\u6808\u3002\u56fe\u4f8b\u6846\u5982\u679c\u6309\u6574\u56fe\u5750\u6807\u653e\u5728\u53f3\u4e0a\u89d2\u4f1a\u76d6\u4f4f\u6570\u636e\u70b9\uff08\u534a\u900f\u660e\u767d\u5e95\u906e\u4f4f\u66f2\u7ebf\uff09\uff0c\u5e94\u653e\u5728\u6570\u636e\u7a00\u758f\u533a\uff08\u8fd9\u91cc\u53f3\u4e0b\u89d2 I=4~5\u3001U=0~8 \u5904\uff09\u3002\n\n## \u8bc1\u636e\n- \u811a\u672c /tmp/plot_uh_i.py\uff1b\u4ea7\u7269 /mnt/d/OpenClaw/workspace/freelance/deliveries/2026-09-29-\u970d\u5c14\u6548\u5e94U-I\u66f2\u7ebf/UH-I\u66f2\u7ebf.png\uff0c1280x880\uff0crsvg-convert 0.002s \u51fa\u56fe",
+  "created_by": "local-agent",
+  "created_at": "2026-09-29T08:52:16+00:00",
+  "updated_at": "2026-09-29T09:00:23Z",
+  "source": [
+    {
+      "type": "session_evidence",
+      "ref": "session:order-worker-webchat-20260929",
+      "retrieved_at": "2026-09-29T08:52:16+00:00"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "agent_deposit",
+      "agent": "local-agent",
+      "created_at": "2026-09-29T08:52:16+00:00",
+      "agent_name": "order-worker",
+      "note": "recorded by the runtime that did the work"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-09-29T09:00:23Z",
+  "applies_to": [
+    "openclaw"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-09-29T09:00:23Z"
+    }
+  ],
+  "metadata": {
+    "name": "exp-u-i-png",
+    "tags": [
+      "plotting",
+      "svg",
+      "rsvg-convert",
+      "imagemagick"
+    ],
+    "agent_name": "order-worker",
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-agent' is trusted, scope 'domain' is local, experience is non-executable",
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

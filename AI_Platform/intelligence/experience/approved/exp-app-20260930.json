@@ -1,0 +1,72 @@
+{
+  "id": "exp-app-20260930",
+  "kind": "experience",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u5e73\u53f0\u65b9\uff08\u5f97\u7269\uff09\u690d\u5165\u811a\u672c\uff1a\u5ba2\u6237\u5267\u60c5\u81ea\u5e26 App \u9732\u51fa\u65f6\uff0c\u6309\u54c1\u724c\u5224\u5b9a\u53e3\u5f84\u8981\u91cd\u7b97\u300e\u690d\u5165\u51fa\u73b0\u65f6\u95f4\u300f",
+  "content": "## \u505a\u4e86\u4ec0\u4e48\n\u5e73\u53f0\u65b9\uff08\u5f97\u7269\uff09\u690d\u5165\u811a\u672c\uff1a\u5ba2\u6237\u5267\u60c5\u81ea\u5e26 App \u9732\u51fa\u65f6\uff0c\u6309\u54c1\u724c\u5224\u5b9a\u53e3\u5f84\u8981\u91cd\u7b97\u300e\u690d\u5165\u51fa\u73b0\u65f6\u95f4\u300f\n\n## \u6709\u6548\u7684\u505a\u6cd5\n\u2460 brief \u53ea\u8ba4\u4e24\u79cd\u51fa\u73b0\uff08\u84dd\u76d2\u4e2d\u6587\u9762\u7279\u5199\u22651.5s\uff1b\u6216\u53e3\u64ad\u63d0\u5230\u54c1\u724c+\u54c1\u724c\u5b57\u5e55\uff09\uff0c\u5267\u60c5\u91cc\u6f14\u5458\u6253\u5f00\u5f97\u7269\u4e0b\u5355\u4e0d\u7b97\u2014\u2014\u6309\u6b64\u91cd\u7b97\u4f1a\u843d\u5230\u7b2c65s\uff0c\u8d85\u300e\u524d1/3\u300f\uff1b\u2461 \u4e0d\u52a8\u53f0\u8bcd\u7684\u89e3\u6cd5\uff1a\u5728\u5267\u60c5\u6bb5\u7684\u4e0b\u5355\u753b\u9762\u4e0a\u52a0\u4e00\u6761\u54c1\u724c\u5b57\u5e55\uff08\u5b57\u5e55\u5c42\u6539\uff0c\u4e0d\u78b0\u53f0\u8bcd\uff09\uff0c\u6216\u8ba9\u5ba2\u6237\u540c\u610f\u53e3\u64ad\u5e26\u4e00\u6b21\u54c1\u724c\u540d\uff0c\u6216\u54c1\u724c\u8ba4\u754c\u9762\u9732\u51fa\uff1b\u2462 \u5267\u60c5\u539f\u7a3f\u9010\u5b57\u642c\u8fdb\u8868\u2460\u3001\u642d\u6863\u53f0\u8bcd\u4fdd\u7559\u53ea\u5199\u8fbe\u4eba\u56de\u7b54\uff1b\u2463 \u690d\u5165 30s \u4f4d\u653e\u4e0d\u4e0b\u5fc5\u63d0\u5185\u5bb9\u65f6\u5199 37s \u5e76\u7ed9\u65b9\u6848A/B\uff0c\u4e0d\u5220\u5267\u60c5\n\n## \u65e0\u6548\u6216\u8e29\u8fc7\u7684\u5751\n\u76f4\u63a5\u6309\u300e\u5267\u60c5\u91cc\u5df2\u7ecf\u51fa\u73b0\u54c1\u724c\u4e86\u300f\u5f53\u4f5c\u5408\u89c4\u2014\u2014\u4f1a\u88ab\u54c1\u724c\u521d\u5ba1\u6253\u56de\uff1b\u690d\u5165\u6bb5\u6309 brief \u5224\u5b9a\u624d\u662f\u552f\u4e00\u53ef\u6838\u7684\u951a\u70b9\n\n## \u8bc1\u636e\n- /mnt/d/OpenClaw/workspace/freelance/deliveries/2026-09-30-\u5f97\u7269\u8fd0\u52a8\u6237\u5916\u690d\u5165\u811a\u672c/\u9ed1\u76ae\u5c0f\u6770\u811a\u672c2-1-\u5f97\u7269\u690d\u5165\u6bb5-\u6539\u5199\u7248.xlsx\uff08\u8868\u2467\uff09",
+  "created_by": "local-agent",
+  "created_at": "2026-09-30T13:51:48+00:00",
+  "updated_at": "2026-09-30T14:00:49Z",
+  "source": [
+    {
+      "type": "session_evidence",
+      "ref": "session:agent:order-worker:dashboard:b2d2ee44",
+      "retrieved_at": "2026-09-30T13:51:48+00:00"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "agent_deposit",
+      "agent": "local-agent",
+      "created_at": "2026-09-30T13:51:48+00:00",
+      "agent_name": "order-worker",
+      "note": "recorded by the runtime that did the work"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-09-30T14:00:49Z",
+  "applies_to": [
+    "openclaw"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-09-30T14:00:49Z"
+    }
+  ],
+  "metadata": {
+    "name": "exp-app",
+    "tags": [
+      "xianyu",
+      "short-video-script",
+      "dewu",
+      "compliance"
+    ],
+    "agent_name": "order-worker",
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-agent' is trusted, scope 'domain' is local, experience is non-executable",
+        "experience carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

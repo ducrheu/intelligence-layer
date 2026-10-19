@@ -20,6 +20,7 @@ AI_Platform/intelligence/qa/usage.json
 AI_Platform/intelligence/qa/identity_tokens.json
 AI_Platform/intelligence/qa/embeddings.json
 AI_Platform/intelligence/qa/*.tmp
+AI_Platform/intelligence/qa/*.lock
 
 # 明文凭据一律不进仓库（本项目把令牌明文刻意放在仓库之外）
 *.local.json

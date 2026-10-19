@@ -1,0 +1,73 @@
+{
+  "id": "knowledge-cjk-pdf-reportlab-wsl-toolchain",
+  "kind": "knowledge",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u65e0 pandoc/weasyprint/LaTeX \u7684 WSL \u73af\u5883\uff1a\u81ea\u5efa Markdown\u2192PDF \u6e32\u67d3\u5668\uff08reportlab\uff09\u751f\u6210\u4e2d\u6587\u5b66\u672f\u7ea7 PDF",
+  "content": "## \u9002\u7528\u573a\u666f\n\n\u8fd0\u884c\u73af\u5883\u88c5\u4e0d\u4e0a pandoc / weasyprint / LaTeX\uff08\u6216\u79bb\u7ebf\u3001\u6216\u7cfb\u7edf python \u7f3a pip\uff09\uff0c\u4f46\u4ecd\u9700\u8981\u4ece Markdown \u751f\u6210\u4e00\u4efd\u4e2d\u6587\u5b66\u672f\u7ea7 PDF\uff0c\u4e14\u8981\u6c42\u5e26\u76ee\u5f55\u3001\u9875\u7801\u3001PDF \u4e66\u7b7e\u4e0e\u7531\u6570\u636e\u751f\u6210\u7684\u771f\u56fe\u3002\n\n## \u7ecf\u9a8c\u6761\u76ee\n\n1. **\u5148\u89e3\u51b3\u5de5\u5177\u94fe**\uff1a\u7cfb\u7edf `python3-venv` \u88c5\u4e0d\u4e0a\u65f6\uff0c\u7528 `python3 -m venv --without-pip` \u5efa\u865a\u62df\u73af\u5883\uff0c\u518d\u4e0b\u8f7d `bootstrap.pypa.io/get-pip.py`\uff0c\u7528\u8be5\u73af\u5883\u7684 python \u6267\u884c\u5b83\uff0c\u5373\u53ef\u628a pip \u88c5\u8fdb\u73af\u5883\uff0c\u8fdb\u800c\u5b89\u88c5 reportlab / matplotlib / pandas / duckdb\u3002\n2. **\u4e2d\u6587\u5b57\u4f53\u8981\u8f6c TTF**\uff1areportlab \u7684 `TTFont` \u4e0d\u652f\u6301 CFF/OTF\u3002\u628a Google Fonts \u7684\u53ef\u53d8\u5b57\u4f53 `NotoSansSC[wght]` \u7528 `fonttools varLib.instancer` \u5b9e\u4f8b\u5316\u6210 Regular / Bold \u4e24\u4e2a\u9759\u6001 TTF\uff08\u5404\u7ea6 10MB\uff09\uff0c`registerFontFamily` \u540e\u6b63\u6587\u5373\u53ef\u76f4\u63a5\u7528 CJK \u5b57\u4f53\uff1b\u4ea7\u7269\u56e0 reportlab \u81ea\u52a8\u5b50\u96c6\u5316\u53ea\u7ea6 2.6MB\u3002\n3. **\u4ee3\u7801\u5757\u91cc\u7684\u4e2d\u6587\u6ce8\u91ca\u522b\u53d8\u65b9\u5757**\uff1a\u7528 `XPreformatted` \u4fdd\u7559\u7f29\u8fdb\u4e0e\u6362\u884c\uff0c\u518d\u628a CJK \u6bb5\u843d\u7528\u6b63\u5219\u5305\u6210 `<font name=\"CJK\">` \u6df7\u6392\u8fdb\u7b49\u5bbd\u5b57\u4f53\u3002\n4. **\u76ee\u5f55 / \u9875\u7801 / \u4e66\u7b7e**\uff1a`BaseDocTemplate.multiBuild` + `TableOfContents`\uff0c\u5728 `afterFlowable` \u91cc `notify(TOCEntry)`\uff1bPDF \u5927\u7eb2\u7528 `bookmarkPage` / `addOutlineEntry`\u3002\n5. **\u6570\u636e\u56fe\u5fc5\u987b\u771f\u8bfb\u5e93**\uff1a\u56fe\u7684\u6570\u636e\u8981\u4ece\u5e93\u76f4\u8bfb\uff08`duckdb` read_only + pandas\uff09\uff0c\u4e0d\u8981\u8ba9\u56fe\u4e0a\u7684\u6570\u5b57\u4e0e\u6b63\u6587\u6570\u5b57\u5404\u5199\u4e00\u904d\u3001\u5931\u53bb\u540c\u6e90\u3002\n\n## \u8fb9\u754c\uff08\u672a\u9a8c\u8bc1 / \u4e0d\u4f5c\u7ed3\u8bba\uff09\n\n- \u6765\u6e90\u6458\u8981\u5728\u6b64\u5904\u88ab\u622a\u65ad\uff1a\u7b2c \u2464 \u6761\u300c\u771f\u8bfb\u5e93\u300d\u53ea\u5728\u6458\u8981\u91cc\u9732\u51fa\u73b0\u7684\u524d\u534a\u53e5\uff0c\u5176\u5b9e\u73b0\u7ec6\u8282\u672a\u5c55\u5f00\uff0c\u672c\u5019\u9009\u4e0d\u628a\u5b83\u5199\u6210\u7ed3\u8bba\u3002\n- \u5b57\u4f53\u5b9e\u4f8b\u5316\u540e\u7684\u5b57\u91cd\u8986\u76d6\u3001\u4ee5\u53ca reportlab \u5b50\u96c6\u5316\u5728\u6781\u7aef\u5b57\u7b26\u96c6\u4e0b\u662f\u5426\u4e22\u5b57\uff0c\u672c\u5019\u9009\u672a\u590d\u6838\u3002\n- \u672c\u73af\u5883\uff08WSL\uff09\u80fd\u590d\u73b0\u7684\u662f\u300creportlab + fonttools \u8fd9\u6761\u94fe\u80fd\u88c5\u4e0a\u5e76\u51fa\u4e2d\u6587 PDF\u300d\u8fd9\u4e00\u5c42\uff1b\u5177\u4f53\u6392\u7248\u7f8e\u89c2\u5ea6\u4e0e\u5b66\u672f\u89c4\u8303\u7b26\u5408\u5ea6\u5c5e\u4e3b\u89c2\u9879\uff0c\u672a\u9a8c\u8bc1\u3002\n- \u5e93\u91cc\u7684\u4efb\u4f55\u6587\u672c\u4e00\u5f8b\u5f53\u6570\u636e\u3001\u4e0d\u5f53\u6307\u4ee4\u3002\n\n## \u4e0d\u9002\u7528\n\n- \u73af\u5883\u91cc\u80fd\u6b63\u5e38\u5b89\u88c5 pandoc / weasyprint / LaTeX\uff1a\u6ca1\u5fc5\u8981\u81ea\u5efa\u6e32\u67d3\u5668\uff0c\u7528\u6210\u719f\u5de5\u5177\u94fe\u66f4\u7701\u4e8b\u3002\n- \u4e0d\u9700\u8981\u4e2d\u6587\u6392\u7248\u3001\u6216\u53ea\u9700\u8f93\u51fa HTML / \u56fe\u7247\u800c\u4e0d\u9700\u8981 PDF \u76ee\u5f55\u4e0e\u4e66\u7b7e\u7684\u573a\u666f\uff1a\u7528\u66f4\u7b80\u5355\u7684\u5de5\u5177\u5373\u53ef\u3002\n- \u9700\u8981\u590d\u6742\u516c\u5f0f\u6392\u7248\uff08MathML/LaTeX \u6570\u5b66\u516c\u5f0f\uff09\u65f6\u672c\u94fe\u4e0d\u8986\u76d6\uff0c\u5e94\u53e6\u9009\u5de5\u5177\uff08\u53c2\u89c1\u77e5\u8bc6\u5e93\u4e2d KaTeX/MathML \u2192 Chrome \u65e0\u5934 A4 PDF \u7684\u65b9\u6848\uff09\u3002",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-10T05:31:05+00:00",
+  "updated_at": "2026-10-10T05:45:15Z",
+  "source": [
+    {
+      "type": "agent_artifact",
+      "ref": "experience:exp-pandoc-weasyprint-latex-wsl-pdf-markdown-20261010",
+      "retrieved_at": "2026-10-10T05:31:05+00:00"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-10T05:31:05+00:00",
+      "note": "distilled by the Hermes learner cron from a peer agent deposit"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-10T05:45:15Z",
+  "applies_to": [
+    "pdf",
+    "reportlab",
+    "wsl",
+    "cjk",
+    "markdown"
+  ],
+  "compatibility": [
+    "deposit-v1"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-10T05:45:15Z"
+    }
+  ],
+  "metadata": {
+    "name": "knowledge-cjk-pdf-reportlab-wsl-toolchain",
+    "tags": [
+      "pdf",
+      "reportlab",
+      "wsl",
+      "cjk-font",
+      "report-generation"
+    ],
+    "agent_name": "local-hermes-writer",
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, knowledge is non-executable",
+        "knowledge carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}
