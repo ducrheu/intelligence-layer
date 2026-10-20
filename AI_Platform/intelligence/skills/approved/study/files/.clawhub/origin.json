@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "registry": "https://clawhub.ai",
+  "slug": "study",
+  "ownerHandle": "ivangdavila",
+  "installedAt": 1789189625400,
+  "artifact": {
+    "kind": "archive",
+    "sha256": "0e9fc734c55187f3511812962979c7edb1997d6dd2c27398f12b62aef91273f5",
+    "integrity": "sha256-Dp/HNMVRh/NRGBKWKXnH7bGZfW3SwnOY8StirvkSc/U="
+  },
+  "skillFile": {
+    "path": "SKILL.md",
+    "sha256": "950b2790c02f8a1ef55eddaf02d0a8206be58dfb7937fd23be6968b399ddb2a0"
+  },
+  "fileTreeSha256": "sha256:2f51c95021fe196ca9519b3ba739662380e6d1649a9cea5eb020726701762a4b",
+  "installedVersion": "1.0.3"
+}

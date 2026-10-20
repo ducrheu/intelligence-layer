@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "registry": "https://clawhub.ai",
+  "slug": "py",
+  "ownerHandle": "ivangdavila",
+  "installedAt": 1789189674301,
+  "artifact": {
+    "kind": "archive",
+    "sha256": "5efa20c97baa6f138e5d0cc77de2a3ae03fd12ccff94f8d3ebb086007cc8ba81",
+    "integrity": "sha256-XvogyXuqbxOOXQzHfeKjrgP9Esz/lPjT67CGAHzIuoE="
+  },
+  "skillFile": {
+    "path": "SKILL.md",
+    "sha256": "625b4c811436cc9654cfa9852663806875da772cefaf9df3f0efa9979a719b46"
+  },
+  "fileTreeSha256": "sha256:c57181de80f4edfb4d678ec74e815824430232fa4dfdfe5caa6ebcafbafca71d",
+  "installedVersion": "1.0.4"
+}

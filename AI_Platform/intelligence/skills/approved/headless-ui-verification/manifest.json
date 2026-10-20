@@ -87,8 +87,7 @@
       {
         "path": "scripts/screenshot.sh",
         "sha256": "6d728ac3bbe44918b95c98a3a567136f72d8e3075b516f876ffd07bd29ea406a",
-        "bytes": 786,
-        "content": "#!/usr/bin/env bash\n# Screenshot a local URL with a root-free Chromium.\n#   scripts/screenshot.sh <url> <out.png> [width] [height]\n# Requires the NSS/NSPR libs unpacked to ~/.local/chromium-libs (see SKILL.md step 1).\nset -euo pipefail\nURL=\"${1:?url}\"; OUT=\"${2:?out.png}\"; W=\"${3:-1400}\"; H=\"${4:-3000}\"\nLIBS=\"$HOME/.local/chromium-libs/usr/lib/x86_64-linux-gnu\"\nCH=\"$(ls -d \"$HOME\"/.cache/ms-playwright/chromium-*/chrome-linux64/chrome 2>/dev/null | tail -1)\"\n[ -x \"$CH\" ] || { echo \"no chromium under ~/.cache/ms-playwright\" >&2; exit 1; }\nLD_LIBRARY_PATH=\"$LIBS\" \"$CH\" --headless=old --no-sandbox --disable-gpu --no-first-run \\\n  --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=3000 \\\n  --window-size=\"$W,$H\" --screenshot=\"$OUT\" \"$URL\" >/dev/null 2>&1\nls -la \"$OUT\"\n"
+        "bytes": 786
       }
     ],
     "script_audit": {

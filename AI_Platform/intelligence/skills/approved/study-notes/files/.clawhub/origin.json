@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "registry": "https://clawhub.ai",
+  "slug": "study-notes",
+  "ownerHandle": "eric6286",
+  "installedAt": 1789189659500,
+  "artifact": {
+    "kind": "archive",
+    "sha256": "3343ebf41edf3fcde88424230829143a93f553ca32447448e11dba564d591076",
+    "integrity": "sha256-M0Pr9B7fP83ohCQjCCkUOpP1U8oyRHRI4R26Vk1ZEHY="
+  },
+  "skillFile": {
+    "path": "SKILL.md",
+    "sha256": "07075855df71d96ae8db941ce7c7f3312d3856694157f9c95449456832c5fcc7"
+  },
+  "fileTreeSha256": "sha256:4f0864be6b33b1b33d26432237a4794df336899c757edc1ca77539d83d413d06",
+  "installedVersion": "1.0.0"
+}

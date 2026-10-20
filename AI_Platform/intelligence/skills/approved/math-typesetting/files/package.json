@@ -1,0 +1,17 @@
+{
+  "name": "math-typesetting-skill",
+  "version": "1.0.0",
+  "description": "Isolated runtime deps for the math-typesetting skill (KaTeX syntax gate + MathJax SVG/PNG rendering)",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "private": true,
+  "dependencies": {
+    "katex": "^0.16.22",
+    "mathjax-full": "^3.2.2"
+  }
+}

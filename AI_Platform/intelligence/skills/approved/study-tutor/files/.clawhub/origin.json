@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "registry": "https://clawhub.ai",
+  "slug": "study-tutor",
+  "ownerHandle": "jiangkaiqi2005",
+  "installedAt": 1789189647398,
+  "artifact": {
+    "kind": "archive",
+    "sha256": "7e4285956266d0bbfcfaa6d95df68b225149efb15b6ecd00f840a969989c6942",
+    "integrity": "sha256-fkKFlWJm0Lv8+qbZXfaLIlFJ77Fbbs0A+ECpaZicaUI="
+  },
+  "skillFile": {
+    "path": "SKILL.md",
+    "sha256": "5b2ac468d103cf2d77ee68a20831295fed978eadf7c50b7f028743b929748b5b"
+  },
+  "fileTreeSha256": "sha256:accbeae8a06eacbf5333fd95835c8a951224cb1c859fa8925a6ef849b98a380b",
+  "installedVersion": "1.0.2"
+}

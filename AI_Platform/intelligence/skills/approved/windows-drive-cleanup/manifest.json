@@ -89,8 +89,7 @@
       {
         "path": "references/evidence-commands.md",
         "sha256": "c15c15384947372289c0cdfafd418aaad882f9a4519586a464d0a99e6e075fdb",
-        "bytes": 889,
-        "content": "# \u53d6\u8bc1\u547d\u4ee4\u901f\u67e5\n\n```bash\n# \u54ea\u4e9b\u7a0b\u5e8f\u5728\u8dd1\ntasklist=/mnt/c/Windows/System32/tasklist.exe\n\"$tasklist\" | grep -iE \"kugou|iqiyi|qqlive|steam|weixin|pycharm|mysql|ollama\"\n\n# \u8bfb\u5feb\u6377\u65b9\u5f0f\u76ee\u6807\uff08\u5224\u65ad\u54ea\u4e2a\u526f\u672c\u5728\u7528\uff09\nstrings -e l \"$LNK\" | grep -iE \"pycharm|\\.exe|D:\"\n\n# \u76ee\u5f55\u662f\u5426\u542b\u672c\u4f53\u7a0b\u5e8f / \u5378\u8f7d\u5668\nls \"$DIR\" | grep -iE \"uninstall|^[A-Za-z]*\\.exe$\"\n\n# \u76ee\u5f55\u91cc\u6709\u6ca1\u6709\u7528\u6237\u4ea7\u51fa\uff08\u51b3\u5b9a\u5220\u6574\u76ee\u5f55\u8fd8\u662f\u53ea\u5220 .venv\uff09\nfind \"$DIR\" -maxdepth 2 -type f -printf '%TY-%Tm-%Td %p\\n' | sort -r | head\n\n# \u5e94\u7528\u662f\u5426\u88c5\u5728\u522b\u5904\nfind /mnt/c/Program\\ Files \"/mnt/c/Users/HUYI/AppData/Local\" -maxdepth 2 -iname \"*Xmind*\"\nls -R \"/mnt/c/Users/HUYI/AppData/Roaming/Microsoft/Windows/Start Menu\" | grep lnk\n\n# \u7f13\u5b58\u76ee\u5f55\u7684\u81ea\u5e26\u8bf4\u660e\uff08UTF-16LE \u5e38\u89c1\uff09\niconv -f UTF-16LE -t UTF-8 \"$DIR/\u76ee\u5f55\u8bf4\u660e.txt\"\n\n# \u56de\u6536\u91cf\u6d4b\u91cf\ndf --output=avail -m /mnt/d | tail -1\n```\n"
+        "bytes": 889
       }
     ],
     "script_audit": {

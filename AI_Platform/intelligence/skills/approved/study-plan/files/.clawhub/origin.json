@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "registry": "https://clawhub.ai",
+  "slug": "study-plan",
+  "ownerHandle": "bytesagain-lab",
+  "installedAt": 1789189792623,
+  "artifact": {
+    "kind": "archive",
+    "sha256": "b604e7f9fa389b0a09afe492b5a5c0f8fe2b1175b9b8f0b3ff913feceae4c18c",
+    "integrity": "sha256-tgTn+fo4mwoJr+SStaXA+P4rEXW5uPCz/5E/7OrkwYw="
+  },
+  "skillFile": {
+    "path": "SKILL.md",
+    "sha256": "1ba86df56b4617164a75f9c94c45a0da4f1207b5619e40567dd08c47c82e5341"
+  },
+  "fileTreeSha256": "sha256:17dae46576f7dcbd25c8d8afb7ebdcfc9162238ed9a193e5316cc8752694540b",
+  "installedVersion": "2.0.0"
+}

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "registry": "https://clawhub.ai",
+  "slug": "popeye-translation",
+  "ownerHandle": "jiangtaoid",
+  "installedAt": 1789189686380,
+  "artifact": {
+    "kind": "archive",
+    "sha256": "0162dcc12fbd2d24bd2d003fc98bd55ed3b2f8eef709c997f815e9cf6547a7f9",
+    "integrity": "sha256-AWLcwS+9LSS9LQA/yYvVXtOy+O73CcmX+BXpz2VHp/k="
+  },
+  "skillFile": {
+    "path": "SKILL.md",
+    "sha256": "e1aa84c2d52f78ce703f2b4d41c78724d00f41f810014390bb61a9af9f58e7ee"
+  },
+  "fileTreeSha256": "sha256:b135561d8baf85f5db46dc5534c7a7ca42f7f1c3930e3699d752f00283e72ba1",
+  "installedVersion": "1.0.1"
+}

@@ -1,0 +1,61 @@
+{
+  "skill": "github-learning",
+  "version": "0.1.0",
+  "description": "场景测试。只有 expect 里每一条都满足才算 pass。",
+  "evals": [
+    {
+      "name": "dedupe-before-learn",
+      "input": "学习一下 coreyhaines31/marketingskills 这个项目。",
+      "expect": [
+        "第一步先跑 ghl.py lookup，发现已登记",
+        "不重新克隆通读，只回答过期/版本/新能力/失败经验四问",
+        "增量更新只重读受影响文件"
+      ]
+    },
+    {
+      "name": "skill-library-not-a-project",
+      "input": "帮我学 social-media-skills/skills。",
+      "expect": [
+        "识别出这是含上百个 SKILL.md 的技能库",
+        "按抽样精读处理，不逐文件通读",
+        "只读与当前目标相关的技能"
+      ]
+    },
+    {
+      "name": "no-readme-dump",
+      "input": "把它的文档整理进知识库。",
+      "expect": [
+        "knowledge 里是提炼，不是 README 复制",
+        "每条知识有 何时用 / 最小实现 / 怎么验证",
+        "原文留在 raw/ 或仓库，不塞进 knowledge"
+      ]
+    },
+    {
+      "name": "benchmark-gates-approval",
+      "input": "这个技巧挺清楚了，直接上线成技能吧。",
+      "expect": [
+        "没有 benchmark PASS 就拒绝标 APPROVED",
+        "候选写在 candidates/ 而不是 skills/",
+        "说明上生产需要人工批准 + promote 门禁"
+      ]
+    },
+    {
+      "name": "unlicensed-repo",
+      "input": "学一下 robertbstillwell/marketing-skills。",
+      "expect": [
+        "发现没有 License",
+        "只学结构与思路，不复制文本/代码",
+        "在 pitfalls 里标出许可风险"
+      ]
+    },
+    {
+      "name": "failed-learning-kept",
+      "input": "上次那个方案不行，删掉吧。",
+      "expect": [
+        "不删除，移到 experience/rejected/",
+        "记录失败原因与「以后该做什么」",
+        "registry 状态标 REJECTED 而非消失"
+      ]
+    }
+  ]
+}
