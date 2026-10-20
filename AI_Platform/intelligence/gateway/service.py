@@ -126,11 +126,20 @@ class IntelligenceGateway:
                     paths.append(item["path"])
         return self.store.file_digests(paths)
 
-    def evaluate_admission(self, artifact: dict[str, Any], submitter: str | None = None) -> dict[str, Any]:
-        """What the auto-admission policy says about this artifact right now."""
+    def evaluate_admission(self, artifact: dict[str, Any], submitter: str | None = None,
+                           probe_duplicates: bool = False) -> dict[str, Any]:
+        """What the auto-admission policy says about this artifact right now.
+
+        `probe_duplicates` is off by default on purpose: the duplicate probe is a
+        full-corpus retrieval (two ranks over every record), while the verdict
+        itself is a pure judgement on the record's own fields. Submitting computes
+        the probe once and records the verdict; re-running the corpus for every
+        verdict turned a sweep of 133 artifacts into a ten-minute job.
+        """
         who = submitter or self._last_submitter(artifact["id"], artifact["kind"])
+        duplicate = self._nearest_live_record(artifact) if probe_duplicates else None
         return evaluate(artifact, who, self._disk_hashes(artifact),
-                        duplicate_of=self._nearest_live_record(artifact)).to_dict()
+                        duplicate_of=duplicate).to_dict()
 
     def _nearest_live_record(self, artifact: dict[str, Any]) -> str | None:
         """The live record this submission is a near copy of, if any.
@@ -215,6 +224,45 @@ class IntelligenceGateway:
         # still cannot catch: gateway/audit_chain.py.
         append_audit_record(self.audit_path, event)
 
+    def _submitter_index(self) -> dict[tuple[str, str], str]:
+        """artifact -> submitter, parsed once and then incrementally.
+
+        The audit log is append-only and grows by one line per lifecycle action.
+        Re-reading and re-parsing all of it for every verdict made a sweep of 133
+        artifacts take ten minutes; the log only ever gets longer, so the index
+        remembers how far it read and parses the new tail next time.
+        """
+        cache = getattr(self, "_submitter_cache", None)
+        if cache is None:
+            cache = {}
+            self._submitter_cache = cache
+            self._submitter_offset = 0
+        if not self.audit_path.exists():
+            return cache
+        with self.audit_path.open("rb") as handle:
+            handle.seek(self._submitter_offset)
+            chunk = handle.read()
+        if not chunk:
+            return cache
+        # Only complete lines: a writer may be mid-append, and a half line parsed
+        # now would be parsed wrong forever.
+        cut = chunk.rfind(b"\n")
+        if cut < 0:
+            return cache
+        complete = chunk[: cut + 1]
+        for raw in complete.splitlines():
+            if not raw.strip():
+                continue
+            try:
+                event = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            if (event.get("action") == "submit_candidate" and event.get("result") == "success"
+                    and event.get("artifact_id") and event.get("kind")):
+                cache[(event["artifact_id"], event["kind"])] = event.get("actor")
+        self._submitter_offset += len(complete)
+        return cache
+
     def _last_submitter(self, artifact_id: str, kind: str) -> str | None:
         """Who filed this artifact, taken from the append-only audit log.
 
@@ -224,20 +272,7 @@ class IntelligenceGateway:
         decide who may retract something. The audit log is written by the
         gateway, so it can.
         """
-        if not self.audit_path.exists():
-            return None
-        submitter: str | None = None
-        for line in self.audit_path.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if (event.get("action") == "submit_candidate" and event.get("result") == "success"
-                    and event.get("artifact_id") == artifact_id and event.get("kind") == kind):
-                submitter = event.get("actor")
-        return submitter
+        return self._submitter_index().get((artifact_id, kind))
 
     def _bump_surfaced(self, items: list[dict[str, Any]]) -> None:
         """Count search surfacing in one aggregated write, not one per hit.
@@ -474,9 +509,14 @@ class IntelligenceGateway:
         validate_artifact(artifact)
         # Record what a policy identity would be allowed to do with this. The
         # verdict is timestamp-free so an identical resubmission stays idempotent.
+        # The duplicate probe is deliberately NOT run here: it costs a full-corpus
+        # embedding pass (and a second model in memory) on every submission, while
+        # the same question is already answered offline by near_duplicate.py in the
+        # weekly review, where a human can act on the pair.
         artifact = dict(artifact)
         artifact["metadata"] = dict(artifact.get("metadata", {}))
-        artifact["metadata"]["auto_admission"] = evaluate(artifact, actor.actor_id, {}).to_dict()
+        artifact["metadata"]["auto_admission"] = self.evaluate_admission(
+            artifact, actor.actor_id, probe_duplicates=False)
         try:
             existing = self.store.load(artifact["id"], artifact["kind"], ("candidate", "experimental", "validated"))
         except ArtifactNotFoundError:
@@ -693,6 +733,67 @@ class IntelligenceGateway:
             # single most actionable signal this knowledge base can produce.
             self._note_miss(query, kind)
         return matches
+
+    def record_attachments(self, actor: Actor, artifact_id: str, kind: str,
+                           files: list[dict[str, Any]], audit: dict[str, Any],
+                           correlation_id: str | None = None) -> dict[str, Any]:
+        """Record a record's support files without touching its content or status.
+
+        A skill's SKILL.md was admitted on its own; the references and scripts
+        beside it are support material, and the record is incomplete without them.
+        Adding them changes neither the claim, the version nor the verification, so
+        it is a metadata operation -- audited, and only when the body is unchanged
+        (a body change goes through the normal candidate path).
+        """
+        if not can_write_candidate(actor):
+            raise PermissionError(f"{actor.actor_id} cannot write candidate artifacts")
+        artifact = self.store.load(artifact_id, kind,
+                                   ("approved", "validated", "candidate", "experimental"))
+        metadata = dict(artifact.get("metadata") or {})
+        metadata["files"] = files
+        metadata["script_audit"] = audit
+        metadata["executable_attachments"] = bool(audit.get("files") and any(
+            str(item.get("path", "")).endswith((".py", ".sh", ".js", ".ts", ".cjs", ".mjs"))
+            for item in files))
+        artifact["metadata"] = metadata
+        artifact["updated_at"] = utc_now()
+        path = self.store.save(artifact)
+        self._audit(actor, "attachments_recorded", artifact_id, "success", correlation_id, kind)
+        self._event(actor, "attachments_recorded", artifact, artifact["status"], artifact["status"],
+                    correlation_id)
+        result = dict(artifact)
+        result["_path"] = str(path)
+        return result
+
+    def refresh_candidate(self, actor: Actor, artifact: dict[str, Any],
+                          correlation_id: str | None = None) -> dict[str, Any]:
+        """Replace an unpublished candidate's content in place.
+
+        `submit_candidate` refuses a different payload under the same id, and it
+        is right to: a silent overwrite hides what changed, and a candidate may
+        not shadow a published artifact. A sync job needs the other half of that
+        rule -- the record is still unpublished, so its author may replace it,
+        audited, with `created_at` preserved so the record keeps its history.
+        """
+        if not can_write_candidate(actor):
+            self._audit(actor, "refresh_candidate", artifact.get("id"), "denied", correlation_id)
+            raise PermissionError(f"{actor.actor_id} cannot write candidate artifacts")
+        validate_artifact(artifact)
+        existing = self.store.load(artifact["id"], artifact["kind"],
+                                   ("candidate", "experimental", "validated"))
+        artifact = dict(artifact)
+        artifact["metadata"] = dict(artifact.get("metadata", {}))
+        artifact["created_at"] = existing.get("created_at") or artifact.get("created_at")
+        artifact["status"] = str(existing.get("status") or artifact.get("status") or "candidate")
+        artifact["metadata"]["auto_admission"] = self.evaluate_admission(
+            artifact, actor.actor_id, probe_duplicates=False)
+        path = self.store.save(artifact)
+        self._audit(actor, "refresh_candidate", artifact["id"], "success", correlation_id, artifact["kind"])
+        self._event(actor, "candidate_refreshed", artifact, existing.get("status"),
+                    artifact["status"], correlation_id)
+        result = dict(artifact)
+        result["_path"] = str(path)
+        return result
 
     def validate_candidate(self, actor: Actor, artifact_id: str, kind: str, correlation_id: str | None = None) -> dict[str, Any]:
         require(actor, "validate:candidate")

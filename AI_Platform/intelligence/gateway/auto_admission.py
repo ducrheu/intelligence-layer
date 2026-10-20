@@ -122,8 +122,30 @@ def evaluate(artifact: dict[str, Any], submitter: str | None,
             # Anything with a test or an executable attachment goes down the
             # evidence path below, where a second identity must have run it.
             if metadata.get("executable_attachments"):
-                blocking.append(
-                    "skill ships executable attachments: a human reads what they do before it is shared")
+                # Attached scripts are the real payload. The audit is recomputed
+                # here from the stored bytes rather than trusted from the
+                # submitter's metadata: a verdict must describe what is stored.
+                from .script_audit import audit as audit_scripts
+
+                files = metadata.get("files") or []
+                if not files:
+                    blocking.append("skill declares executable attachments but records no files")
+                else:
+                    result = audit_scripts(files)
+                    if result["secrets"]:
+                        blocking.append(
+                            f"skill ships a credential ({result['secrets'][0]['kind']} in "
+                            f"{result['secrets'][0]['path']}): publishing it cannot be undone")
+                    elif result["mismatched"]:
+                        blocking.append(f"file record does not match its bytes: {result['mismatched'][0]}")
+                    elif result["dangers"]:
+                        blocking.append(
+                            f"skill ships a destructive or remote-exec pattern "
+                            f"({result['dangers'][0]['kind']} in {result['dangers'][0]['path']})")
+                    else:
+                        reasons.append(
+                            f"attached scripts audited: {result['files']} file(s), no credentials, "
+                            "no destructive patterns")
             else:
                 reasons.append("static-review skill: no executable payload to verify")
         else:

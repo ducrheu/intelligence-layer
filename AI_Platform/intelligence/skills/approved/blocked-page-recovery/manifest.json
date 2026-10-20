@@ -1,0 +1,105 @@
+{
+  "id": "blocked-page-recovery",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Use when a fetch fails: 403/429, paywall, WAF, bot wall.",
+  "content": "---\nname: blocked-page-recovery\ndescription: \"Use when a fetch fails: 403/429, paywall, WAF, bot wall.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [Research, Archives, Wayback, Paywall, WAF, Fallback]\n    related_skills: [grounded-citations]\n---\n\n# Blocked-Page Recovery\n\nWhen a page won't fetch \u2014 403/429, Cloudflare \"Just a moment...\", a paywall,\nor a bot-detection interstitial \u2014 don't give up and don't loop on the same\nURL. Third-party services often hold a **copy** of the page. Work down this\nladder, cheapest first.\n\n## The ladder\n\n```\n1. Wayback Machine  \u2014 archive.org \"available\" API  (snapshot + timestamp)\n2. archive.today    \u2014 domain rotation: archive.ph \u2192 .md \u2192 .li \u2192 .is\n3. Jina Reader      \u2014 only if JINA_API_KEY is set  (live server-side render)\n4. API-first pivot  \u2014 look for /api/, /graphql, .json, or RSS on the same host\n5. Real browser     \u2014 browser tool as the last, most expensive resort\n```\n\nRun it in one shot with the bundled script:\n\n```bash\npython3 scripts/recover_page.py \"https://example.com/blocked-article\" --json\n```\n\nThe script tries each route in order, validates every body (see \"Fake\nsuccesses\" below), and prints the first genuine hit with its provenance.\n\n## Provenance discipline (non-negotiable)\n\nEvery recovered copy carries a provenance you MUST preserve when citing:\n\n| Route | Provenance | How to cite |\n|-------|-----------|-------------|\n| Wayback / archive.today | `snapshot` | Cite WITH the snapshot date: \"as archived 2026-08-06\". Never present a snapshot as the live page \u2014 it may be stale. |\n| Jina Reader | `live` | Server-side re-render of the live page; cite normally. |\n| Live fetch / browser | `live` | Cite normally. |\n\nIf the user needs *current* data (prices, availability, breaking news), a\nsnapshot is context, not an answer \u2014 say so explicitly and note its age.\n\n## Manual routes\n\n### 1. Wayback Machine (best provenance, try first)\n\n```bash\n# Discovery: returns closest snapshot URL + timestamp as JSON\ncurl -sL \"https://archive.org/wayback/available?url={URL}\"\n# Then fetch archived_snapshots.closest.url\n```\n\nFor enumerating many snapshots (or recovering deleted pages), the CDX index:\n\n```bash\ncurl -sL \"https://web.archive.org/cdx/search/cdx?url={URL}&output=json&limit=10\"\n```\n\nCDX intermittently returns 503 under load \u2014 if it does, fall back to the\n`available` API; don't retry-hammer it.\n\nWorks for: any publicly crawled URL. Fails for: robots-blocked sites,\nnever-crawled URLs, JS-only SPAs (snapshots don't render).\n\n### 2. archive.today (paywalls, deleted content)\n\nUser-submitted archives \u2014 often has paywalled news articles Wayback lacks.\nRate-limits aggressively (429) and rotates domains, so iterate:\n\n```bash\nfor d in archive.ph archive.md archive.li archive.is; do\n  curl -sL --max-time 20 \"https://$d/newest/{URL}\" -o /tmp/page.html \\\n    -w \"%{http_code}\" && break\ndone\n```\n\n**Validate the body, not the status code** \u2014 a 429 still ships several KB of\nrate-limit HTML that looks like a success to a size check alone.\n\n### 3. Jina Reader (requires JINA_API_KEY)\n\n`r.jina.ai` re-renders the live page in a real browser server-side and\nreturns markdown. Anonymous access is dead (401 \u2192 Turnstile); a key is\nrequired:\n\n```bash\ncurl -s -H \"Authorization: Bearer $JINA_API_KEY\" \"https://r.jina.ai/{URL}\"\n```\n\nHandles JS SPAs that archives can't. Skip this route entirely when the env\nvar is unset.\n\n### 4. API-first pivot\n\nWAFs protect the HTML surface far more aggressively than the data endpoints\nbehind it. After 2-3 blocked attempts on a site, stop fighting the HTML and\nlook for:\n\n- `/api/...`, `/graphql`, or `.json` variants of the page URL\n- An RSS/Atom feed (`/feed`, `/rss`, `<link rel=\"alternate\">` in any copy\n  you did recover)\n- A sitemap (`/sitemap.xml`) revealing canonical URLs that may not be gated\n\n## Fake successes \u2014 routes that LIE\n\nThese return HTTP 200 with a plausible body that is NOT the page. The script\nrejects them automatically; reject them manually too:\n\n- **Google Cache is dead** (since mid-2024). `webcache.googleusercontent.com`\n  returns 200 + tens of KB, but it's a Google Search interstitial with a JS\n  redirect, not a cache. Never use it.\n- **AMP caches** (`*.cdn.ampproject.org`) mostly return a ~300-byte\n  `<title>Redirecting</title>` meta-refresh stub pointing back at the\n  original (blocked) URL. Treating that as success creates a fetch loop.\n- **Rate-limit bodies**: archive.today 429 pages are multi-KB HTML. Check for\n  the target's actual content (title words, expected strings), not just size.\n\nDetection heuristics the script applies: body under a per-route byte floor;\nmeta-refresh/JS-redirect stubs whose target is the original host; interstitial\ntitles (\"Just a moment\", \"Redirecting\", \"Google Search\", \"Attention Required\").\n\n## Proxy relays: don't\n\nGeneric \"web proxy\" relays are man-in-the-middle by construction. Never send\ncookies or Authorization headers through one, and don't use them for anything\nthe user will rely on \u2014 provenance is unverifiable. Prefer archives, which at\nleast timestamp their copies.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:53:00Z",
+  "updated_at": "2026-10-20T13:50:48Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/web/blocked-page-recovery",
+      "sha256": "7f7d321f177399ca928e11ab38942cfa76d6e931a82d887671c50661fb411d51",
+      "retrieved_at": "2026-10-20T12:53:00Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:53:00Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:50:48Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:50:25Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "blocked-page-recovery",
+    "description": "Use when a fetch fails: 403/429, paywall, WAF, bot wall.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "web/blocked-page-recovery",
+    "sha256": "7f7d321f177399ca928e11ab38942cfa76d6e931a82d887671c50661fb411d51",
+    "tags": [
+      "blocked-page-recovery",
+      "blocked",
+      "page",
+      "recovery",
+      "Use",
+      "when",
+      "fetch",
+      "fails"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    },
+    "files": [
+      {
+        "path": "scripts/recover_page.py",
+        "sha256": "22b996996ae2bf252b31cfd2636231f08936729a381dce7ba8bfa4afb8ffe8c6",
+        "bytes": 8481,
+        "content": "#!/usr/bin/env python3\n\"\"\"Recover a blocked / paywalled / WAF'd page from third-party copies.\n\nLadder (cheapest first):\n  1. Wayback Machine \"available\" API  -> dated snapshot   (provenance: snapshot)\n  2. archive.today domain rotation    -> dated snapshot   (provenance: snapshot)\n  3. Jina Reader (JINA_API_KEY only)  -> live re-render   (provenance: live)\n\nEvery candidate body is validated before being declared a win: byte floors,\nredirect-stub detection (meta-refresh/JS pointing back at the original host),\nand interstitial-title rejection. Fake 200s are the norm in this space.\n\nStdlib only. Usage:\n    python3 recover_page.py URL [--json] [--out FILE] [--timeout N]\n\nExit codes: 0 recovered, 1 nothing worked, 2 bad invocation.\n\"\"\"\nfrom __future__ import annotations\n\nimport argparse\nimport json\nimport os\nimport re\nimport sys\nimport time\nimport urllib.error\nimport urllib.parse\nimport urllib.request\n\nUSER_AGENT = (\n    \"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \"\n    \"(KHTML, like Gecko) Chrome/126.0 Safari/537.36\"\n)\n\nARCHIVE_TODAY_HOSTS = [\"archive.ph\", \"archive.md\", \"archive.li\", \"archive.is\"]\n\n# Titles that mean \"this is not the page you asked for\".\nINTERSTITIAL_TITLES = (\n    \"just a moment\",\n    \"redirecting\",\n    \"google search\",\n    \"attention required\",\n    \"access denied\",\n    \"are you a robot\",\n    \"one more step\",\n)\n\n# Below these floors a body is a stub or an error page, not content.\nMIN_BODY_BYTES = {\"wayback\": 3072, \"archive_today\": 3072, \"jina\": 512}\n\nREDIRECT_STUB_RE = re.compile(\n    r'http-equiv=[\"\\']?refresh|window\\.location|location\\.replace', re.IGNORECASE\n)\nTITLE_RE = re.compile(r\"<title[^>]*>(.*?)</title>\", re.IGNORECASE | re.DOTALL)\n\n\ndef _fetch(\n    url: str,\n    timeout: int,\n    headers: dict | None = None,\n    retries_on_429: int = 2,\n) -> tuple[int, bytes]:\n    req = urllib.request.Request(url, headers={\"User-Agent\": USER_AGENT, **(headers or {})})\n    for attempt in range(retries_on_429 + 1):\n        try:\n            with urllib.request.urlopen(req, timeout=timeout) as resp:\n                return resp.status, resp.read()\n        except urllib.error.HTTPError as exc:\n            if exc.code == 429 and attempt < retries_on_429:\n                time.sleep(5 * (attempt + 1))\n                continue\n            return exc.code, exc.read() if exc.fp else b\"\"\n        except (urllib.error.URLError, OSError, ValueError):\n            return 0, b\"\"\n    return 0, b\"\"\n\n\ndef _fetch_follow(url: str, timeout: int) -> tuple[int, bytes, str]:\n    \"\"\"Like _fetch but also returns the final URL after redirects.\"\"\"\n    req = urllib.request.Request(url, headers={\"User-Agent\": USER_AGENT})\n    try:\n        with urllib.request.urlopen(req, timeout=timeout) as resp:\n            return resp.status, resp.read(), resp.geturl()\n    except urllib.error.HTTPError as exc:\n        return exc.code, exc.read() if exc.fp else b\"\", exc.geturl() or url\n    except (urllib.error.URLError, OSError, ValueError):\n        return 0, b\"\", url\n\n\ndef _page_title(body: bytes) -> str:\n    m = TITLE_RE.search(body[:65536].decode(\"utf-8\", \"replace\"))\n    return re.sub(r\"\\s+\", \" \", m.group(1)).strip().lower() if m else \"\"\n\n\ndef validate(body: bytes, route: str, target_url: str) -> str | None:\n    \"\"\"Return a rejection reason, or None if the body looks like real content.\"\"\"\n    floor = MIN_BODY_BYTES.get(route, 3072)\n    if len(body) < floor:\n        return f\"body_too_small:{len(body)}<{floor}\"\n    title = _page_title(body)\n    for marker in INTERSTITIAL_TITLES:\n        if marker in title:\n            return f\"interstitial_title:{marker!r}\"\n    # Redirect stub: small-ish page whose only job is bouncing back to the\n    # original (blocked) host \u2014 the classic AMP-cache failure mode.\n    if len(body) < 8192 and REDIRECT_STUB_RE.search(body.decode(\"utf-8\", \"replace\")):\n        target_host = urllib.parse.urlsplit(target_url).hostname or \"\"\n        if target_host and target_host.encode() in body:\n            return \"redirect_stub_to_origin\"\n    return None\n\n\ndef try_wayback(url: str, timeout: int) -> dict | None:\n    snap_url = None\n    snap_ts = None\n    discovery = \"https://archive.org/wayback/available?url=\" + urllib.parse.quote(url, safe=\"\")\n    status, raw = _fetch(discovery, timeout)\n    if status == 200:\n        try:\n            closest = json.loads(raw).get(\"archived_snapshots\", {}).get(\"closest\", {})\n        except (json.JSONDecodeError, AttributeError):\n            closest = {}\n        if closest.get(\"available\") and closest.get(\"url\"):\n            snap_url = closest[\"url\"].replace(\n                \"http://web.archive.org\", \"https://web.archive.org\"\n            )\n            snap_ts = closest.get(\"timestamp\")\n    if snap_url is None:\n        # Discovery API is rate-limited far more aggressively than snapshot\n        # serving. Fall back to the redirect form: /web/2/<url> bounces to\n        # the newest snapshot if one exists (404 page otherwise).\n        snap_url = \"https://web.archive.org/web/2/\" + url\n    status, body, final_url = _fetch_follow(snap_url, timeout)\n    if status != 200 or validate(body, \"wayback\", url):\n        return None\n    if snap_ts is None:\n        m = re.search(r\"/web/(\\d{14})\", final_url)\n        snap_ts = m.group(1) if m else None\n    return {\n        \"route\": \"wayback\",\n        \"provenance\": \"snapshot\",\n        \"snapshot_timestamp\": snap_ts,\n        \"source_url\": final_url,\n        \"body\": body,\n    }\n\n\ndef try_archive_today(url: str, timeout: int) -> dict | None:\n    for host in ARCHIVE_TODAY_HOSTS:\n        fetch_url = f\"https://{host}/newest/{url}\"\n        status, body = _fetch(fetch_url, timeout)\n        if status != 200:\n            continue\n        if validate(body, \"archive_today\", url):\n            continue  # 429 bodies and interstitials land here\n        return {\n            \"route\": f\"archive_today:{host}\",\n            \"provenance\": \"snapshot\",\n            \"snapshot_timestamp\": None,  # archive.today embeds the date in-page\n            \"source_url\": fetch_url,\n            \"body\": body,\n        }\n    return None\n\n\ndef try_jina(url: str, timeout: int) -> dict | None:\n    key = os.environ.get(\"JINA_API_KEY\")\n    if not key:\n        return None\n    status, body = _fetch(\n        \"https://r.jina.ai/\" + url, timeout, headers={\"Authorization\": f\"Bearer {key}\"}\n    )\n    if status != 200 or validate(body, \"jina\", url):\n        return None\n    return {\n        \"route\": \"jina_reader\",\n        \"provenance\": \"live\",\n        \"snapshot_timestamp\": None,\n        \"source_url\": \"https://r.jina.ai/\" + url,\n        \"body\": body,\n    }\n\n\nROUTES = (try_wayback, try_archive_today, try_jina)\n\n\ndef recover(url: str, timeout: int = 25) -> dict | None:\n    for route_fn in ROUTES:\n        result = route_fn(url, timeout)\n        if result:\n            return result\n    return None\n\n\ndef main() -> int:\n    ap = argparse.ArgumentParser(\n        description=\"Recover a blocked / paywalled / WAF'd page from third-party copies.\"\n    )\n    ap.add_argument(\"url\")\n    ap.add_argument(\"--json\", action=\"store_true\", help=\"print metadata as JSON\")\n    ap.add_argument(\"--out\", help=\"write recovered body to this file\")\n    ap.add_argument(\"--timeout\", type=int, default=25)\n    args = ap.parse_args()\n\n    if not args.url.startswith((\"http://\", \"https://\")):\n        print(\"error: URL must start with http:// or https://\", file=sys.stderr)\n        return 2\n\n    result = recover(args.url, args.timeout)\n    if not result:\n        msg = {\"recovered\": False, \"url\": args.url,\n               \"hint\": \"No archive copy found. Try the API-first pivot or the browser tool.\"}\n        print(json.dumps(msg, indent=2) if args.json else msg[\"hint\"], file=sys.stderr)\n        return 1\n\n    body = result.pop(\"body\")\n    result.update({\"recovered\": True, \"url\": args.url, \"body_bytes\": len(body)})\n    if args.out:\n        with open(args.out, \"wb\") as fh:\n            fh.write(body)\n        result[\"saved_to\"] = args.out\n\n    if args.json:\n        print(json.dumps(result, indent=2))\n    else:\n        for k, v in result.items():\n            print(f\"{k}: {v}\")\n        if not args.out:\n            print(\"\\n--- body (first 2000 chars) ---\")\n            print(body[:2000].decode(\"utf-8\", \"replace\"))\n    if result[\"provenance\"] == \"snapshot\":\n        print(\n            \"\\nNOTE: this is an ARCHIVED SNAPSHOT, not the live page. \"\n            \"Cite it with its timestamp.\",\n            file=sys.stderr,\n        )\n    return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n"
+      }
+    ],
+    "script_audit": {
+      "clean": true,
+      "secrets": [],
+      "dangers": [],
+      "mismatched": [],
+      "files": 1,
+      "digest": "be4990a6fcc75e6b53dcbc709c8a6815afe266513f6ad81531c4f0d6116aaca2"
+    },
+    "approval_action": "human_approval"
+  }
+}

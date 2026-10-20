@@ -252,10 +252,38 @@ python3 ~/hermes/tools/kb_skill_sync.py --apply                # 提交候选
 python3 ~/hermes/tools/kb_skill_sync.py --install study-tutor --to ~/.hermes/skills/shared
 ```
 
-`--install` 是"用"的那一步：从 KB 取 `content` 写成 SKILL.md。已验证**字节一致**，
-装完 `hermes skills list` 直接显示为 enabled。
+`--install` 是"用"的那一步：从 KB 取 `content` 与 `metadata.files` 写回磁盘。已验证
+**逐文件字节一致**（`diff -r` 无输出），装完 `hermes skills list` 直接显示为 enabled。
 
-个人向的技能（`skills/local/**`）以 `scope=local` 入库：本机 agent 可读，外借身份不可读。
+### 附件也入库，并且过审计
+
+技能的一半价值在 `scripts/`、`references/` 里，只存正文等于给半个技能。附件以文本形式
+随记录走（`metadata.files`，每条带 `sha256`），状态变更时跟着目录一起移动。
+
+准入时**重算**哈希与审计，不信任提交者写的结论：
+
+| 发现 | 处置 |
+|---|---|
+| 凭据（私钥、`ghp_`/`sk-`/`AKIA`、赋值的密钥） | **拒绝入库**——推到公开仓库无法撤回 |
+| 破坏性/远程执行模式（`rm -rf /`、`curl \| sh`、写 `/dev/sd*`、`mkfs`） | 交人 |
+| 文件记录与字节不符 | 拒绝（防止"审一份、跑另一份"） |
+| 都没有 | 自动批准 |
+
+占位符不算凭据：`ghp_xx...xxxx`、`password = password`、`get_valid_token()` 是文档和
+代码里的正常写法，闸门必须能分辨，否则会拒掉所有讲配置的技能。
+
+### 自动化
+
+`skill-sync.sh` 每小时（7–22 点）跑一次，静默：新增提交、正文/附件变化提新版本、
+纯附件补录。准入由已有的 `auto-admission` cron（每 15 分钟）接管。
+
+性能上修了三处，因为一台 7.6G 内存、已经在用 swap 的机器上跑不动：
+
+- `evaluate_admission` 默认**不做**全库重复探测（重复改由周报里的 `near_duplicate.py` 回答）；
+- `_last_submitter` 改成**增量解析**审计日志（原来每条 verdict 都重读全文件）；
+- 同步与准入脚本设 `INTELLIGENCE_EMBED_DISABLE=1`——它们从不检索，加载模型是白付 1GB。
+
+133 个制品的整轮准入从 10 分钟降到 48 秒。
 
 ## 14. 许可证
 

@@ -1,0 +1,104 @@
+{
+  "id": "opensource-ecosystem-survey",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Survey a field's open-source options on GitHub.",
+  "content": "---\nname: opensource-ecosystem-survey\ndescription: \"Survey a field's open-source options on GitHub.\"\nversion: 1.0.0\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [Research, GitHub, Survey, OpenSource, Landscape]\n    category: research\n    related_skills: [github, codebase-inspection, grounded-citations]\n---\n\n# Open-Source Ecosystem Survey\n\nAnswering \"GitHub \u4e0a\u505a X \u7684\u624b\u6bb5/\u6280\u672f\u6709\u54ea\u4e9b\" is not a `web_search` round. It is: sweep the\nGitHub Search API across the vocabulary the field actually uses, dedupe, then **verify the\nmechanism from source** for the handful of repos that carry the category \u2014 because repo\nREADMEs lie about both capability and currency, and star counts are not maturity.\n\nThe deliverable is a layered report: *which layer each technique modifies*, the\nrepresentative repo per layer, the prerequisite it costs, how detectable it is, and a\nselection table per use case.\n\n## When to Use\n\n- \"\u53bb GitHub \u4e0a\u8c03\u7814\u4e00\u4e0b X \u7684\u624b\u6bb5/\u6280\u672f/\u65b9\u6848\"\n- Choosing between 3+ competing libraries/toolsets where the comparison is the deliverable\n- Pre-build reconnaissance before writing code in an unfamiliar domain (\"\u6709\u6ca1\u6709\u73b0\u6210\u7684\")\n- Checking whether a class of tool still works on current platform versions\n\nNot for: reading one known repo (use `github` skill / `gh`), or academic paper scoping\n(use `arxiv`).\n\n## Procedure\n\n\u2460 **Enumerate vocabulary before searching.** Write 6\u201312 queries mixing English canonical\nterms, Chinese colloquial terms, and GitHub topics \u2014 the same field is named differently by\nits community and by its spec (`mock location` / `\u865a\u62df\u5b9a\u4f4d` / `\u6a21\u62df\u5b9a\u4f4d` /\n`topic:mock-location`). Search in ONE `execute_code` call with a sleep between queries\n(see pitfalls) so the whole sweep costs one tool call, not ten.\n\n```bash\nS=~/.hermes/skills/research/opensource-ecosystem-survey/scripts/gh_survey.py\npython3 \"$S\" search --out /tmp/gh_survey.json \\\n  \"mock location\" \"fake gps\" \"\u865a\u62df\u5b9a\u4f4d\" \"topic:mock-location\"\npython3 \"$S\" readme ZCShou/GoGoGo OpenHRTT/wloc --chars 1200   # digest of the top picks\n```\n\nSearch sorts by stars, dedupes by `full_name`, and merges which query matched each repo \u2014\nthe merged `kw` field is itself a finding (which words the community uses).\n\n\u2461 **Read `pushed_at` and the top of each README as one unit.** A 2021 repo with 3k stars is\na dead end; a README whose first line says the method stopped working on the current OS\nversion is the single most valuable fact in the survey. Never rank by stars alone, and quote\nthe version cutoff explicitly in the report.\n\n\u2462 **Verify mechanism by source, not by README prose.** For every repo you will name as a\nrepresentative, get the actual API call or hook point:\n\n```bash\ncd /tmp && git clone --depth 1 https://github.com/<owner>/<repo>\n# then search_files for the mechanism symbol, e.g. addTestProvider|setTestProviderLocation|hook\n```\n\nClone is cheap; a wrong mechanism claim in a survey costs the user a wrong architecture\ndecision. Cite the file you read (`ServiceGo.java`, `simulate_location.py`) so the claim is\nauditable.\n\n\u2463 **Separate \u5df2\u786e\u8ba4 / \u63a8\u65ad in the text.** What you read in source is \u5df2\u786e\u8ba4; what you derive\nfrom platform behaviour is \u63a8\u65ad, and marketing claims (\"\u5168\u7248\u672c\u901a\u6740\", \"\u7ed5\u8fc7\u4e00\u5207\u68c0\u6d4b\") get\nexplicitly downgraded with the reason (e.g. a pure-web tool cannot touch the system Location\nservice, only `navigator.geolocation`). Users trust a survey that marks its own edges.\n\n\u2464 **Group by layer, not by app.** The insight the user cannot get from a repo list is the\nstack: which layer each technique rewrites, and therefore what it costs (root / \u8d8a\u72f1 / \u7535\u8111 /\n\u786c\u4ef6) and how detectable it is. One table, ordered shallow\u2192deep.\n\n\u2465 **Close with selection advice per use case**, including the one-line path that needs no\nthird-party tool at all (e.g. CDP `Emulation.setGeolocationOverride` for web automation,\n`adb shell appops set <pkg> ... allow` for Android testing). Offer the PoC, don't just\nsuggest it.\n\n\u2466 **Write the full report to a file and deliver it with `MEDIA:<abs path>`**, with a\ncondensed version in chat (type: `notes/<topic>-survey-<yyyy-mm>.md`). Keep the raw JSON\nsnapshot path in an appendix so numbers can be re-checked.\n\n## Report Shape (this user)\n\n- \u7b80\u4f53\u4e2d\u6587\uff1b\u7ed3\u8bba\u5148\u884c\uff0c\u7b2c\u4e00\u6bb5\u5c31\u7ed9\u300c\u533a\u522b\u53ea\u5728\u6539\u54ea\u4e00\u5c42\u300d\u8fd9\u7c7b\u5224\u65ad\u53e5\uff0c\u4e0d\u8981\u6d41\u7a0b\u53d9\u8ff0\u3002\n- \u8def\u7ebf\u603b\u89c8\u8868\uff1a`\u5c42 | \u673a\u5236 | \u524d\u7f6e\u6761\u4ef6 | \u4ee3\u8868\u4ed3\u5e93 (\u2605) | \u6d3b\u8dc3\u5ea6 | \u68c0\u6d4b\u96be\u5ea6`\u3002star \u5199\u6210\n  `repo (11.5k)` \u7d27\u8ddf\u4ed3\u5e93\u540d\uff0c`pushed_at` \u5e74\u6708\u505a\u6d3b\u8dc3\u5ea6\u5217\u3002\n- \u6bcf\u6761\u5c55\u5f00\u65f6\u5148\u7ed9**\u673a\u5236**\uff08\u5173\u952e API / hook \u70b9 / \u534f\u8bae\u7aef\u70b9\uff09\uff0c\u518d\u7ed9\u5751\uff0c\u5751\u8981\u5e26\u56e0\u679c\n  \uff08\u300c\u53ea hook \u7cfb\u7edf\u6846\u67b6\u4e0d\u6539 BSSID\uff0cApp \u81ea\u5e26\u7f51\u7edc\u5b9a\u4f4d SDK \u4f1a\u53cd\u67e5\u628a\u4f4d\u7f6e\u62c9\u56de\u300d\uff09\u3002\n- \u7ed3\u5c3e\u6309\u7528\u9014\u9009\u578b\u8868\uff0c\u6216\u76f4\u63a5\u7ed9\u53ef\u6267\u884c\u7684\u9a8c\u8bc1\u7247\u6bb5\u3002\n- \u6570\u636e\u53e3\u5f84\u4e00\u53e5\u8bdd\u5199\u6e05\uff1a\u6293\u53d6\u65f6\u95f4 + \u6392\u5e8f/\u53bb\u91cd\u65b9\u6cd5 + \u54ea\u4e9b\u4ed3\u5e93\u8bfb\u4e86\u6e90\u7801\u3002\n\n## Quick Reference\n\n| Action | Command |\n|---|---|\n| Multi-keyword sweep, dedupe, JSON+TSV | `gh_survey.py search --out out.json \"q1\" \"q2\"` |\n| Sweep with a token (higher limits) | `GITHUB_TOKEN=... gh_survey.py search ...` |\n| README digest for chosen repos | `gh_survey.py readme owner/a owner/b --chars 1500` |\n| Verify mechanism | `git clone --depth 1 <url>` then `search_files` on the symbol |\n| Check a repo's currency | `pushed_at` in JSON + first 20 lines of README |\n\n## Pitfalls\n\n- **Unauthenticated search is 10 requests/minute.** Six keyword queries fired back-to-back\n  return 403s and look like \"no results\". Sleep ~7s between queries (the script does), or\n  export `GITHUB_TOKEN`. The script waits out a 403 using `X-RateLimit-Reset` once.\n- **A `total_count` of 0 means the query is wrong, not that the field is empty.** GitHub\n  treats space-separated bare words as AND, and CJK keywords rarely match repo metadata.\n  Rewrite into English or a `topic:` before concluding anything. One sweep that returns\n  nothing for \"\u4e91\u624b\u673a \u865a\u62df\u5b9a\u4f4d\" while `topic:` and English variants return dozens is a\n  vocabulary failure, not a landscape finding.\n- **`web_search` is a poor primary channel for repo discovery.** Generic engines return\n  ads, mirrors and SEO pages for these queries. Use it only to confirm a specific fact\n  (a version cutoff), after the API has named the candidates.\n- **`raw.githubusercontent.com` needs branch and filename fallbacks.** Try\n  `main`/`master` \u00d7 `README.md`/`readme.md`/`README.rst`, and expect the real content to sit\n  in a sibling doc (`\u4f7f\u7528\u6559\u7a0b.md`, `README.zh-CN.md`, `docs/`). The script handles the first\n  axis; follow links from the README for the rest.\n- **README badges and image tags drown the prose** \u2014 strip `![...](...)` and HTML before\n  reading; 1.1k chars of cleaned text is usually enough to see the mechanism and the\n  disclaimer.\n- **Stars measure attention, not maintenance.** The single highest-star repo in a category\n  is frequently the least updated; the maintained one has fewer stars and a recent\n  `pushed_at`. Report both signals side by side and let the user see it.\n- **Don't paste README claims as fact.** \"\u65e0\u9700 root\" / \"\u7ed5\u8fc7\u4efb\u4f55\u68c0\u6d4b\" / \"\u652f\u6301\u5168\u7248\u672c\" are\n  claims until a source file or a changelog line shows the API that does it.\n- **Legal/ToS-adjacent domains (\u5b9a\u4f4d\u4f2a\u9020, \u722c\u866b\u7ed5\u8fc7, \u98ce\u63a7\u89c4\u907f):** survey the technology and\n  the detection side honestly \u2014 GitHub is public \u2014 but say plainly which uses breach\n  platform terms, and prefer recommending the layer that is legitimate (QA/debug channels,\n  privacy tools). Do not write step-by-step evasion playbooks, and do not moralise at length.\n\n## Verification\n\nBefore delivering: every named repo has a `pushed_at` you actually looked at; every claimed\nmechanism traces to a file or changelog line you read; the \u5df2\u786e\u8ba4/\u63a8\u65ad boundary is visible\nin the text; the report file exists at the path you cite and is attached via `MEDIA:`.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:35Z",
+  "updated_at": "2026-10-20T14:02:03Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/research/opensource-ecosystem-survey",
+      "sha256": "b5286d8204b12544027eb28da0eacefba84209647d70012a2b0cb2d18f864601",
+      "retrieved_at": "2026-10-20T12:52:35Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:35Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T14:02:03Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T14:02:01Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "opensource-ecosystem-survey",
+    "description": "Survey a field's open-source options on GitHub.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "research/opensource-ecosystem-survey",
+    "sha256": "b5286d8204b12544027eb28da0eacefba84209647d70012a2b0cb2d18f864601",
+    "tags": [
+      "opensource-ecosystem-survey",
+      "opensource",
+      "ecosystem",
+      "survey",
+      "field",
+      "open-source",
+      "options"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    },
+    "files": [
+      {
+        "path": "scripts/gh_survey.py",
+        "sha256": "6eea858291cbc909fe91ebf0ebfb97f8b2fde962b3f49254a715d61cc7099e31",
+        "bytes": 5604,
+        "content": "#!/usr/bin/env python3\n\"\"\"GitHub ecosystem sweep: multi-keyword repo search + README digest. stdlib only.\n\n  gh_survey.py search --out out.json \"mock location\" \"\u865a\u62df\u5b9a\u4f4d\" \"topic:mock-location\"\n  gh_survey.py search --sort updated \"pymobiledevice3\"\n  gh_survey.py readme ZCShou/GoGoGo --chars 1200\n\nEnv: GITHUB_TOKEN (optional, raises the 10 req/min unauthenticated search limit).\n\"\"\"\nimport argparse\nimport json\nimport os\nimport re\nimport sys\nimport time\nimport urllib.error\nimport urllib.parse\nimport urllib.request\n\nUA = \"hermes-gh-survey/1.0\"\n\n\ndef _headers():\n    h = {\"User-Agent\": UA, \"Accept\": \"application/vnd.github+json\"}\n    tok = os.environ.get(\"GITHUB_TOKEN\") or os.environ.get(\"GH_TOKEN\")\n    if tok:\n        h[\"Authorization\"] = \"Bearer \" + tok\n    return h\n\n\ndef fetch(url, timeout=30, retry_403=True):\n    req = urllib.request.Request(url, headers=_headers())\n    try:\n        with urllib.request.urlopen(req, timeout=timeout) as r:\n            return r.read().decode(\"utf-8\", \"ignore\")\n    except urllib.error.HTTPError as e:\n        if e.code == 403 and retry_403:\n            reset = e.headers.get(\"X-RateLimit-Reset\")\n            wait = 60\n            if reset:\n                try:\n                    wait = max(5, min(90, int(reset) - int(time.time()) + 2))\n                except ValueError:\n                    pass\n            sys.stderr.write(\"[rate-limited] sleeping %ss\\n\" % wait)\n            time.sleep(wait)\n            return fetch(url, timeout=timeout, retry_403=False)\n        raise\n\n\ndef search(queries, sort, per_page, sleep, out):\n    repos = {}\n    for q in queries:\n        params = {\"q\": q, \"sort\": sort, \"order\": \"desc\", \"per_page\": per_page}\n        url = \"https://api.github.com/search/repositories?\" + urllib.parse.urlencode(params)\n        try:\n            data = json.loads(fetch(url))\n        except Exception as e:  # one bad query must not kill the sweep\n            sys.stderr.write(\"[skip] %r -> %s\\n\" % (q, e))\n            time.sleep(sleep)\n            continue\n        total = data.get(\"total_count\", 0)\n        items = data.get(\"items\", [])\n        sys.stderr.write(\"%-40s total=%-6s got=%d\\n\" % (q, total, len(items)))\n        for it in items:\n            key = it[\"full_name\"]\n            rec = repos.setdefault(\n                key,\n                {\n                    \"full_name\": key,\n                    \"url\": it[\"html_url\"],\n                    \"stars\": it.get(\"stargazers_count\", 0),\n                    \"language\": it.get(\"language\"),\n                    \"pushed_at\": (it.get(\"pushed_at\") or \"\")[:10],\n                    \"created_at\": (it.get(\"created_at\") or \"\")[:10],\n                    \"archived\": it.get(\"archived\", False),\n                    \"description\": it.get(\"description\") or \"\",\n                    \"topics\": it.get(\"topics\") or [],\n                    \"kw\": [],\n                },\n            )\n            if q not in rec[\"kw\"]:\n                rec[\"kw\"].append(q)\n        time.sleep(sleep)\n\n    ranked = sorted(repos.values(), key=lambda r: r[\"stars\"], reverse=True)\n    if out:\n        with open(out, \"w\", encoding=\"utf-8\") as f:\n            json.dump(ranked, f, ensure_ascii=False, indent=1)\n        sys.stderr.write(\"\\n%d unique repos -> %s\\n\" % (len(ranked), out))\n    print(\"%6s %-42s %-10s %-11s %-8s %s\" % (\"STARS\", \"REPO\", \"LANG\", \"PUSHED\", \"FLAGS\", \"DESC\"))\n    for r in ranked:\n        flags = \"archived\" if r[\"archived\"] else \"\"\n        print(\"%6d %-42s %-10s %-11s %-8s %s\" % (\n            r[\"stars\"], r[\"full_name\"][:42], str(r[\"language\"])[:10],\n            r[\"pushed_at\"], flags, re.sub(r\"\\s+\", \" \", r[\"description\"])[:90]))\n    return ranked\n\n\ndef readme(repos, chars):\n    names = [\"README.md\", \"readme.md\", \"README.MD\", \"README.rst\", \"README\"]\n    for rp in repos:\n        text = None\n        for br in (\"main\", \"master\"):\n            for n in names:\n                try:\n                    text = fetch(\n                        \"https://raw.githubusercontent.com/%s/%s/%s\" % (rp, br, n),\n                        timeout=25, retry_403=False)\n                    break\n                except Exception:\n                    continue\n            if text:\n                break\n        print(\"=\" * 90)\n        print(\"REPO:\", rp)\n        if not text:\n            print(\"  (README not found \u2014 check the default branch / look for docs/*.md)\")\n            continue\n        body = re.sub(r\"!\\[[^\\]]*\\]\\([^)]*\\)\", \"\", text)   # drop images/badges\n        body = re.sub(r\"<[^>]+>\", \"\", body)                 # drop html\n        body = re.sub(r\"\\n{2,}\", \"\\n\", body).strip()\n        print(body[:chars])\n\n\ndef main():\n    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)\n    sub = ap.add_subparsers(dest=\"cmd\", required=True)\n\n    s = sub.add_parser(\"search\", help=\"multi-keyword repo search, deduped and star-ranked\")\n    s.add_argument(\"queries\", nargs=\"+\")\n    s.add_argument(\"--sort\", default=\"stars\", choices=[\"stars\", \"updated\", \"forks\"])\n    s.add_argument(\"--per-page\", type=int, default=20)\n    s.add_argument(\"--sleep\", type=float, default=7.0, help=\"seconds between queries (10/min unauth)\")\n    s.add_argument(\"--out\", default=None, help=\"write JSON snapshot here\")\n\n    r = sub.add_parser(\"readme\", help=\"README digest with branch/filename fallback\")\n    r.add_argument(\"repos\", nargs=\"+\")\n    r.add_argument(\"--chars\", type=int, default=1200)\n\n    a = ap.parse_args()\n    if a.cmd == \"search\":\n        search(a.queries, a.sort, a.per_page, a.sleep, a.out)\n    else:\n        readme(a.repos, a.chars)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+      }
+    ],
+    "script_audit": {
+      "clean": true,
+      "secrets": [],
+      "dangers": [],
+      "mismatched": [],
+      "files": 1,
+      "digest": "1882b41403bc8a35f0d4f18c4f2af2edfefafd689397ff6ced2ed57fc7453f81"
+    },
+    "approval_action": "human_approval"
+  }
+}

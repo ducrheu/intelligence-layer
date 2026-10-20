@@ -78,7 +78,7 @@
     }
   ],
   "supersedes": null,
-  "superseded_by": null,
+  "superseded_by": "governed-read-surface-check-v1",
   "metadata": {
     "name": "governed-read-surface-check",
     "inputs": [

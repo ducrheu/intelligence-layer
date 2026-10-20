@@ -46,7 +46,7 @@
     }
   ],
   "supersedes": null,
-  "superseded_by": null,
+  "superseded_by": "intelligence-layer-governance-v1",
   "metadata": {
     "name": "intelligence-layer-governance",
     "description": "Use when writing to or auditing a governed agent KB.",

@@ -46,7 +46,7 @@
     }
   ],
   "supersedes": null,
-  "superseded_by": null,
+  "superseded_by": "retrieval-quality-tuning-v1",
   "metadata": {
     "name": "retrieval-quality-tuning",
     "description": "Use when tuning corpus retrieval (lexical/vector/hybrid).",

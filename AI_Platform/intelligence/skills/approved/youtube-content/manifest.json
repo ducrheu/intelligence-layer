@@ -1,0 +1,109 @@
+{
+  "id": "youtube-content",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "YouTube transcripts to summaries, threads, blogs.",
+  "content": "---\nname: youtube-content\ndescription: \"YouTube transcripts to summaries, threads, blogs.\"\nversion: 1.0.0\nauthor: Teknium (teknium1), Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [YouTube, Video, Transcripts, Media]\n    related_skills: []\n---\n\n# YouTube Content Tool\n\n## When to use\n\nUse when the user shares a YouTube URL or video link, asks to summarize a video, requests a transcript, or wants to extract and reformat content from any YouTube video. Transforms transcripts into structured content (chapters, summaries, threads, blog posts).\n\nExtract transcripts from YouTube videos and convert them into useful formats.\n\n## Setup\n\nUse `uv` so the dependency is installed into the same Hermes-managed environment\nthat runs the helper script:\n\n```bash\nuv pip install youtube-transcript-api\n```\n\n## Helper Script\n\n`SKILL_DIR` is the directory containing this SKILL.md file. The script accepts any standard YouTube URL format, short links (youtu.be), shorts, embeds, live links, or a raw 11-character video ID.\n\n```bash\n# JSON output with metadata\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"https://youtube.com/watch?v=VIDEO_ID\"\n\n# Plain text (good for piping into further processing)\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"URL\" --text-only\n\n# With timestamps\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"URL\" --timestamps\n\n# Specific language with fallback chain\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"URL\" --language tr,en\n```\n\n## Output Formats\n\nAfter fetching the transcript, format it based on what the user asks for:\n\n- **Chapters**: Group by topic shifts, output timestamped chapter list\n- **Summary**: Concise 5-10 sentence overview of the entire video\n- **Chapter summaries**: Chapters with a short paragraph summary for each\n- **Thread**: Twitter/X thread format \u2014 numbered posts, each under 280 chars\n- **Blog post**: Full article with title, sections, and key takeaways\n- **Quotes**: Notable quotes with timestamps\n\n### Example \u2014 Chapters Output\n\n```\n00:00 Introduction \u2014 host opens with the problem statement\n03:45 Background \u2014 prior work and why existing solutions fall short\n12:20 Core method \u2014 walkthrough of the proposed approach\n24:10 Results \u2014 benchmark comparisons and key takeaways\n31:55 Q&A \u2014 audience questions on scalability and next steps\n```\n\n## Workflow\n\n1. **Fetch** the transcript using the helper script with `--text-only --timestamps` via `uv run python`.\n2. **Validate**: confirm the output is non-empty and in the expected language. If empty, retry without `--language` to get any available transcript. If still empty, tell the user the video likely has transcripts disabled.\n3. **Chunk if needed**: if the transcript exceeds ~50K characters, split into overlapping chunks (~40K with 2K overlap) and summarize each chunk before merging.\n4. **Transform** into the requested output format. If the user did not specify a format, default to a summary.\n5. **Verify**: re-read the transformed output to check for coherence, correct timestamps, and completeness before presenting.\n\n## Error Handling\n\n- **Transcript disabled**: tell the user; suggest they check if subtitles are available on the video page.\n- **Private/unavailable video**: relay the error and ask the user to verify the URL.\n- **No matching language**: retry without `--language` to fetch any available transcript, then note the actual language to the user.\n- **Dependency missing**: run `uv pip install youtube-transcript-api` and retry.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:13Z",
+  "updated_at": "2026-10-20T14:03:22Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/media/youtube-content",
+      "sha256": "52349e30ac74a3c2693c43588e9392a53236526b4b7d92769a64045a9782308e",
+      "retrieved_at": "2026-10-20T12:52:13Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:13Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T14:03:22Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T14:03:19Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "youtube-content",
+    "description": "YouTube transcripts to summaries, threads, blogs.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "media/youtube-content",
+    "sha256": "52349e30ac74a3c2693c43588e9392a53236526b4b7d92769a64045a9782308e",
+    "tags": [
+      "youtube-content",
+      "youtube",
+      "content",
+      "transcripts",
+      "summaries",
+      "threads"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    },
+    "files": [
+      {
+        "path": "references/output-formats.md",
+        "sha256": "f24e6939b47511a7dfc1257f3087c9dafd027fe7836d0e65b0feb3214f598cd1",
+        "bytes": 1259,
+        "content": "# Output Format Examples\n\n## Chapters\n\n```\n00:00 Introduction\n02:15 Background and motivation\n05:30 Main approach\n12:45 Results and evaluation\n18:20 Limitations and future work\n21:00 Q&A\n```\n\n## Summary\n\nA 5-10 sentence overview covering the video's main points, key arguments, and conclusions. Written in third person, present tense.\n\n## Chapter Summaries\n\n```\n## 00:00 Introduction (2 min)\nThe speaker introduces the topic of X and explains why it matters for Y.\n\n## 02:15 Background (3 min)\nA review of prior work in the field, covering approaches A, B, and C.\n```\n\n## Thread (Twitter/X)\n\n```\n1/ Just watched an incredible talk on [topic]. Here are the key takeaways: \ud83e\uddf5\n\n2/ First insight: [point]. This matters because [reason].\n\n3/ The surprising part: [unexpected finding]. Most people assume [common belief], but the data shows otherwise.\n\n4/ Practical takeaway: [actionable advice].\n\n5/ Full video: [URL]\n```\n\n## Blog Post\n\nFull article with:\n- Title\n- Introduction paragraph\n- H2 sections for each major topic\n- Key quotes (with timestamps)\n- Conclusion / takeaways\n\n## Quotes\n\n```\n\"The most important thing is not the model size, but the data quality.\" \u2014 05:32\n\"We found that scaling past 70B parameters gave diminishing returns.\" \u2014 12:18\n```\n"
+      },
+      {
+        "path": "scripts/fetch_transcript.py",
+        "sha256": "462f96320f641d3372fb54dd34d5e4892c185cb48096f9c5e97b05a77ac02467",
+        "bytes": 4054,
+        "content": "#!/usr/bin/env python3\n\"\"\"\nFetch a YouTube video transcript and output it as structured JSON.\n\nUsage:\n    uv run python3 fetch_transcript.py <url_or_video_id> [--language en,tr] [--timestamps]\n\nOutput (JSON):\n    {\n        \"video_id\": \"...\",\n        \"language\": \"en\",\n        \"segments\": [{\"text\": \"...\", \"start\": 0.0, \"duration\": 2.5}, ...],\n        \"full_text\": \"complete transcript as plain text\",\n        \"timestamped_text\": \"00:00 first line\\n00:05 second line\\n...\"\n    }\n\nInstall dependency:  uv pip install youtube-transcript-api\n\"\"\"\n\nimport argparse\nimport json\nimport re\nimport sys\n\n\ndef extract_video_id(url_or_id: str) -> str:\n    \"\"\"Extract the 11-character video ID from various YouTube URL formats.\"\"\"\n    url_or_id = url_or_id.strip()\n    patterns = [\n        r'(?:v=|youtu\\.be/|shorts/|embed/|live/)([a-zA-Z0-9_-]{11})',\n        r'^([a-zA-Z0-9_-]{11})$',\n    ]\n    for pattern in patterns:\n        match = re.search(pattern, url_or_id)\n        if match:\n            return match.group(1)\n    return url_or_id\n\n\ndef format_timestamp(seconds: float) -> str:\n    \"\"\"Convert seconds to HH:MM:SS or MM:SS format.\"\"\"\n    total = int(seconds)\n    h, remainder = divmod(total, 3600)\n    m, s = divmod(remainder, 60)\n    if h > 0:\n        return f\"{h}:{m:02d}:{s:02d}\"\n    return f\"{m}:{s:02d}\"\n\n\ndef fetch_transcript(video_id: str, languages: list = None):\n    \"\"\"Fetch transcript segments from YouTube.\n\n    Returns a list of dicts with 'text', 'start', and 'duration' keys.\n    Compatible with youtube-transcript-api v1.x.\n    \"\"\"\n    try:\n        from youtube_transcript_api import YouTubeTranscriptApi\n    except ImportError:\n        print(\"Error: youtube-transcript-api not installed. Run: uv pip install youtube-transcript-api\",\n              file=sys.stderr)\n        sys.exit(1)\n\n    api = YouTubeTranscriptApi()\n    if languages:\n        result = api.fetch(video_id, languages=languages)\n    else:\n        result = api.fetch(video_id)\n\n    # v1.x returns FetchedTranscriptSnippet objects; normalize to dicts\n    return [\n        {\"text\": seg.text, \"start\": seg.start, \"duration\": seg.duration}\n        for seg in result\n    ]\n\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Fetch YouTube transcript as JSON\")\n    parser.add_argument(\"url\", help=\"YouTube URL or video ID\")\n    parser.add_argument(\"--language\", \"-l\", default=None,\n                        help=\"Comma-separated language codes (e.g. en,tr). Default: auto\")\n    parser.add_argument(\"--timestamps\", \"-t\", action=\"store_true\",\n                        help=\"Include timestamped text in output\")\n    parser.add_argument(\"--text-only\", action=\"store_true\",\n                        help=\"Output plain text instead of JSON\")\n    args = parser.parse_args()\n\n    video_id = extract_video_id(args.url)\n    languages = [l.strip() for l in args.language.split(\",\")] if args.language else None\n\n    try:\n        segments = fetch_transcript(video_id, languages)\n    except Exception as e:\n        error_msg = str(e)\n        if \"disabled\" in error_msg.lower():\n            print(json.dumps({\"error\": \"Transcripts are disabled for this video.\"}))\n        elif \"no transcript\" in error_msg.lower():\n            print(json.dumps({\"error\": \"No transcript found. Try specifying a language with --language.\"}))\n        else:\n            print(json.dumps({\"error\": error_msg}))\n        sys.exit(1)\n\n    full_text = \" \".join(seg[\"text\"] for seg in segments)\n    timestamped = \"\\n\".join(\n        f\"{format_timestamp(seg['start'])} {seg['text']}\" for seg in segments\n    )\n\n    if args.text_only:\n        print(timestamped if args.timestamps else full_text)\n        return\n\n    result = {\n        \"video_id\": video_id,\n        \"segment_count\": len(segments),\n        \"duration\": format_timestamp(segments[-1][\"start\"] + segments[-1][\"duration\"]) if segments else \"0:00\",\n        \"full_text\": full_text,\n    }\n    if args.timestamps:\n        result[\"timestamped_text\"] = timestamped\n\n    print(json.dumps(result, ensure_ascii=False, indent=2))\n\n\nif __name__ == \"__main__\":\n    main()\n"
+      }
+    ],
+    "script_audit": {
+      "clean": true,
+      "secrets": [],
+      "dangers": [],
+      "mismatched": [],
+      "files": 2,
+      "digest": "92279a8c681a50e54c98f3b3bb8cd73403c76c5091236b6eb2a53684c2d64822"
+    },
+    "approval_action": "human_approval"
+  }
+}
