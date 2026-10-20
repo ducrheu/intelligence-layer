@@ -732,12 +732,11 @@ class IntelligenceGateway:
             raise ValueError("invalid retrieval limits")
         documents = self._search_documents(actor, kind, scope)
         denied = denied_ids(self.root, actor)
-        # A skill's searchable text is a name and a description: BM25 on its tags and
-        # title finds it, and embedding 131 procedures per query costs a minute on
-        # this box's CPU ollama (measured 47-64s) to improve nothing measurable.
+        # The skill corpus is embedded like everything else: bge-m3 is the model the
+        # corpus was tuned on, and a slower first query beats a different ranking for
+        # skills than for knowledge.
         ranked, summary = self.retriever.rank(
-            query, documents, limit=max_items,
-            embed_budget=0 if kind == "skill" else embed_budget)
+            query, documents, limit=max_items, embed_budget=embed_budget)
         ranked = self._stalest_last(ranked, documents)
         if self.retriever.cache is not None:
             self.retriever.cache.prune({document["digest"] for document in documents.values()})
