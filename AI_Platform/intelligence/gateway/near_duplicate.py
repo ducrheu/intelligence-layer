@@ -63,12 +63,18 @@ def scan(store: Any, actor: Any, rank_limit: int = 2,
     """
     findings: dict[tuple[str, str], dict[str, Any]] = {}
     vector_ran = False
-    documents_seen = 0
+    # Screen the whole corpus at once, not one kind at a time. The expensive
+    # duplicate in this knowledge base is *cross-kind*: distillation turns an
+    # `experience` record into a `knowledge` record and the raw one stays behind,
+    # so the two copies share a topic but live in different directories. Grouping
+    # the scan by kind made those pairs structurally invisible - it reported 16
+    # same-kind pairs of which most were false positives, and missed both real
+    # duplicates.
+    documents: dict[str, Any] = {}
     for kind in kinds:
-        documents = store._search_documents(actor, kind, None)
-        documents_seen += len(documents)
-        if len(documents) < 2:
-            continue
+        documents.update(store._search_documents(actor, kind, None))
+    documents_seen = len(documents)
+    if documents_seen >= 2:
         for key, document in documents.items():
             artifact = document["artifact"]
             probe = f"{artifact.get('title') or ''}\n{(artifact.get('content') or '')[:1500]}"
@@ -90,10 +96,13 @@ def scan(store: Any, actor: Any, rank_limit: int = 2,
                     break
             if best is None:
                 continue
-            pair = tuple(sorted((key, best["neighbour"])))
+            left, right = sorted((str(key), str(best["neighbour"])))
+            pair: tuple[str, str] = (left, right)
             entry = findings.get(pair)
             if entry is None or best["rrf"] > entry["rrf"]:
-                findings[pair] = {"left": pair[0], "right": pair[1], **{k: v for k, v in best.items() if k != "neighbour"}}
+                findings[pair] = {"left": left, "right": right,
+                                  "cross_kind": left.split("/", 1)[0] != right.split("/", 1)[0],
+                                  **{k: v for k, v in best.items() if k != "neighbour"}}
     return {
         "pairs": sorted(findings.values(), key=lambda entry: -entry["rrf"]),
         "vector_retriever_ran": vector_ran,
@@ -129,7 +138,8 @@ def main(argv: list[str] | None = None) -> int:
     if pairs:
         print(f"近似重复 {len(pairs)} 对（判定：词法与向量都把对方排在前 {args.rank_limit}）：")
         for entry in pairs:
-            print(f"  {entry['left']}  <->  {entry['right']}"
+            mark = "跨 kind " if entry.get("cross_kind") else ""
+            print(f"  {mark}{entry['left']}  <->  {entry['right']}"
                   f"   （词法第 {entry['lexical_rank']} / 向量第 {entry['vector_rank']}）")
     return 0
 

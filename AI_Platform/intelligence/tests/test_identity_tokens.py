@@ -6,6 +6,14 @@ unknown tokens are refused, and the name shortcut exists only while the migratio
 switch is on.
 """
 from __future__ import annotations
+
+# Tests own their state directory. INTELLIGENCE_STATE is exported by every cron
+# wrapper, and a suite that inherits it writes lifecycle events into the live
+# store's event stream (measured: 315 test rows in the production log). Dropping
+# it here makes the suite behave identically in a cron shell and in CI.
+import os as _os
+
+_os.environ.pop("INTELLIGENCE_STATE", None)
 import os
 import sys
 from pathlib import Path

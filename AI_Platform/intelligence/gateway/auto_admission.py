@@ -82,7 +82,8 @@ def _blocked(blocking: list[str], reasons: list[str]) -> AdmissionVerdict:
 
 
 def evaluate(artifact: dict[str, Any], submitter: str | None,
-             disk_hashes: dict[str, str] | None = None) -> AdmissionVerdict:
+             disk_hashes: dict[str, str] | None = None,
+             duplicate_of: str | None = None) -> AdmissionVerdict:
     """Decide what a policy identity may do with this artifact, fail-closed.
 
     The shape of the rule set comes from supply-chain practice: the producer must
@@ -127,6 +128,12 @@ def evaluate(artifact: dict[str, Any], submitter: str | None,
 
     if not artifact.get("review_interval_days"):
         blocking.append("no review_interval_days: an admission without a validity horizon cannot be revisited")
+
+    if duplicate_of:
+        # Structural checks cannot see that the corpus already says this. The
+        # first round proved the cost: 16 distilled sources and their summaries
+        # were both auto-approved, and search paid for both on every query.
+        blocking.append(f"near duplicate of {duplicate_of}: merging two records is a human decision")
 
     permissions = [str(item) for item in (artifact.get("metadata") or {}).get("permissions", [])]
     claims = sorted({item for item in permissions

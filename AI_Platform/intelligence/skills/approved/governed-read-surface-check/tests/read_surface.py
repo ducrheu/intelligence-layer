@@ -33,12 +33,16 @@ import sys
 import threading
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, urlparse
 from urllib.request import Request, urlopen
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8765"
-DEFAULT_TOKEN = "local-hermes"
+#: The identity a live check reads as. Not a credential (see _resolve_live_token);
+#: the hermetic self-test below reuses the name as its shared fake secret.
+DEFAULT_IDENTITY = "local-hermes"
+DEFAULT_TOKEN = DEFAULT_IDENTITY
 DEFAULT_QUERIES = ("collaboration", "pit", "onboarding", "governed")
 TIMEOUT = 5.0
 KIND = "knowledge"
@@ -440,20 +444,50 @@ def self_test() -> int:
     return 0 if failures == 0 else 1
 
 
+def _resolve_live_token() -> str:
+    """The token the live gateway will accept.
+
+    The identity *name* stopped being a credential when tokens were introduced:
+    the gateway only knows sha256(token), and ``INTELLIGENCE_ALLOW_LEGACY_NAMES=0``.
+    This checker used to default to the literal name ``local-hermes``, so every
+    live request was refused and the run reported seven failures that said
+    "the surface is broken" when the surface was fine. Resolution order matches
+    every other client: explicit env, then the minted token in the credential file.
+    """
+    explicit = os.environ.get("INTELLIGENCE_TOKEN")
+    if explicit:
+        return explicit
+    path = Path(os.environ.get(
+        "INTELLIGENCE_TOKENS", str(Path.home() / ".hermes" / "intelligence-identity-tokens.json")))
+    try:
+        tokens = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return ""
+    token = tokens.get(DEFAULT_IDENTITY)
+    return token if isinstance(token, str) else ""
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--live", action="store_true", help="check a real gateway instead of the self-test")
     parser.add_argument("--base-url", default=os.environ.get("INTELLIGENCE_BASE_URL", DEFAULT_BASE_URL))
-    parser.add_argument("--token", default=os.environ.get("INTELLIGENCE_TOKEN", DEFAULT_TOKEN))
+    parser.add_argument("--token", default=None,
+                        help="minted identity token (default: INTELLIGENCE_TOKEN, then the credential file)")
     parser.add_argument("--query", action="append", default=None, help="probe query (repeatable)")
     args = parser.parse_args()
 
     if not args.live:
         return self_test()
 
+    token = args.token or _resolve_live_token()
+    if not token:
+        print("找不到 live 令牌：请先 mint 身份令牌，或设 INTELLIGENCE_TOKEN / --token。"
+              "（未带令牌会得到 7 个假失败，那不是面坏了。）")
+        return 2
+
     queries = tuple(args.query) if args.query else DEFAULT_QUERIES
     print(f"live acceptance  base_url={args.base_url}  queries={list(queries)}\n")
-    checks = Checker(args.base_url, args.token, queries).run()
+    checks = Checker(args.base_url, token, queries).run()
     return report(checks, "ACCEPTANCE")
 
 

@@ -45,13 +45,10 @@
     │   └── API.md              接口说明
     ├── knowledge/ experience/ skills/ sources/   产物本体（按状态分目录）
     ├── qa/
-    │   ├── audit.jsonl         追加式审计（每个动作一行，含身份）
-    │   ├── events.jsonl        生命周期事件流（仅元数据，可安全转发）
-    │   ├── usage.json          使用遥测聚合（命中 / 零结果查询）
-    │   ├── governance-config.json  分级引擎的 store 级配置
-    │   └── identity_tokens.json    令牌的 sha256（明文刻意不放这里）
+    │   ├── governance-config.json  分级引擎的 store 级配置（**始终在库内读**）
+    │   └── （运行时状态不在这里，见下）
     ├── schemas/                产物结构定义
-    ├── tests/                  9 个测试文件（见 §8）
+    ├── tests/                  14 个测试文件（见 §11）
     ├── adapters/ benchmarks/   适配层与基准
     └── API.md
 ```
@@ -110,21 +107,21 @@
 - `recorded_by` / `recorded_at` / `subject_digest` 由网关强制覆写，调用方无法伪造。
 - 作者不在验证者名单（`local-qa` / `local-system` / `policy-auto` / `local-human`）里。
 
-## 7. 身份认证（正在迁移中，务必读完）
+## 7. 身份认证（已收尾）
 
 **曾经的做法**：`X-Intelligence-Token` 直接就是身份名——任何能访问回环端口的东西都能自称 `local-human`。这使"批准永远是人的手"和"生产者可信"都只是**请求**而非强制。
 
-**现在**：每个身份铸了随机令牌；知识库只存 `sha256(token)`（`qa/identity_tokens.json`），**明文刻意放在仓库之外**（`~/.hermes/intelligence-identity-tokens.json`，600 权限）。网关先比哈希，身份名只在 `INTELLIGENCE_ALLOW_LEGACY_NAMES` 打开时接受。
+**现在**：每个身份铸了随机令牌；知识库只存 `sha256(token)`，**明文刻意放在仓库之外**（`~/.hermes/intelligence-identity-tokens.json`，600 权限）。网关先比哈希。`INTELLIGENCE_ALLOW_LEGACY_NAMES=0`，**名字不再是凭据**。
 
 | 现状 | 值 |
 |---|---|
 | 随机令牌 | 已铸，7 个身份 |
-| 哈希表 | 在库内（哈希不是秘密，可随产物走） |
+| 哈希表 | 运行时状态目录（`$INTELLIGENCE_STATE/identity_tokens.json`，哈希不是秘密） |
 | 明文 | 仓库外，600 |
-| **过渡开关** | **仍为打开**——即名字冒充目前仍可用 |
-| 关掉它的前置条件 | 把 Hermes 的 MCP 面、CLI 工具、OpenClaw 的回流阀门逐个切到真令牌 |
+| **过渡开关** | **已关闭**（`INTELLIGENCE_ALLOW_LEGACY_NAMES=0`） |
+| 已完成的前置条件 | Hermes 的 MCP 面、CLI 工具、OpenClaw 回流阀门均已切到真令牌 |
 
-**这一步没做完之前，"信任清单"之类的判定没有约束力。**
+**运行时状态的位置**：审计、事件流、使用遥测、令牌哈希都在 `$INTELLIGENCE_STATE`（服务 = `~/.local/state/intelligence-layer`），不随仓库走。任何工具/包装脚本必须带同一个值，否则会读到另一份空的 `audit.jsonl`。`<root>/qa/` 里那份是 2026-09-26 之前的旧快照，只剩 `governance-config.json` 是权威。
 
 ## 8. 检索（有实测数字，不靠感觉）
 
@@ -162,24 +159,26 @@ INTELLIGENCE_PASSAGE_CHARS=600      INTELLIGENCE_RERANK=none
 
 ## 10. 已知限制与路线图
 
-1. **身份迁移未收尾**——过渡开关仍打开（优先级最高，见 §7）。
+1. **使用停摆是当前最大的问题**（不是技术债）：2026-10-02 起 18 天零真实读取，最后一次生命周期写入是 10-10。库从未进入任何工作流——没有 cron 在开工前检索它。见 `hermes/reports/kb-review-2026-10-19.md`。
 2. **运行时工具未整合进本仓库**——见 §3 表格；整合需要同步更新 systemd 单元、cron 包装脚本、MCP 注册与 OpenClaw 侧路径，必须一次性完成。
-3. **闭环尚未真正跑起来**——知识库目前的内容多为建库与治理自身；**来源标注为"另一个 agent 的产出"的产物为 0 件**。缺两件事：执行侧的沉淀习惯，与学习侧的收获→蒸馏触发器。
-4. **A2A 直连未启用**——对端要求 Bearer，本侧出站未配置；当前两个运行时只通过知识库交换。
-5. **重排未启用**——必须在能显形的基准上证明自己（当前基准在 bge-m3 下已饱和）。
-6. **治理代码曾经没有版本控制**——本提交是起点。
+3. **自动准入只验结构、不验用途**——判定条件全部是（可信生产者 / scope / 复核期 / 无未知字段），没有一条问"这条东西有人会查吗"。结果：45 条已发布制品中 17 条 `never-used + auto-admitted-unverified`。
+4. **experience 与 knowledge 双写**——蒸馏链路是通的（`distillation` 17 条），但原料退场机制没有：同一条知识在两层各存一份，而 `near_duplicate.py` 按 kind 分组比较，看不见跨 kind 的重复。
+5. **A2A 直连未启用**——对端要求 Bearer，本侧出站未配置；当前两个运行时只通过知识库交换。
+6. **重排未启用**——必须在能显形的基准上证明自己（当前基准在 bge-m3 下已饱和：`hybrid` 与 `hybrid+rerank` 同分）。
+7. **治理代码曾经没有版本控制**——2026-09 起有。
 
 ## 11. 自检与测试
 
 ```bash
-# 全部测试（9 个文件；检索类测试刻意只跑词法，不依赖模型服务在不在跑）
+# 全部测试（14 个文件；检索类测试刻意只跑词法，不依赖模型服务在不在跑）
+# 测试自己在 setUp 里丢掉 INTELLIGENCE_STATE：继承 cron 的 state 目录会把测试事件写进生产 events.jsonl
 cd /mnt/d/intelligence-layer
 for t in AI_Platform/intelligence/tests/test_*.py; do
   PYTHONPATH=/mnt/d/intelligence-layer python3 "$t" || echo "FAILED: $t"
 done
 
-# 读面不变量（离线 + 在线两档）
-python3 tests/read_surface.py --live
+# 读面不变量（离线 + 在线两档；在线自动从凭证文件取令牌）
+python3 AI_Platform/intelligence/skills/approved/governed-read-surface-check/tests/read_surface.py --live
 
 # 检索改动前必须先量
 python3 intelligence-retrieval-eval.py --corpus synthetic --modes lexical,vector,hybrid

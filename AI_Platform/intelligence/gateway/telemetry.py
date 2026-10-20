@@ -47,6 +47,11 @@ def review_flags(artifact: dict[str, Any], explicit: dict[str, Any], surfaced: d
     """
     if artifact.get("status") not in ("approved", "validated"):
         return []
+    if artifact.get("superseded_by"):
+        # A source that a finished record already cites: it is evidence, not a
+        # to-do. Keeping it in the attention list made every weekly report count
+        # the same retired raw note as "never used" forever.
+        return []
 
     key = f"{artifact.get('kind')}/{artifact.get('id')}"
     used = explicit.get(key) or {}

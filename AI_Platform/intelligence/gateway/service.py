@@ -24,6 +24,25 @@ from .telemetry import FRESH, freshness
 
 MAX_EVENTS = 200
 POLICY_IDENTITY = "policy-auto"
+# A probe identity for the pre-admission duplicate check: it must see approved
+# records only (a candidate that is not yet published is not a duplicate of
+# itself), and it is never used to read for a caller.
+DEDUP_ACTOR = Actor("dedup-probe", "system", frozenset({"read:approved"}))
+
+
+def _telemetry_suppressed() -> bool:
+    """True when the caller is a measurement, not a reader.
+
+    Retrieval evals and screens run against the live store; without this their
+    probes land in the usage counters and in the lifecycle stream, where they are
+    indistinguishable from real use. Measured once: a suite run wrote 315 test
+    events into the production stream, and a 51-query eval in October kept the
+    "nobody is reading the knowledge base" alarm silent for a week.
+
+    Only usage telemetry is suppressed. The audit chain records *who did what*
+    and is never optional.
+    """
+    return os.environ.get("INTELLIGENCE_TELEMETRY_SUPPRESS", "").strip().lower() in ("1", "true", "yes")
 # Default is shadow: verdicts are recorded and reported, nothing moves by itself.
 AUTO_ADMISSION_MODES = ("shadow", "enforce")
 
@@ -102,7 +121,39 @@ class IntelligenceGateway:
     def evaluate_admission(self, artifact: dict[str, Any], submitter: str | None = None) -> dict[str, Any]:
         """What the auto-admission policy says about this artifact right now."""
         who = submitter or self._last_submitter(artifact["id"], artifact["kind"])
-        return evaluate(artifact, who, self._disk_hashes(artifact)).to_dict()
+        return evaluate(artifact, who, self._disk_hashes(artifact),
+                        duplicate_of=self._nearest_live_record(artifact)).to_dict()
+
+    def _nearest_live_record(self, artifact: dict[str, Any]) -> str | None:
+        """The live record this submission is a near copy of, if any.
+
+        Distillation already produced one full round of cross-kind duplicates
+        (every `knowledge` record and the `experience` it summarised). The
+        admission policy can only see structure, so it admitted both; the check
+        has to ask the read path's own question before the second copy becomes
+        another approved record.
+
+        Both retrievers must rank the other record at the top (lexical #1,
+        vector top 2): a shared-vocabulary neighbour is not a duplicate, and a
+        gate that fires on one retriever alone would block legitimate siblings.
+        """
+        probe = f"{artifact.get('title') or ''}\n{(artifact.get('content') or '')[:1500]}".strip()
+        if not probe:
+            return None
+        own = f"{artifact.get('kind')}/{artifact.get('id')}"
+        for kind in ("knowledge", "experience"):
+            documents = self._search_documents(DEDUP_ACTOR, kind, None)
+            if not documents:
+                continue
+            ranked, _ = self.retriever.rank(probe, documents, limit=3, embed_budget=1)
+            for item in ranked:
+                if item["key"] == own:
+                    continue
+                why = item.get("why") or {}
+                lexical, vector = why.get("lexical_rank"), why.get("vector_rank")
+                if isinstance(lexical, int) and isinstance(vector, int) and lexical <= 1 and vector <= 2:
+                    return item["key"]
+        return None
 
     def _assert_policy_may(self, actor: Actor, artifact: dict[str, Any], action: str) -> None:
         """A policy identity may only do what the policy permits, recomputed now.
@@ -119,7 +170,8 @@ class IntelligenceGateway:
                 f"auto-admission is in {self.auto_admission} mode: verdicts are recorded, nothing moves on its own"
             )
         verdict = evaluate(artifact, self._last_submitter(artifact["id"], artifact["kind"]),
-                           self._disk_hashes(artifact))
+                           self._disk_hashes(artifact),
+                           duplicate_of=self._nearest_live_record(artifact))
         allowed = verdict.auto_approve if action == "approve" else verdict.auto_validate
         if not allowed:
             self._audit(actor, f"policy_{action}", artifact["id"], "denied_by_policy", None, artifact["kind"])
@@ -179,7 +231,7 @@ class IntelligenceGateway:
         either: without it, a record that is only ever found by search would look
         unused and get retired. Kept separately so a decision can weigh both.
         """
-        if not items:
+        if not items or _telemetry_suppressed():
             return
         try:
             state = json.loads(self.usage_path.read_text(encoding="utf-8")) if self.usage_path.is_file() else {}
@@ -201,6 +253,8 @@ class IntelligenceGateway:
 
     def _note_miss(self, query: str, kind: str) -> None:
         """Record a query that returned nothing, so vocabulary gaps become visible."""
+        if _telemetry_suppressed():
+            return
         try:
             state = json.loads(self.usage_path.read_text(encoding="utf-8")) if self.usage_path.is_file() else {}
         except (ValueError, OSError):
@@ -259,6 +313,8 @@ class IntelligenceGateway:
         of the stream learns that something changed, not what it says. The cursor
         is the line offset, which is stable because the file is append-only.
         """
+        if _telemetry_suppressed():
+            return
         event = {
             "timestamp": utc_now(),
             "action": action,
@@ -530,6 +586,13 @@ class IntelligenceGateway:
             if artifact.get("status") == "archived":
                 # Terminal state, kept for the audit trail rather than for reading.
                 continue
+            if artifact.get("superseded_by"):
+                # A distilled source: the finished record cites it, so the raw
+                # copy is evidence, not an answer. Keeping both in the read
+                # surface made every search pay twice for the same content and
+                # let the raw note compete with its own summary. It stays
+                # readable by id (provenance) and stays approved (history).
+                continue
             if artifact.get("status") != "approved" and not can_read_candidate(actor):
                 continue
             if scope and artifact.get("scope") != scope:
@@ -745,3 +808,52 @@ class IntelligenceGateway:
         self._audit(actor, "supersede", old_id, "success", correlation_id)
         self._event(actor, "superseded", old, previous_status, "deprecated", correlation_id)
         return new
+
+    def retire_distilled(self, actor: Actor, old_id: str, new_id: str, kind: str = "experience",
+                         correlation_id: str | None = None) -> dict[str, Any]:
+        """Take a distilled source out of the read surface, without inventing a new record.
+
+        Distillation writes a `knowledge` record whose `source` says
+        `experience:<id>`, and the raw experience stayed approved next to it. Both
+        copies then competed in search for the same query: the summary and the note
+        it summarised. `supersede()` does not fit here - it requires a *new*
+        artifact and deprecates the old one - because the finished record already
+        exists. This marks the source, leaves its status alone (history keeps its
+        place; by-id reads still resolve it for provenance), and lets the read
+        surface skip it.
+        """
+        require(actor, "rollback")
+        old = self.store.load(old_id, kind, ("approved", "validated", "stale"))
+        if old.get("superseded_by"):
+            return old
+        old["superseded_by"] = new_id
+        old["updated_at"] = utc_now()
+        self.store.save(old)
+        self._audit(actor, "retire_distilled", old_id, "success", correlation_id)
+        self._event(actor, "superseded", old, str(old.get("status") or ""),
+                    str(old.get("status") or ""), correlation_id)
+        return old
+
+    def demote_unread(self, actor: Actor, artifact_id: str, kind: str, reason: str,
+                      correlation_id: str | None = None) -> dict[str, Any]:
+        """Take a record out of the read surface because nobody ever read it.
+
+        The owner's rule: an approved record that no one has retrieved for 60
+        days is a demand question, not a fact. It goes to `experimental` - not
+        deleted, not deprecated - so it stops competing in search while staying
+        one transition away from coming back. The reason is recorded on the
+        artifact because the interesting part of this decision is *why*, and it
+        is the only thing a reader will not be able to reconstruct later.
+        """
+        require(actor, "rollback")
+        artifact = self.store.load(artifact_id, kind, ("approved",))
+        previous = dict(artifact)
+        artifact["status"] = "experimental"
+        artifact["updated_at"] = utc_now()
+        metadata = artifact.setdefault("metadata", {})
+        metadata["demotion"] = {"reason": reason, "at": artifact["updated_at"],
+                                "by": actor.actor_id}
+        self.store.relocate(previous, artifact)
+        self._audit(actor, "demote_unread", artifact_id, "success", correlation_id)
+        self._event(actor, "demoted", artifact, "approved", "experimental", correlation_id)
+        return artifact
