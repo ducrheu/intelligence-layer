@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import shutil
 import json
 import os
 import re
 import uuid
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -774,6 +776,87 @@ class IntelligenceGateway:
             # single most actionable signal this knowledge base can produce.
             self._note_miss(query, kind)
         return matches
+
+    def revise_skill(self, actor: Actor, artifact_id: str, content: str | None = None,
+                     files: list[dict[str, Any]] | None = None,
+                     title: str | None = None,
+                     metadata_updates: dict[str, Any] | None = None,
+                     correlation_id: str | None = None) -> dict[str, Any]:
+        """Revise a skill in place, keeping its id stable.
+
+        Skills are procedures, not conclusions: they get reworded, retargeted and
+        repaired. Minting `<id>-v2` on every wording change moved the name callers
+        had learned and left the store with a chain of near-identical skills that
+        each needed their own admission round. The old body is archived under
+        `<id>/history/` and an audit line records the revision, so nothing is lost;
+        if the revised payload no longer passes the audit it drops back to candidate
+        and has to earn approval again.
+        """
+        if not can_write_candidate(actor):
+            raise PermissionError(f"{actor.actor_id} may not write candidates")
+        existing = self.store.load(artifact_id, "skill",
+                                   ("approved", "validated", "experimental", "candidate"))
+        previous = dict(existing)
+        status_dir = self.store._status_dir(str(existing.get("status") or "candidate"))
+        history = self.store.root / "skills" / status_dir / artifact_id / "history"
+        history.mkdir(parents=True, exist_ok=True)
+        stamp = re.sub(r"[^0-9A-Za-z.]+", "-", str(previous.get("version") or "1.0.0"))
+        (history / f"v{stamp}.md").write_text(str(previous.get("content") or ""), encoding="utf-8")
+
+        revised = dict(previous)
+        if content is not None:
+            revised["content"] = content
+        if title is not None:
+            revised["title"] = title
+        metadata = dict(previous.get("metadata") or {})
+        if metadata_updates:
+            metadata.update(metadata_updates)
+        if content is not None:
+            metadata["sha256"] = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        if files is not None:
+            metadata["files"] = files
+            metadata["executable_attachments"] = any(
+                str(item.get("path") or "").endswith((".py", ".sh", ".js", ".mjs", ".cjs", ".ts"))
+                for item in files)
+        revised["metadata"] = metadata
+        revised.pop("superseded_by", None)
+        try:
+            parts = str(previous.get("version") or "1.0.0").split(".")
+            revised["version"] = f"{parts[0]}.{int(parts[1]) + 1 if len(parts) > 1 else 1}.0"
+        except (ValueError, IndexError):
+            revised["version"] = "1.1.0"
+        revised["updated_at"] = utc_now()
+        # Judged as if freshly submitted: `verified` is what an approval sets, so a
+        # revision must not inherit it while being scored or every edit would look
+        # like a self-certification.
+        probe = dict(revised)
+        probe["verified"] = False
+        verdict = self.evaluate_admission(self._hydrate_attachments(probe), actor.actor_id)
+        metadata["auto_admission"] = verdict
+        if previous.get("status") == "approved":
+            if verdict.get("auto_approve"):
+                revised["verified"] = previous.get("verified", True)
+            else:
+                revised["status"] = "candidate"
+                revised["verified"] = False
+        old_path = self.store._path(previous)
+        path = self.store.save(revised)
+        if old_path.resolve() != path.resolve():
+            # The status changed, so the record moved directory. Carry its payload
+            # and history across before removing the old manifest, or the old
+            # directory is left holding files for a record that no longer exists.
+            for name in ("files", "history"):
+                source, target = old_path.parent / name, path.parent / name
+                if source.is_dir() and not target.exists():
+                    shutil.move(str(source), str(target))
+            self.store.remove(previous)
+            if old_path.parent.is_dir() and not any(old_path.parent.iterdir()):
+                old_path.parent.rmdir()
+        self._audit(actor, "revised", artifact_id, "success", correlation_id, "skill")
+        self._event(actor, "revised", revised, previous.get("status"), revised["status"], correlation_id)
+        result = dict(revised)
+        result["_path"] = str(path)
+        return result
 
     def record_attachments(self, actor: Actor, artifact_id: str, kind: str,
                            files: list[dict[str, Any]], audit: dict[str, Any],
