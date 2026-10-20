@@ -14,6 +14,9 @@ from .errors import ArtifactNotFoundError
 class GitFileStore:
     """Small file store; Git remains the authority outside this class."""
 
+    # Flat kinds keep every status inside one of two directories.
+    _STATUS_DIRS = ("approved", "candidates")
+
     def __init__(self, root: Path):
         self.root = root
 
@@ -44,6 +47,10 @@ class GitFileStore:
 
     def save(self, artifact: dict[str, Any]) -> Path:
         path = self._path(artifact)
+        # Drop the memo before the write: a reload must never serve the pre-write
+        # copy, and the fingerprint check alone cannot tell a rewrite of equal
+        # size within the same mtime tick.
+        getattr(self, "_manifest_cache", {}).pop(str(path), None)
         path.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(prefix=".artifact-", suffix=".tmp", dir=path.parent)
         try:
@@ -166,12 +173,52 @@ class GitFileStore:
             shutil.rmtree(source, ignore_errors=True)
         return self.save(new_artifact)
 
+    def _load_cached(self, path: Path) -> dict[str, Any]:
+        """Parse a manifest once per (mtime, size).
+
+        The store lives on a Windows mount: every stat is milliseconds and every
+        manifest is now a skill's whole directory index. Re-parsing all of them
+        per query cost 3s before any ranking started.
+        """
+        cache = getattr(self, "_manifest_cache", None)
+        if cache is None:
+            cache = {}
+            self._manifest_cache = cache
+        key = str(path)
+        try:
+            stat = path.stat()
+        except OSError:
+            cache.pop(key, None)
+            raise
+        fingerprint = (stat.st_mtime_ns, stat.st_size)
+        hit = cache.get(key)
+        if hit is not None and hit[0] == fingerprint:
+            return hit[1]
+        value = json.loads(path.read_text(encoding="utf-8"))
+        cache[key] = (fingerprint, value)
+        return value
+
+    def iter_kind(self, kind: str):
+        """Artifacts of one kind, without touching the other three."""
+        base = self.root / {"skill": "skills", "source": "sources"}.get(kind, kind)
+        if not base.is_dir():
+            return
+        if kind == "skill":
+            for status_dir in sorted(path for path in base.iterdir() if path.is_dir()):
+                for entry in sorted(path for path in status_dir.iterdir() if path.is_dir()):
+                    manifest = entry / "manifest.json"
+                    if manifest.is_file():
+                        yield self._load_cached(manifest)
+        else:
+            # Flat kinds write every non-approved status into candidates/, so these
+            # two directories hold the whole kind.
+            for folder_name in self._STATUS_DIRS:
+                folder = base / folder_name
+                if not folder.is_dir():
+                    continue
+                for path in sorted(folder.glob("*.json")):
+                    yield self._load_cached(path)
+
     def iter_all(self) -> list[dict[str, Any]]:
-        result: list[dict[str, Any]] = []
-        for path in self.root.rglob("manifest.json"):
-            if "skills" in path.parts:
-                result.append(json.loads(path.read_text(encoding="utf-8")))
-        for kind in ("knowledge", "experience", "sources"):
-            for path in (self.root / kind).rglob("*.json"):
-                result.append(json.loads(path.read_text(encoding="utf-8")))
-        return result
+        return [artifact for kind in ("knowledge", "experience", "skill", "source")
+                for artifact in self.iter_kind(kind)]

@@ -634,7 +634,7 @@ class IntelligenceGateway:
         # Exposure control first, inside the predicate: a denied artifact must never be
         # a candidate, so no count, score or ranking trace can reveal that it exists.
         denied = denied_ids(self.root, actor)
-        for artifact in self.store.iter_all():
+        for artifact in self.store.iter_kind(kind):
             if artifact.get("kind") != kind:
                 continue
             if not may_read(denied, kind, str(artifact.get("id", ""))):
@@ -655,6 +655,12 @@ class IntelligenceGateway:
                 continue
             metadata = artifact.get("metadata") or {}
             content = f"{artifact.get('title', '')}\n{artifact.get('content', '')}"
+            # A skill's body is a procedure, often thousands of characters. What a
+            # search query needs to match is "what this skill is about", which the
+            # leading paragraph carries; embedding the whole procedure made a
+            # 131-skill corpus take a minute per query on CPU ollama.
+            match_text = content if kind != "skill" else (
+                f"{artifact.get('title', '')}\n{(artifact.get('content') or '')[:900]}")
             documents[f"{kind}/{artifact['id']}"] = {
                 "artifact": artifact,
                 "digest": artifact_digest(artifact),
@@ -665,8 +671,8 @@ class IntelligenceGateway:
                     (" ".join(str(tag) for tag in (metadata.get("tags") or [])), 2.0),
                     (artifact.get("content", ""), 1.0),
                 ],
-                "embed_text": content,
-                "rerank_text": content,
+                "embed_text": match_text,
+                "rerank_text": match_text,
             }
         return documents
 
@@ -695,7 +701,12 @@ class IntelligenceGateway:
             raise ValueError("invalid retrieval limits")
         documents = self._search_documents(actor, kind, scope)
         denied = denied_ids(self.root, actor)
-        ranked, summary = self.retriever.rank(query, documents, limit=max_items, embed_budget=embed_budget)
+        # A skill's searchable text is a name and a description: BM25 on its tags and
+        # title finds it, and embedding 131 procedures per query costs a minute on
+        # this box's CPU ollama (measured 47-64s) to improve nothing measurable.
+        ranked, summary = self.retriever.rank(
+            query, documents, limit=max_items,
+            embed_budget=0 if kind == "skill" else embed_budget)
         ranked = self._stalest_last(ranked, documents)
         if self.retriever.cache is not None:
             self.retriever.cache.prune({document["digest"] for document in documents.values()})
