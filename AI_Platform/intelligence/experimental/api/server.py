@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 from ...gateway.errors import ArtifactNotFoundError, ArtifactValidationError, AuthorizationError, LifecycleError
+from ...gateway import mcp_http
 from ...gateway.models import Actor
 from ...gateway.service import IntelligenceGateway
 
@@ -128,7 +129,24 @@ def _handler(api: ExperimentalAPI):
                 return
 
         def _actor(self) -> Actor:
-            return api.actor_for_token(self.headers.get("X-Intelligence-Token"))
+            token = self.headers.get("X-Intelligence-Token")
+            if not token:
+                # MCP clients send OAuth-style bearer auth; the gateway always
+                # accepted a bare token header. Accept both rather than make
+                # every client learn our header name.
+                authorization = self.headers.get("Authorization") or ""
+                if authorization.lower().startswith("bearer "):
+                    token = authorization[7:].strip()
+            return api.actor_for_token(token)
+
+        def _check_origin(self) -> None:
+            # MCP transport spec: validate Origin to prevent DNS rebinding.
+            origin = self.headers.get("Origin")
+            if not origin:
+                return
+            parsed = urlparse(origin)
+            if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
+                raise PermissionError(f"origin not allowed: {origin}")
 
         def _correlation_id(self) -> str | None:
             value = self.headers.get("X-Correlation-ID")
@@ -186,6 +204,24 @@ def _handler(api: ExperimentalAPI):
                 # is up - and says nothing about the corpus.
                 if urlparse(self.path).path.rstrip("/") == "/healthz":
                     self._json(HTTPStatus.OK, {"status": "ok"})
+                    return
+                # MCP over Streamable HTTP: POST is the whole protocol. A basic
+                # server may decline the GET/SSE stream (405 is the spec's answer),
+                # and every mainstream client falls back to POST-only.
+                if urlparse(self.path).path.rstrip("/") == "/mcp":
+                    self._json(HTTPStatus.METHOD_NOT_ALLOWED, {"error": "MCP endpoint accepts POST"})
+                    return
+                if urlparse(self.path).path.rstrip("/") == "/.well-known/mcp.json":
+                    # Discovery document: one file any client or human can read to
+                    # learn where the endpoint is, without a credential.
+                    self._json(HTTPStatus.OK, {
+                        "name": "intelligence-layer",
+                        "description": "受治理知识库（只读检索 + 候选沉淀）",
+                        "transport": "streamable-http",
+                        "url": "http://127.0.0.1:8765/mcp",
+                        "auth": {"type": "bearer", "header": "Authorization"},
+                        "protocol_version": mcp_http.PROTOCOL_VERSION,
+                    })
                     return
                 actor = self._actor()
                 parsed = urlparse(self.path)
@@ -270,6 +306,16 @@ def _handler(api: ExperimentalAPI):
         def do_POST(self) -> None:
             try:
                 actor = self._actor()
+                if urlparse(self.path).path.rstrip("/") == "/mcp":
+                    self._check_origin()
+                    response = mcp_http.handle(api.gateway, actor, self._read_body())
+                    if response is None:  # notification: accepted, no body
+                        self.send_response(HTTPStatus.ACCEPTED)
+                        self.send_header("Content-Length", "0")
+                        self.end_headers()
+                        return
+                    self._json(HTTPStatus.OK, response)
+                    return
                 parts = self._path_parts()
                 correlation_id = self._correlation_id()
                 if parts == ["v1", "candidates"]:

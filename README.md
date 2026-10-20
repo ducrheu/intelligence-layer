@@ -170,7 +170,7 @@ INTELLIGENCE_PASSAGE_CHARS=600      INTELLIGENCE_RERANK=none
 ## 11. 自检与测试
 
 ```bash
-# 全部测试（14 个文件；检索类测试刻意只跑词法，不依赖模型服务在不在跑）
+# 全部测试（15 个文件；检索类测试刻意只跑词法，不依赖模型服务在不在跑）
 # 测试自己在 setUp 里丢掉 INTELLIGENCE_STATE：继承 cron 的 state 目录会把测试事件写进生产 events.jsonl
 cd /mnt/d/intelligence-layer
 for t in AI_Platform/intelligence/tests/test_*.py; do
@@ -190,6 +190,40 @@ python3 intelligence-dashboard.py            # 生成只读面板
 
 网关健康检查：`systemctl --user status intelligence-gateway`，或对 `http://127.0.0.1:8765/` 发一次带令牌的读取。
 
-## 12. 许可证
+## 12. MCP over HTTP：一个端点，任何客户端
+
+stdio MCP 能用，但每个 runtime 都要自己接一次：一个子进程、一份令牌、一份工具白名单。
+加第三个 agent 就再抄一遍。协议 2025-06-18 修订版定义的 Streamable HTTP 把这件事变成
+**一个 URL**，客户端配置里写 `{"url": "...", "headers": {...}}` 就完事。
+
+端点（都在 `127.0.0.1:8765`）：
+
+| 路径 | 方法 | 鉴权 | 作用 |
+|---|---|---|---|
+| `/mcp` | POST | Bearer | JSON-RPC 2.0：`initialize` / `tools/*` / `resources/*` |
+| `/mcp` | GET | — | 405。本实现不提供服务端推送流，规范允许这样降级 |
+| `/.well-known/mcp.json` | GET | 无 | 发现文档：端点、传输方式、鉴权方式 |
+| `/healthz` | GET | 无 | 只回一个比特：监听还在 |
+
+工具：`search_knowledge`（可跨四种 kind）、`get_artifact`、`kb_index`、`deposit_candidate`。
+资源：`kb://index` 与 `kb://{kind}/{id}`。
+写工具只造候选——准入策略决定它能否变成知识，客户端不能自批。
+
+接入（任何机器上的任何 MCP 客户端）：
+
+```bash
+python3 ~/hermes/tools/kb_connect.py --check                    # 三步体检：端点 / 鉴权 / 内容
+python3 ~/hermes/tools/kb_connect.py --print-config mcporter    # 或者 hermes / openclaw
+```
+
+已实测的客户端：Hermes 内置 MCP（`search_approved` 面）、mcporter（Node 实现，
+`list --schema` / `call` / `resource` 三条路径全通）。
+
+安全边界：Bearer 令牌在传输层解析成 Actor，能读什么由身份决定，不由 URL 决定；
+带 `Origin` 的请求必须是本机来源（防 DNS rebinding）；服务只绑 `127.0.0.1`。
+stdio 适配器保留——它从令牌文件解析身份、不把明文令牌写进配置，对已接好的两个
+runtime 反而是更安全的选择。
+
+## 13. 许可证
 
 未指定。仓库内产物（`knowledge/`、`skills/` 等）与代码的授权范围由所有者决定。
