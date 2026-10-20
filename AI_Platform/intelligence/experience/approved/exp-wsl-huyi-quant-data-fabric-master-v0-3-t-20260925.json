@@ -8,7 +8,7 @@
   "content": "## \u505a\u4e86\u4ec0\u4e48\n\u5728 WSL \u91cc\u66ff HUYI \u7684 quant-data-fabric \u4ed3\u5e93\u6539\u63d0\u4ea4\u4fe1\u606f\u3001\u5f3a\u63a8 master\u3001\u6253\u5e76\u63a8 v0.3 \u9644\u6ce8 tag\n\n## \u6709\u6548\u7684\u505a\u6cd5\nWSL \u7684 git \u7f3a openssl SSL \u540e\u7aef\uff0c\u63a8\u9001\u62a5 fatal: Unsupported SSL backend 'openssl'\uff1b\u7528 git -c http.sslBackend=gnutls <\u5b50\u547d\u4ee4> \u9010\u6b21\u8986\u76d6\u5373\u53ef\u6b63\u5e38 push\uff08\u51ed\u636e\u8d70 /home/huyi/.gitconfig \u7684 gh auth helper\uff0c\u5df2\u767b\u5f55 ducrheu \u53ef\u7528\uff09\u3002\u6539\u63d0\u4ea4\u4fe1\u606f\u7528 commit --amend -m\uff0c\u6587\u4ef6\u5185\u5bb9\u96f6\u6539\u52a8\u3001author \u4fdd\u6301\u539f\u6837\uff1b\u56e0 WSL \u5168\u5c40 gitconfig \u6ca1\u914d user.name/email\uff0ccommit/tag \u9700\u4e34\u65f6\u5e26 -c user.name/-c user.email\uff0c\u5426\u5219\u62a5\u9519\u3002\u5f3a\u63a8\u7528 --force-with-lease \u800c\u975e --force\u3002\n\n## \u65e0\u6548\u6216\u8e29\u8fc7\u7684\u5751\n\u76f4\u63a5 git push \u4f1a\u56e0 SSL \u540e\u7aef\u7f3a\u5931\u5931\u8d25\uff1b\u4e0d\u786e\u8ba4\u8fdc\u7a0b\u5c31 --force \u6709\u8986\u76d6\u98ce\u9669\uff1b\u4e0d\u663e\u5f0f\u4f20 -c http.sslBackend=gnutls \u65f6\u6240\u6709\u8054\u7f51 git \u64cd\u4f5c\u90fd\u4e0d\u53ef\u7528\n\n## \u8bc1\u636e\n- /mnt/d/Finacial_data_project\uff0cgit -c http.sslBackend=gnutls push --force-with-lease origin master \u6210\u529f 8ec762b->ef6f4d7\uff1btag v0.3 -> ef6f4d7 \u5df2\u63a8\u4e0a origin\uff1bgit ls-remote \u590d\u6838 refs/heads/master=ef6f4d79e6\u3001refs/tags/v0.3^{}=ef6f4d79e6",
   "created_by": "local-agent",
   "created_at": "2026-09-25T10:43:43+00:00",
-  "updated_at": "2026-09-25T10:45:57Z",
+  "updated_at": "2026-10-19T15:05:24Z",
   "source": [
     {
       "type": "session_evidence",
@@ -70,5 +70,6 @@
       "blocking": []
     },
     "approval_action": "human_approval"
-  }
+  },
+  "superseded_by": "knowledge-wsl-git-ssl-backend-and-identity-overrides"
 }
