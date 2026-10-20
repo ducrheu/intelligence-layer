@@ -61,7 +61,7 @@ def note(artifact_id: str) -> dict:
         "evidence": [],
         "supersedes": None,
         "superseded_by": None,
-        "metadata": {"audience": "hermes"},
+        "metadata": {"audience": "hermes", "tags": ["test", "fixture"]},
     }
 
 

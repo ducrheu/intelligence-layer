@@ -68,7 +68,7 @@ def note(**overrides) -> dict:
         "evidence": [],
         "supersedes": None,
         "superseded_by": None,
-        "metadata": {"audience": "hermes"},
+        "metadata": {"audience": "hermes", "tags": ["test", "fixture"]},
     }
     artifact.update(overrides)
     return artifact
@@ -268,7 +268,8 @@ class SkillEvidenceTests(unittest.TestCase):
 
     FILES = {"skills/experimental/evidence-demo/tests/t.py": "sha256:aaaa"}
     META = {"name": "evidence-demo", "inputs": ["x"], "outputs": ["y"],
-            "dependencies": ["python3"], "permissions": ["read-only"]}
+            "dependencies": ["python3"], "permissions": ["read-only"],
+            "tags": ["test", "fixture"]}
 
     def _artifact(self, **overrides) -> dict:
         artifact = note(kind="skill", metadata=dict(self.META))

@@ -135,6 +135,15 @@ def evaluate(artifact: dict[str, Any], submitter: str | None,
         # were both auto-approved, and search paid for both on every query.
         blocking.append(f"near duplicate of {duplicate_of}: merging two records is a human decision")
 
+    tags = [str(item) for item in (artifact.get("metadata") or {}).get("tags") or [] if str(item).strip()]
+    if not tags:
+        # Search weights metadata.tags at 2.0 and applies_to at 0. Nine records in
+        # the first corpus shipped with their keywords in applies_to, so they were
+        # findable by body text only - the policy cannot see that, but it can
+        # refuse an untagged record before it joins the same pile.
+        blocking.append("metadata.tags is empty: applies_to is not searchable, "
+                        "so an untagged record is findable by body text only")
+
     permissions = [str(item) for item in (artifact.get("metadata") or {}).get("permissions", [])]
     claims = sorted({item for item in permissions
                      if PERMISSION_DENYLIST.search(item) and not DENIAL_PREFIX.match(item)})
