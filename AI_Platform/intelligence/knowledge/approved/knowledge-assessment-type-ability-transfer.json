@@ -1,0 +1,74 @@
+{
+  "id": "knowledge-assessment-type-ability-transfer",
+  "kind": "knowledge",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u4e0a\u673a\u578b\u9ad8\u5206\u4e0d\u80fd\u5e73\u79fb\u6210\u95ed\u5377\u9650\u65f6\u80fd\u529b\uff1a\u6309\u8bc4\u4ef7\u7c7b\u578b\u5206\u7ec4\u518d\u4e0b\u7ed3\u8bba",
+  "content": "## \u9002\u7528\u573a\u666f\n\u5224\u65ad\u300c\u67d0\u79d1\u6210\u7ee9\u597d\u300d\u80fd\u5426\u4ee3\u8868\u53e6\u4e00\u7c7b\u8003\u8bd5\u6216\u4efb\u52a1\u7684\u80fd\u529b\uff0c\u6216\u5728\u7528\u6237\u81ea\u8ff0\u300c\u6211\u5b8c\u5168\u6ca1\u5b66\u8fc7 X\u300d\u65f6\u5b9a\u4f4d\u771f\u5b9e\u7f3a\u53e3\u3002\n\n## \u7ed3\u8bba\uff08\u53ef\u6267\u884c\uff09\n1. \u5148\u628a\u6210\u7ee9\u6309\u8bc4\u4ef7\u7c7b\u578b\u5206\u7ec4\uff1a\u4e0a\u673a / \u5f00\u5377\u578b\uff08\u53ef\u8bd5\u9519\u3001\u53ef\u67e5\u6587\u6863\uff09\u4e0e\u95ed\u5377\u9650\u65f6\u624b\u7b97\u578b\u662f\u4e24\u6761\u901a\u9053\uff0c\u5206\u6570\u4e0d\u80fd\u4e92\u76f8\u5e73\u79fb\u3002\n2. \u53cd\u8bc1\u5e38\u5199\u5728\u4ed6\u81ea\u5df1\u7684\u6210\u7ee9\u5355\u4e0a\uff1a\u95ed\u5377\u578b\u8bfe\u5f80\u5f80\u6070\u597d\u662f\u6700\u4f4e\u7684\u90a3\u6279\u3002\n3. \u7ed3\u8bba\u843d\u5230\u300c\u7f3a\u54ea\u51e0\u4ef6\u5de5\u5177\u300d\uff0c\u4e0d\u843d\u300c\u57fa\u7840\u5dee\u300d\uff1b\u628a\u63a8\u7406\u94fe\u4e00\u8d77\u7ed9\u51fa\uff0c\u8ba9\u5bf9\u65b9\u80fd\u81ea\u5df1\u590d\u6838\u3002\n4. \u81ea\u8ff0\u300c\u5b8c\u5168\u6ca1\u5b66\u8fc7\u300d\u5148\u62c6\u5c42\uff1a\u6307\u8ba4\u771f\u6b63\u5361\u4f4f\u7684\u90a3\u4e00\u5c42\uff08\u901a\u5e38\u5f88\u5c0f\u3001\u5757\u4e0e\u5757\u76f8\u4e92\u72ec\u7acb\u3001\u67e5\u5b8c\u5c31\u80fd\u7528\uff09\uff0c\u5e76\u6307\u51fa\u4ed6\u5176\u5b9e\u505a\u8fc7/\u4fee\u8fc7\u4ec0\u4e48\u3002\n5. \u81ea\u8ff0\u80fd\u529b\u5e38\u4f4e\u4e8e\u5b9e\u9645\uff08\u4f8b\uff1a\u81ea\u79f0 C++ \u96f6\u57fa\u7840\uff0c\u5b9e\u4e3a C/Java \u719f\u7ec3\uff0c\u53ea\u7f3a STL/\u5f15\u7528/RAII \u90a3\u4e00\u534a\uff09\uff1b\u5148\u505a\u5206\u5c42\u9650\u65f6\u81ea\u6d4b\uff0c\u518d\u5b9a\u8bad\u7ec3\u91cf\u3002\n\n## \u8fb9\u754c\uff08\u54ea\u4e9b\u6ca1\u9a8c\u8bc1\uff09\n\u6765\u81ea\u672c\u673a\u4e00\u95e8\u7ec4\u5408\u4f18\u5316\u8bfe\u4e0e\u4e00\u95e8\u95ed\u5377\u8003\u8bd5\u8bfe\u7684\u6210\u7ee9\u5bf9\u6bd4\uff0c\u6837\u672c\u91cf 1\uff1b\u5176\u4ed6\u5b66\u79d1\u672a\u9a8c\u8bc1\u3002\n\n## \u4e0d\u9002\u7528\n\u4e24\u7c7b\u8bc4\u4ef7\u65b9\u5f0f\u76f8\u540c\u65f6\uff08\u90fd\u662f\u95ed\u5377\u3001\u90fd\u662f\u4e0a\u673a\uff09\uff0c\u76f4\u63a5\u6bd4\u5206\u6570\u5373\u53ef\u3002",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T00:20:14Z",
+  "updated_at": "2026-10-20T00:21:57Z",
+  "source": [
+    {
+      "type": "session_evidence",
+      "ref": "skill:~/.hermes/skills/local/math-mastery-scaffolding",
+      "retrieved_at": "2026-10-20T00:20:14Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T00:20:14Z",
+      "note": "\u4ece\u672c\u673a\u6280\u80fd/\u4f1a\u8bdd\u7ed3\u8bba\u63d0\u70bc"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T00:21:57Z",
+  "applies_to": [
+    "hermes",
+    "openclaw"
+  ],
+  "compatibility": [
+    "*"
+  ],
+  "expires_at": null,
+  "review_interval_days": 90,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T00:21:56Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "tags": [
+      "assessment",
+      "transfer",
+      "learning",
+      "\u80fd\u529b\u5e73\u79fb",
+      "\u8003\u8bd5\u7c7b\u578b",
+      "\u5b66\u4e60"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, knowledge is non-executable",
+        "knowledge carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

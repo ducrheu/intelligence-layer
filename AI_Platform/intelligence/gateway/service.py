@@ -29,6 +29,14 @@ POLICY_IDENTITY = "policy-auto"
 # itself), and it is never used to read for a caller.
 DEDUP_ACTOR = Actor("dedup-probe", "system", frozenset({"read:approved"}))
 
+# Cosine at or above this is the same thing said twice, not the same topic.
+# Measured on the real corpus: the 16 distilled experience/knowledge pairs score
+# 0.831-0.920 against each other, while genuinely different records on a shared
+# topic stay <= 0.70. Rank position is NOT usable here - with ~40 documents every
+# probe has *some* record at lexical rank 1, so a rank-based gate refuses new
+# knowledge that shares nothing but vocabulary with the corpus.
+DUPLICATE_COSINE = 0.82
+
 
 def _telemetry_suppressed() -> bool:
     """True when the caller is a measurement, not a reader.
@@ -133,9 +141,11 @@ class IntelligenceGateway:
         has to ask the read path's own question before the second copy becomes
         another approved record.
 
-        Both retrievers must rank the other record at the top (lexical #1,
-        vector top 2): a shared-vocabulary neighbour is not a duplicate, and a
-        gate that fires on one retriever alone would block legitimate siblings.
+        A duplicate is a *cosine* judgement, not a rank judgement: with ~40
+        documents every probe has some record at lexical rank 1, so rank alone
+        refused new knowledge that shared nothing but vocabulary. Measured on
+        this corpus, the 16 distilled pairs score 0.831-0.920 while unrelated
+        neighbours stay at or below 0.70.
         """
         probe = f"{artifact.get('title') or ''}\n{(artifact.get('content') or '')[:1500]}".strip()
         if not probe:
@@ -149,9 +159,8 @@ class IntelligenceGateway:
             for item in ranked:
                 if item["key"] == own:
                     continue
-                why = item.get("why") or {}
-                lexical, vector = why.get("lexical_rank"), why.get("vector_rank")
-                if isinstance(lexical, int) and isinstance(vector, int) and lexical <= 1 and vector <= 2:
+                similarity = item.get("cosine")
+                if isinstance(similarity, (int, float)) and similarity >= DUPLICATE_COSINE:
                     return item["key"]
         return None
 

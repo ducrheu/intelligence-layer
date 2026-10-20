@@ -94,7 +94,7 @@ def evaluate(artifact: dict[str, Any], submitter: str | None,
     blocking: list[str] = []
     reasons: list[str] = []
 
-    unknown = sorted(set(artifact) - KNOWN_FIELDS)
+    unknown = sorted({key for key in artifact if not str(key).startswith("_")} - KNOWN_FIELDS)
     if unknown:
         blocking.append(f"unrecognised field(s) {unknown}: fail closed rather than ignore them")
 

@@ -1,0 +1,76 @@
+{
+  "id": "knowledge-degree-is-a-seat-threshold",
+  "kind": "knowledge",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u5b66\u4f4d\u662f\u5ea7\u4f4d\u95e8\u69db\u4e0d\u662f\u5e02\u573a\u95e8\u69db\uff1a\u5148\u628a\u300c\u4e0a\u9650\u300d\u62c6\u6210\u4e24\u6761\u68af\u5b50",
+  "content": "## \u9002\u7528\u573a\u666f\n\u56de\u7b54\u300c\u8981\u4e0d\u8981\u8bfb\u535a\u300d\u300c\u5b66\u4f4d\u5f71\u54cd\u6536\u5165\u4e0a\u9650\u5417\u300d\u300c\u8fd9\u4e2a\u5c97\u4f4d\u5361\u4e0d\u5361\u535a\u58eb\u300d\u8fd9\u7c7b\u95ee\u9898\u3002\n\n## \u7ed3\u8bba\uff08\u53ef\u6267\u884c\uff09\n1. \u5b66\u4f4d\u662f\u5ea7\u4f4d\u95e8\u69db\uff0c\u4e0d\u662f\u5e02\u573a\u95e8\u69db\uff1a\u540c\u4e00\u884c\u4e1a\u91cc\u5b66\u4f4d\u8981\u6c42\u56e0\u5c97\u800c\u5f02\u2014\u2014\u6709\u7684\u5361\u535a\u58eb\u3001\u6709\u7684\u5199\u300cPhD \u6216 Master's\u300d\u3001\u6709\u7684\u4e0d\u5f3a\u5236\u3002\u6240\u4ee5\u300c\u8981\u4e0d\u8981\u8bfb\u535a\u300d\u4e0d\u80fd\u6309\u884c\u4e1a\u7b3c\u7edf\u56de\u7b54\u3002\n2. \u5148\u628a\u300c\u4e0a\u9650\u300d\u62c6\u6210\u4e24\u6761\u5929\u82b1\u677f\u4e0d\u540c\u7684\u68af\u5b50\uff1a\u5de5\u7a0b/\u6570\u636e\u68af\u5b50\uff08quant dev\u3001\u6570\u636e\u5de5\u7a0b\u3001\u98ce\u63a7\uff09\u9876\u4e0a\u7ea6\u6280\u672f\u8d1f\u8d23\u4eba\uff0c\u5b66\u4f4d\u51e0\u4e4e\u4e0d\u5f71\u54cd\uff1b\u7814\u7a76/\u7b56\u7565\u68af\u5b50\uff08QR \u2192 PM\uff09\u4e0a\uff0c\u5b66\u4f4d\u662f\u5165\u53e3\u95e8\u69db\u3002\u62c6\u5b8c\u518d\u95ee\u300c\u60f3\u5728\u54ea\u4e2a\u68af\u5b50\u4e0a\u5230\u9876\u300d\u3002\n3. \u540c\u4e00\u804c\u4f4d\u540d\u5e38\u6302\u4e24\u6761\u62db\u8058\u7ebf\uff1aX \u2013 PhD Graduate\uff08\u5199\u660e PhD\uff09\u4e0e X \u2013 Full Time\uff08\u63a5\u53d7\u672c\u7855\u535a\uff09\u3002\u8bfb JD \u8981\u6309\u5165\u53e3\u5206\u5f00\u8bfb\uff08graduate / lateral / PhD track\uff09\u2014\u2014\u300c\u6216\u300d\u5b57\u63a9\u76d6\u7684\u6b63\u662f\u5165\u53e3\u5dee\u5f02\u3002\n4. \u7ed3\u8bba\u843d\u5728\u8def\u5f84\u4e0e\u6982\u7387\uff08\u7855\u58eb\u8d70\u7b2c\u4e8c\u6761\u95e8\u9700\u66f4\u957f\u7684\u8bc1\u660e\u671f\uff09\uff0c\u4e0d\u843d\u5728\u300c\u80fd\u6323\u51e0\u500d\u300d\u7684\u500d\u6570\u4e0a\u3002\n\n## \u8fb9\u754c\uff08\u54ea\u4e9b\u6ca1\u9a8c\u8bc1\uff09\n\u57fa\u4e8e\u5934\u90e8\u91cf\u5316/\u79d1\u6280\u516c\u53f8 JD \u62bd\u6837\uff0c\u4e0d\u662f\u5168\u5e02\u573a\u666e\u67e5\uff1b\u5177\u4f53\u516c\u53f8\u6bcf\u5e74\u6539\u5c97\u3002\n\n## \u4e0d\u9002\u7528\n\u975e\u7814\u7a76\u578b\u3001\u975e\u5b66\u4f4d\u654f\u611f\u884c\u4e1a\uff08\u5982\u7eaf\u5de5\u7a0b\u5916\u5305\u3001\u4f20\u7edf IT \u96c6\u6210\uff09\uff0c\u5b66\u4f4d\u4e0e\u5c97\u4f4d\u5206\u5c42\u5173\u7cfb\u5f31\u3002",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T00:20:16Z",
+  "updated_at": "2026-10-20T00:21:59Z",
+  "source": [
+    {
+      "type": "session_evidence",
+      "ref": "skill:~/.hermes/skills/productivity/study-career-path-decision-analysis",
+      "retrieved_at": "2026-10-20T00:20:16Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T00:20:16Z",
+      "note": "\u4ece\u672c\u673a\u6280\u80fd/\u4f1a\u8bdd\u7ed3\u8bba\u63d0\u70bc"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T00:21:59Z",
+  "applies_to": [
+    "hermes",
+    "openclaw"
+  ],
+  "compatibility": [
+    "*"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T00:21:58Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "tags": [
+      "degree",
+      "career",
+      "phd",
+      "quant",
+      "\u5b66\u4f4d",
+      "\u804c\u4e1a",
+      "\u8bfb\u535a",
+      "\u91cf\u5316"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, knowledge is non-executable",
+        "knowledge carries no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}
