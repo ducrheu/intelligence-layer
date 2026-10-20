@@ -126,6 +126,35 @@ class IntelligenceGateway:
                     paths.append(item["path"])
         return self.store.file_digests(paths)
 
+    def _hydrate_attachments(self, artifact: dict[str, Any]) -> dict[str, Any]:
+        """Load attachment text from disk when only its path is on the record.
+
+        Attachments live in `<id>/files/` so a search never parses them; the audit
+        still needs the bytes, so it reads a hydrated copy instead of trusting a
+        verdict recorded earlier.
+        """
+        files = (artifact.get("metadata") or {}).get("files") or []
+        if not files or all("content" in item for item in files):
+            return artifact
+        base = (self.root / "skills" / str(artifact.get("status") or "")
+                / str(artifact.get("id") or "") / "files")
+        if not base.is_dir():
+            return artifact
+        hydrated = []
+        for item in files:
+            entry = dict(item)
+            if "content" not in entry:
+                try:
+                    entry["content"] = (base / str(entry.get("path") or "")).read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError):
+                    entry["content"] = ""
+            hydrated.append(entry)
+        copy = dict(artifact)
+        metadata = dict(artifact.get("metadata") or {})
+        metadata["files"] = hydrated
+        copy["metadata"] = metadata
+        return copy
+
     def evaluate_admission(self, artifact: dict[str, Any], submitter: str | None = None,
                            probe_duplicates: bool = False) -> dict[str, Any]:
         """What the auto-admission policy says about this artifact right now.
@@ -136,6 +165,8 @@ class IntelligenceGateway:
         the probe once and records the verdict; re-running the corpus for every
         verdict turned a sweep of 133 artifacts into a ten-minute job.
         """
+        # Attachments may be on disk; the audit reads bytes, never a stored verdict.
+        artifact = self._hydrate_attachments(artifact)
         who = submitter or self._last_submitter(artifact["id"], artifact["kind"])
         duplicate = self._nearest_live_record(artifact) if probe_duplicates else None
         return evaluate(artifact, who, self._disk_hashes(artifact),
