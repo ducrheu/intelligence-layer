@@ -1,0 +1,86 @@
+{
+  "id": "apple-reminders",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Apple Reminders via remindctl: add, list, complete.",
+  "content": "---\nname: apple-reminders\ndescription: \"Apple Reminders via remindctl: add, list, complete.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [macos]\nmetadata:\n  hermes:\n    tags: [Reminders, tasks, todo, macOS, Apple]\nprerequisites:\n  commands: [remindctl]\n---\n\n# Apple Reminders\n\nUse `remindctl` to manage Apple Reminders directly from the terminal. Tasks sync across all Apple devices via iCloud.\n\n## Prerequisites\n\n- **macOS** with Reminders.app\n- Install: `brew install steipete/tap/remindctl`\n- Grant Reminders permission when prompted\n- Check: `remindctl status` / Request: `remindctl authorize`\n\n## When to Use\n\n- User mentions \"reminder\" or \"Reminders app\"\n- Creating personal to-dos with due dates that sync to iOS\n- Managing Apple Reminders lists\n- User wants tasks to appear on their iPhone/iPad\n\n## When NOT to Use\n\n- Scheduling agent alerts \u2192 use the cronjob tool instead\n- Calendar events \u2192 use Apple Calendar or Google Calendar\n- Project task management \u2192 use GitHub Issues, Notion, etc.\n- If user says \"remind me\" but means an agent alert \u2192 clarify first\n\n## Quick Reference\n\n### View Reminders\n\n```bash\nremindctl                    # Today's reminders\nremindctl today              # Today\nremindctl tomorrow           # Tomorrow\nremindctl week               # This week\nremindctl overdue            # Past due\nremindctl all                # Everything\nremindctl 2026-01-04         # Specific date\n```\n\n### Manage Lists\n\n```bash\nremindctl list               # List all lists\nremindctl list Work          # Show specific list\nremindctl list Projects --create    # Create list\nremindctl list Work --delete        # Delete list\n```\n\n### Create Reminders\n\n```bash\nremindctl add \"Buy milk\"\nremindctl add --title \"Call mom\" --list Personal --due tomorrow\nremindctl add --title \"Meeting prep\" --due \"2026-02-15 09:00\"\n```\n\n### Due Time vs Alarm / Early Nudge\n\n`--due` and `--alarm` are different fields:\n\n- `--due` sets the reminder's due date/time.\n- `--alarm` sets the EventKit alarm/notification trigger. Timed due reminders may default to an alarm at the due time, but pass `--alarm` explicitly when the user asks for an earlier nudge.\n\nFor a reminder due at 2:00 PM with a notification 30 minutes earlier:\n\n```bash\nremindctl add --title \"Hairdresser\" --due \"2026-05-15 14:00\" --alarm \"2026-05-15 13:30\"\n```\n\nTo edit an existing reminder:\n\n```bash\nremindctl edit 87354 --due \"2026-05-15 14:00\" --alarm \"2026-05-15 13:30\"\n```\n\nThe Reminders UI may show or group the item by the alarm time because that is when the notification fires. Verify with JSON instead of assuming the due time moved:\n\n```bash\nremindctl today --json\n```\n\nExpected shape:\n\n- `dueDate`: actual due time\n- `alarmDate`: notification / early nudge time\n\nApple's public `EKReminder` docs list only reminder-specific properties. Alarm support comes from inherited `EKCalendarItem` behavior exposed by remindctl's `--alarm` flag.\n\n### Complete / Delete\n\n```bash\nremindctl complete 1 2 3          # Complete by ID\nremindctl delete 4A83 --force     # Delete by ID\n```\n\n### Output Formats\n\n```bash\nremindctl today --json       # JSON for scripting\nremindctl today --plain      # TSV format\nremindctl today --quiet      # Counts only\n```\n\n## Date Formats\n\nAccepted by `--due` and date filters:\n- `today`, `tomorrow`, `yesterday`\n- `YYYY-MM-DD`\n- `YYYY-MM-DD HH:mm`\n- ISO 8601 (`2026-01-04T12:34:56Z`)\n\n## Rules\n\n1. When user says \"remind me\", clarify: Apple Reminders (syncs to phone) vs agent cronjob alert\n2. Always confirm reminder content and due date before creating\n3. Use `--json` for programmatic parsing\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:50:10Z",
+  "updated_at": "2026-10-20T13:09:26Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/apple/apple-reminders",
+      "sha256": "ee5084f2d7ec196488bef2c74248fb3d8328d1b2e3277ddda3f0de9da6fc7131",
+      "retrieved_at": "2026-10-20T12:50:10Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:50:10Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:09:26Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:09:25Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "apple-reminders",
+    "description": "Apple Reminders via remindctl: add, list, complete.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "apple/apple-reminders",
+    "sha256": "ee5084f2d7ec196488bef2c74248fb3d8328d1b2e3277ddda3f0de9da6fc7131",
+    "tags": [
+      "apple-reminders",
+      "apple",
+      "reminders",
+      "via",
+      "remindctl"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

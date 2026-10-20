@@ -151,8 +151,15 @@ class IntelligenceGateway:
         if not probe:
             return None
         own = f"{artifact.get('kind')}/{artifact.get('id')}"
-        for kind in ("knowledge", "experience"):
-            documents = self._search_documents(DEDUP_ACTOR, kind, None)
+        kind = artifact.get("kind")
+        # Compare within the kind, plus the knowledge<->experience pair that
+        # distillation actually duplicated. Scanning all four kinds for every
+        # submission cost ~10s per skill against a corpus of 40; the pairs that
+        # can be duplicates are already known, and a skill cannot duplicate a
+        # conclusion.
+        kinds = [kind] if kind in {"skill", "source"} else ["knowledge", "experience"]
+        for name in kinds:
+            documents = self._search_documents(DEDUP_ACTOR, name, None)
             if not documents:
                 continue
             ranked, _ = self.retriever.rank(probe, documents, limit=3, embed_budget=1)

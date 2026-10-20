@@ -1,0 +1,89 @@
+{
+  "id": "network-egress-diagnosis",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Use when a fetch times out, a device needs a proxy, or a network demands portal login.",
+  "content": "---\nname: network-egress-diagnosis\ndescription: \"Use when a fetch times out, a device needs a proxy, or a network demands portal login.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [Network, Proxy, WSL, Diagnosis, Egress]\n    related_skills: [blocked-page-recovery, qr-code-handling]\n---\n\n# Network Egress Diagnosis\n\nTwo failures look alike: the *site* refuses you (403/429/WAF \u2014 that's\n`blocked-page-recovery`) and the *box* has no working route at all\n(`curl: (28) Connection timed out`, `code=000`, `Failed to connect`). Tell them\napart first; the archive ladder is pure waste on the second kind.\n\n## Step 1 \u2014 is there any egress at all?\n\n```bash\ncurl -sS -o /dev/null -m 10 -w '%{http_code}\\n' https://www.google.com/generate_204\ncurl -sS -o /dev/null -m 10 -w '%{http_code}\\n' https://example.com\n```\n\n- `204` on the first \u21d2 egress fine; if the target still fails, it's the site.\n- `000` on the first but `200`/`403` on example.com \u21d2 routing/proxy problem.\n\n## Step 2 \u2014 find the host's proxy instead of guessing\n\nOn WSL a Windows-side VPN/proxy client is almost always running, and it is\nusually still reachable from the guest. Enumerate listeners on the host side:\n\n```bash\n/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile \\\n  -Command \"Get-NetTCPConnection -State Listen | Where-Object {\\$_.LocalPort -in 7890,7891,7897,1080,10808,10809,8080,2080,8889} | Select-Object LocalAddress,LocalPort\"\n```\n\n`powershell.exe` is often not on PATH in WSL bash \u2014 call the absolute path, and\npipe output through `tr -d '\\r'`.\n\nTest candidates as a **proxy**, not as a raw TCP port:\n\n```bash\ncurl -sS -x http://127.0.0.1:7897 -m 10 -o /dev/null -w '%{http_code}\\n' \\\n  https://www.google.com/generate_204        # 204 = usable mixed proxy\n```\n\n`127.0.0.1` works because WSL2 mirrored networking maps guest loopback to the\nWindows host's. A `::` listener answering on `127.0.0.1` but timing out on the\nLAN IP just has Allow-LAN off (Step 3).\n\nThen export it for shell/Python work:\n\n```bash\nexport https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897\n```\n\nOrdinary pages succeeding does not mean every host is reachable. GitHub Release\nassets are served from `objects.githubusercontent.com`, which regularly stalls at\n0 bytes / `curl: (56) Failure when receiving data from the peer` while\n`https://example.com` returns 200. When a **large binary** download hangs at\nzero, retry that URL through the proxy (`curl -x http://127.0.0.1:7897 -L -o\nfile <url>`) before concluding the box has working egress.\n\nBrowser daemons do **not** inherit those \u2014 they need `--proxy-server=<url>` at\nlaunch; when you only need static text, a `curl` pass is cheaper. Navigation\ntimeouts inside `Page.navigate` / `Runtime.evaluate` while a plain `curl` to the\nsame URL succeeds are the tell that the browser, not the site, is unproxied.\n\nA hand-launched `chrome --headless=new --dump-dom <url>` never returns on\nGoogle-style pages: `--dump-dom` waits for network idle, which these pages never\nreach (`exit=124`, zero bytes). Give it `--proxy-server` only for real rendering\nand drive it over CDP with explicit waits, or skip the render and settle the\nquestion with `curl` plus the page's static DOM.\n\n## Step 3 \u2014 lending egress to another device\n\nThe user's phone has no access; the PC does. The loopback success proves nothing\nabout the phone. All three are required:\n\n1. Host's **LAN IP** (`Get-NetIPAddress -AddressFamily IPv4`), not 127.0.0.1.\n2. **Allow-LAN** on in the proxy client (Clash Verge: \u8bbe\u7f6e \u2192 \u5141\u8bb8\u5c40\u57df\u7f51\u8fde\u63a5).\n3. A firewall exception for that inbound port.\n\nRead the client's config and firewall rules **before** telling the user to flip\nswitches \u2014 on this box `allow-lan: true` and the inbound allow rules for\n`verge-mihomo` were already in place, so the only real unknown was the Wi-Fi\nitself. Paths, keys and rule names: `references/clash-verge-windows.md`.\n\n**Do not verify with `curl -x http://<host-lan-ip>:<port>` from WSL.** Under\nmirrored networking the Windows LAN IP is *also* the guest's own `eth1` address,\nso that curl connects to the guest, returns `000`, and proves nothing \u2014 the\ninbound path may be perfectly fine. Confirm in layers instead:\n\n```bash\n# Windows accepts its own LAN IP:port (necessary, not sufficient \u2014 loopback can bypass the firewall)\n/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile \\\n  -Command \"Test-NetConnection -ComputerName <host-lan-ip> -Port <port> -InformationLevel Quiet\"\n```\n\nState plainly that the definitive test is the other device opening\n`https://www.google.com/generate_204` (blank page = through), and that config\nis verified while peer reachability is not.\n\nIf the Wi-Fi is a campus/dorm SSID, expect **AP isolation** (client-to-client\nblocked) regardless of your config: fall back to Windows Mobile Hotspot, where\nthe PC is the AP so isolation cannot apply. The phone then proxies to the\nhotspot gateway, `192.168.137.1:<port>` \u2014 the address changes with the hotspot,\nso re-read it rather than assuming.\n\nWhen the phone must scan something (QR login, device verification), their own\nnetwork path is the deliverable \u2014 see `qr-code-handling` for why an agent must\nnot consume the token from a proxy machine.\n\n## Step 4 \u2014 campus / dorm portal: *connected* is not *authorised*\n\nAn open SSID with a valid DHCP lease and a pingable gateway proves nothing: on a\ncampus network the gate sits on the BRAS, not on the radio. Probe auth state\nfirst by reading the egress IP, not by testing reachability:\n\n```bash\ncurl -sS -m 10 https://ipinfo.io/json   # routable campus/CERNET IP \u21d2 session is authorised\n```\n\nAn overseas IP there means a proxy answered, so the probe says nothing about the\ncampus session \u2014 check for a local proxy client before drawing conclusions.\n\n**Whitelist trap:** `generate_204` / `captive.apple.com` answering 204/200 while\narbitrary hosts time out is the *unauthorised-portal* signature, not working\negress \u2014 portal vendors whitelist exactly those probe domains so phones can\ndetect the portal. Uniform failure everywhere is a routing problem instead.\n\nIdentify the portal from evidence rather than by scanning: the login page's\nquery string (`acip=`, `acname=`, `nasId=`, `userip=`) names the access\ncontroller, `Server:` names the portal product, and the browser's own `History`\ndatabase holds the portal URL the user already visited. Full recipe, SQL,\nvendor fingerprints and the legitimate follow-ups: `references/captive-portal-recon.md`.\n\n**Paid campus access is a boundary, not a puzzle.** When the user asks to get\naround authentication or fees, do the survey, report it plainly \u2014 then refuse\nthe bypass and give reasons in their terms: the gate is enforced at the BRAS by\naccount\u2194MAC\u2194IP binding, per-device logs exist, and the operator usually runs\nanti-proxy detection (a portal page advertising a \u300c\u9632\u4ee3\u7406\u5904\u7406\u65b9\u6cd5\u300d is proof it\nis live); the downside is enrolment discipline, not just a fee. Never build MAC\ncloning, proxy sharing, session replay, or portal exploits. Redirect to the\nlegitimate wins: keepalive with *their own* account, mirror sources so installs\nstop burning metered traffic, a billing audit for duplicate sessions after\ndrops.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:53:01Z",
+  "updated_at": "2026-10-20T13:12:03Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/web/network-egress-diagnosis",
+      "sha256": "7ef010ef77305fe3318c15f16c92660453383baa74436bf83a626b1a8cf654d1",
+      "retrieved_at": "2026-10-20T12:53:01Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:53:01Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:12:03Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:12:01Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "network-egress-diagnosis",
+    "description": "Use when a fetch times out, a device needs a proxy, or a network demands portal login.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "web/network-egress-diagnosis",
+    "sha256": "7ef010ef77305fe3318c15f16c92660453383baa74436bf83a626b1a8cf654d1",
+    "tags": [
+      "network-egress-diagnosis",
+      "network",
+      "egress",
+      "diagnosis",
+      "Use",
+      "when",
+      "fetch",
+      "times"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

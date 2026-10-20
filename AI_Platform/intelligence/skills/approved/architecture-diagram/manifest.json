@@ -1,0 +1,87 @@
+{
+  "id": "architecture-diagram",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Dark-themed SVG architecture/cloud/infra diagrams as HTML.",
+  "content": "---\nname: architecture-diagram\ndescription: \"Dark-themed SVG architecture/cloud/infra diagrams as HTML.\"\nversion: 1.0.0\nauthor: Cocoon AI (hello@cocoon-ai.com), ported by Hermes Agent\nlicense: MIT\ndependencies: []\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [architecture, diagrams, SVG, HTML, visualization, infrastructure, cloud]\n    related_skills: [concept-diagrams, excalidraw]\n---\n\n# Architecture Diagram Skill\n\nGenerate professional, dark-themed technical architecture diagrams as standalone HTML files with inline SVG graphics. No external tools, no API keys, no rendering libraries \u2014 just write the HTML file and open it in a browser.\n\n## Scope\n\n**Best suited for:**\n- Software system architecture (frontend / backend / database layers)\n- Cloud infrastructure (VPC, regions, subnets, managed services)\n- Microservice / service-mesh topology\n- Database + API map, deployment diagrams\n- Anything with a tech-infra subject that fits a dark, grid-backed aesthetic\n\n**Look elsewhere first for:**\n- Physics, chemistry, math, biology, or other scientific subjects\n- Physical objects (vehicles, hardware, anatomy, cross-sections)\n- Floor plans, narrative journeys, educational / textbook-style visuals\n- Hand-drawn whiteboard sketches (consider `excalidraw`)\n- Animated explainers (consider an animation skill)\n\nIf a more specialized skill is available for the subject, prefer that. If none fits, this skill can also serve as a general SVG diagram fallback \u2014 the output will just carry the dark tech aesthetic described below.\n\nBased on [Cocoon AI's architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator) (MIT).\n\n## Workflow\n\n1. User describes their system architecture (components, connections, technologies)\n2. Generate the HTML file following the design system below\n3. Save with `write_file` to a `.html` file (e.g. `~/architecture-diagram.html`)\n4. User opens in any browser \u2014 works offline, no dependencies\n\n### Output Location\n\nSave diagrams to a user-specified path, or default to the current working directory:\n```\n./[project-name]-architecture.html\n```\n\n### Preview\n\nAfter saving, suggest the user open it:\n```bash\n# macOS\nopen ./my-architecture.html\n# Linux\nxdg-open ./my-architecture.html\n```\n\n## Design System & Visual Language\n\n### Color Palette (Semantic Mapping)\n\nUse specific `rgba` fills and hex strokes to categorize components:\n\n| Component Type | Fill (rgba) | Stroke (Hex) |\n| :--- | :--- | :--- |\n| **Frontend** | `rgba(8, 51, 68, 0.4)` | `#22d3ee` (cyan-400) |\n| **Backend** | `rgba(6, 78, 59, 0.4)` | `#34d399` (emerald-400) |\n| **Database** | `rgba(76, 29, 149, 0.4)` | `#a78bfa` (violet-400) |\n| **AWS/Cloud** | `rgba(120, 53, 15, 0.3)` | `#fbbf24` (amber-400) |\n| **Security** | `rgba(136, 19, 55, 0.4)` | `#fb7185` (rose-400) |\n| **Message Bus** | `rgba(251, 146, 60, 0.3)` | `#fb923c` (orange-400) |\n| **External** | `rgba(30, 41, 59, 0.5)` | `#94a3b8` (slate-400) |\n\n### Typography & Background\n- **Font:** JetBrains Mono (Monospace), loaded from Google Fonts\n- **Sizes:** 12px (Names), 9px (Sublabels), 8px (Annotations), 7px (Tiny labels)\n- **Background:** Slate-950 (`#020617`) with a subtle 40px grid pattern\n\n```svg\n<!-- Background Grid Pattern -->\n<pattern id=\"grid\" width=\"40\" height=\"40\" patternUnits=\"userSpaceOnUse\">\n  <path d=\"M 40 0 L 0 0 0 40\" fill=\"none\" stroke=\"#1e293b\" stroke-width=\"0.5\"/>\n</pattern>\n```\n\n## Technical Implementation Details\n\n### Component Rendering\nComponents are rounded rectangles (`rx=\"6\"`) with 1.5px strokes. To prevent arrows from showing through semi-transparent fills, use a **double-rect masking technique**:\n1. Draw an opaque background rect (`#0f172a`)\n2. Draw the semi-transparent styled rect on top\n\n### Connection Rules\n- **Z-Order:** Draw arrows *early* in the SVG (after the grid) so they render behind component boxes\n- **Arrowheads:** Defined via SVG markers\n- **Security Flows:** Use dashed lines in rose color (`#fb7185`)\n- **Boundaries:**\n  - *Security Groups:* Dashed (`4,4`), rose color\n  - *Regions:* Large dashed (`8,4`), amber color, `rx=\"12\"`\n\n### Spacing & Layout Logic\n- **Standard Height:** 60px (Services); 80-120px (Large components)\n- **Vertical Gap:** Minimum 40px between components\n- **Message Buses:** Must be placed *in the gap* between services, not overlapping them\n- **Legend Placement:** **CRITICAL.** Must be placed outside all boundary boxes. Calculate the lowest Y-coordinate of all boundaries and place the legend at least 20px below it.\n\n## Document Structure\n\nThe generated HTML file follows a four-part layout:\n1. **Header:** Title with a pulsing dot indicator and subtitle\n2. **Main SVG:** The diagram contained within a rounded border card\n3. **Summary Cards:** A grid of three cards below the diagram for high-level details\n4. **Footer:** Minimal metadata\n\n### Info Card Pattern\n```html\n<div class=\"card\">\n  <div class=\"card-header\">\n    <div class=\"card-dot cyan\"></div>\n    <h3>Title</h3>\n  </div>\n  <ul>\n    <li>\u2022 Item one</li>\n    <li>\u2022 Item two</li>\n  </ul>\n</div>\n```\n\n## Output Requirements\n- **Single File:** One self-contained `.html` file\n- **No External Dependencies:** All CSS and SVG must be inline (except Google Fonts)\n- **No JavaScript:** Use pure CSS for any animations (like pulsing dots)\n- **Compatibility:** Must render correctly in any modern web browser\n\n## Template Reference\n\nLoad the full HTML template for the exact structure, CSS, and SVG component examples:\n\n```\nskill_view(name=\"architecture-diagram\", file_path=\"templates/template.html\")\n```\n\nThe template contains working examples of every component type (frontend, backend, database, cloud, security), arrow styles (standard, dashed, curved), security groups, region boundaries, and the legend \u2014 use it as your structural reference when generating diagrams.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:51:56Z",
+  "updated_at": "2026-10-20T13:09:30Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/creative/architecture-diagram",
+      "sha256": "0e7e2736aafe052e409c2ad27863d51ef3007c116711e584033787ccb5d99d3f",
+      "retrieved_at": "2026-10-20T12:51:56Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:51:56Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:09:30Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:09:28Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "architecture-diagram",
+    "description": "Dark-themed SVG architecture/cloud/infra diagrams as HTML.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "creative/architecture-diagram",
+    "sha256": "0e7e2736aafe052e409c2ad27863d51ef3007c116711e584033787ccb5d99d3f",
+    "tags": [
+      "architecture-diagram",
+      "architecture",
+      "diagram",
+      "Dark-themed",
+      "SVG",
+      "cloud"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

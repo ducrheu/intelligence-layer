@@ -107,6 +107,27 @@ class PolicyVerdictTests(unittest.TestCase):
         self.assertFalse(verdict.auto_validate)
         self.assertIn("skill is not verified", " ".join(verdict.blocking))
 
+    def test_a_text_only_skill_is_admissible_like_knowledge(self) -> None:
+        """119 of 129 real skills are prompt-shaped: nothing executes, so the risk is
+        a bad instruction to read -- the same class as knowledge, same tier."""
+        skill_metadata = {"name": "humanizer", "inputs": [], "outputs": [],
+                          "dependencies": [], "permissions": ["read-only"],
+                          "verification": "static-review", "tags": ["text", "style"]}
+        verdict = evaluate(note(kind="skill", metadata=skill_metadata), TRUSTED)
+        self.assertTrue(verdict.auto_approve, verdict.blocking)
+        self.assertIn("static-review skill", " ".join(verdict.reasons))
+
+    def test_a_skill_shipping_scripts_needs_a_human(self) -> None:
+        """An attached script is an executable payload: a person reads what it does
+        before the skill is shared with every agent on the machine."""
+        skill_metadata = {"name": "patrol", "inputs": [], "outputs": [],
+                          "dependencies": [], "permissions": ["read-only"],
+                          "verification": "static-review", "executable_attachments": True,
+                          "tags": ["patrol"]}
+        verdict = evaluate(note(kind="skill", metadata=skill_metadata), TRUSTED)
+        self.assertFalse(verdict.auto_approve)
+        self.assertIn("executable attachments", " ".join(verdict.blocking))
+
     def test_a_claim_of_authority_blocks_admission(self) -> None:
         verdict = evaluate(note(metadata={"permissions": ["read-only", "write:shared-kb"]}), TRUSTED)
         self.assertFalse(verdict.auto_approve)

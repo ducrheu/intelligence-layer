@@ -1,0 +1,90 @@
+{
+  "id": "windows-lan-proxy-sharing",
+  "kind": "skill",
+  "scope": "local",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Use when another device must borrow the PC's proxy.",
+  "content": "---\nname: windows-lan-proxy-sharing\ndescription: Use when another device must borrow the PC's proxy.\n---\n\n# Windows LAN \u4ee3\u7406\u5171\u4eab\u4e0e\u6392\u969c\n\n\u8fd9\u7c7b\u4efb\u52a1\u7684\u672c\u8d28\u662f**\u5206\u6bb5\u5224\u5b9a**\uff0c\u4e0d\u662f\"\u6253\u5f00\u67d0\u4e2a\u5f00\u5173\"\uff1a\u672c\u673a\u80fd\u4e0d\u80fd\u51fa\u7f51 \u2192 \u4ee3\u7406\u76d1\u542c\u5728\u54ea \u2192 \u9632\u706b\u5899\u653e\u4e0d\u653e \u2192 \u5bf9\u7aef\u6709\u6ca1\u6709\u771f\u7684\u6253\u8fdb\u6765 \u2192 \u6253\u8fdb\u6765\u4e4b\u540e\u54ea\u4e00\u8df3\u6b7b\u7684\u3002\u6bcf\u4e00\u6bb5\u90fd\u8981\u62ff\u5230\u8bc1\u636e\u518d\u8bf4\u7ed3\u8bba\uff0c\u5426\u5219\u4fee\u7684\u662f\u60f3\u8c61\u7684\u6545\u969c\u3002\n\n## 0. \u4e8b\u5b9e\u57fa\u7ebf\uff08\u672c\u673a\u5df2\u786e\u8ba4\uff0c\u522b\u91cd\u590d\u9a8c\u8bc1\uff09\n\n- WSL **\u76f4\u8fde Google \u4e0d\u901a**\uff1bWindows \u4fa7 Clash Verge Rev \u7684 mixed-port `7897` \u5f00\u7740 `allow-lan: true`\uff0c\u4ece WSL \u7528 `http://127.0.0.1:7897` \u5c31\u80fd\u51fa\u7f51\uff08\u955c\u50cf\u7f51\u7edc\uff0c127.0.0.1 \u76f4\u901a\u5bbf\u4e3b\uff09\u3002\n- \u7ed9\u4efb\u4f55\u9700\u8981\u5916\u7f51\u7684\u4e00\u6b21\u6027\u4efb\u52a1\uff08curl / \u4e0b\u8f7d / \u65e0\u5934\u6d4f\u89c8\u5668\uff09\u76f4\u63a5 `export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897`\u3002\n- `powershell.exe` \u4e0d\u5728 PATH\uff0c\u4e00\u5f8b\u7528\u5168\u8def\u5f84 `/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe`\u3002\n\n## 1. \u5148\u627e\u51fa\u5e76\u9a8c\u8bc1\u4ee3\u7406\n\n```bash\ntimeout 60 /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command \\\n  \"Get-NetTCPConnection -State Listen | Where-Object {\\$_.LocalPort -in 7890,7897,1080,10808,10809,8080} | Select LocalAddress,LocalPort\"\ncurl -sS -x http://127.0.0.1:7897 -o /dev/null -w '%{http_code}\\n' https://www.google.com/generate_204   # \u671f\u671b 204\n```\n\n**\u5751\uff1a\u4e0d\u8981\u7528 Windows \u7684 LAN IP \u4ece WSL \u6d4b\u7aef\u53e3\u3002** \u955c\u50cf\u7f51\u7edc\u4e0b Windows \u7684 `10.x.y.z` \u548c WSL `eth` \u662f\u540c\u4e00\u4e2a\u5730\u5740\uff0c\u4ece WSL \u8fde\u5b83\u53ea\u6253\u5230 WSL \u81ea\u5df1\u7684\u534f\u8bae\u6808\uff0c\u5fc5\u7136\u8d85\u65f6\u2014\u2014\u8fd9\u4e0d\u4ee3\u8868 Windows \u6ca1\u76d1\u542c\u3002\u8981\u6d4b\u5c31\u7528 `Test-NetConnection -ComputerName <lan-ip> -Port <port>` \u5728 Windows \u4fa7\u8dd1\uff0c\u6216\u8005\u76f4\u63a5\u770b\u65e5\u5fd7\uff08\u7b2c 3 \u6b65\uff09\u3002\n\n## 2. Clash Verge Rev \u7684\u6587\u4ef6\u4f4d\u7f6e\n\n`/mnt/c/Users/<user>/AppData/Roaming/io.github.clash-verge-rev.clash-verge-rev/`\n\n| \u6587\u4ef6 | \u7528\u9014 |\n|---|---|\n| `clash-verge.yaml` | \u6838\u5fc3\u914d\u7f6e\uff1a`mixed-port`\u3001`allow-lan`\u3001`external-controller`\u3001`secret` |\n| `verge.yaml` | \u5e94\u7528\u8bbe\u7f6e\uff1a`enable_tun_mode`\u3001\u7cfb\u7edf\u4ee3\u7406\u5f00\u5173 |\n| `logs/sidecar/sidecar_latest.log` | **\u9010\u8fde\u63a5\u65e5\u5fd7**\uff0c\u6392\u969c\u4e3b\u529b |\n| `logs/latest.log` | \u5e94\u7528\u5c42\u65e5\u5fd7\uff08\u8ba2\u9605\u66f4\u65b0\u3001\u7cfb\u7edf\u4ee3\u7406\u5b88\u536b\uff09 |\n\n`external-controller` \u5e38\u4e3a `''` + \u5177\u540d\u7ba1\u9053\uff0c**\u4ece WSL \u67e5\u4e0d\u5230 REST API**\uff0c\u4e0d\u8981\u5728\u8fd9\u4e0a\u9762\u8017\u65f6\u95f4\uff0c\u76f4\u63a5\u8bfb sidecar \u65e5\u5fd7\u3002\n\n\u9632\u706b\u5899\u53ea\u9700\u786e\u8ba4\u4e00\u6b21\u5b58\u5728\u5165\u7ad9\u653e\u884c\uff1a\n\n```bash\nPS=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe\n$PS -NoProfile -Command \"Get-NetFirewallApplicationFilter | ? {\\$_.Program -like '*clash*'} | % { \\$r=\\$_|Get-NetFirewallRule; '{0} {1} {2}' -f \\$r.DisplayName,\\$r.Direction,\\$r.Action }\"\n```\n\n## 3. \u8bc1\u660e\u5bf9\u7aef\u771f\u7684\u5728\u8d70\u4ee3\u7406\uff08\u6838\u5fc3\u624b\u6cd5\uff09\n\nsidecar \u65e5\u5fd7\u6bcf\u4e00\u884c\u4e00\u4e2a\u8fde\u63a5\uff1a\n\n```\n[TCP] 10.79.135.42:49018 --> www.google.com:443 match RuleSet(google) using \u8282\u70b9\u9009\u62e9[\ud83c\udded\ud83c\uddf0Hong Kong 05]\n```\n\n```bash\nf=/mnt/c/Users/<user>/AppData/Roaming/io.github.clash-verge-rev.clash-verge-rev/logs/sidecar/sidecar_latest.log\ngrep -a '<\u5bf9\u7aefIP>' \"$f\" | tail -30\ngrep -ac '<\u5bf9\u7aefIP>.*google' \"$f\"     # \u8ba1\u6570 0 = \u5bf9\u7aef\u8fd8\u6ca1\u771f\u8bbf\u95ee\n```\n\n\u914d\u5408\u8fde\u63a5\u8868\u53ef\u4ee5\u5b9e\u65f6\u76ef\uff1a\n\n```bash\n$PS -NoProfile -Command \"Get-NetTCPConnection -LocalPort 7897 -State Established | ? {\\$_.RemoteAddress -notin @('127.0.0.1','::1')} | Select RemoteAddress,RemotePort\"\n```\n\n**\u5224\u8bfb\u89c4\u5219\uff08\u8fd9\u4e00\u6b65\u51b3\u5b9a\u540e\u9762\u600e\u4e48\u4fee\uff09\uff1a**\n\n- \u65e5\u5fd7\u91cc\u6709 `--> \u76ee\u6807\u57df:443 match RuleSet(...) using <\u8282\u70b9>` \u2192 \u4ee3\u7406\u548c\u89c4\u5219\u90fd\u6b63\u5e38\u3002\n- **\u53ea\u6709\u4e00\u6761\u76ee\u6807\u57df\u8fde\u63a5\u3001\u6ca1\u6709\u540e\u7eed\u5b50\u8d44\u6e90**\uff08\u6253\u5f00\u4e00\u4e2a Google \u9875\u9762\u5e94\u6709 `gstatic.com`/`fonts.gstatic.com`/\u591a\u6761 `accounts.google.com`\uff09\u2192 \u6b7b\u5728**\u5ba2\u6237\u7aef**\uff08\u6d4f\u89c8\u5668/TLS \u63e1\u624b\u4e2d\u65ad\uff09\uff0c\u4e0d\u662f\u4ee3\u7406\u3002\u786e\u8ba4\u65b9\u5f0f\uff1a\u672c\u673a\u5bf9\u540c\u4e00\u8282\u70b9\u8dd1\u4e00\u6b21 `curl`\uff0c\u672c\u673a\u5b50\u8d44\u6e90\u9f50\u5168\u5c31\u5750\u5b9e\u4e86\u8282\u70b9\u6ca1\u95ee\u9898\u3002\n- \u65e5\u5fd7\u91cc\u6839\u672c\u6ca1\u6709\u5bf9\u7aef IP \u2192 \u5361\u5728\u7b2c 2 \u6b65\u4e4b\u524d\uff08\u4e0d\u540c\u7f51\u6bb5\u3001AP \u9694\u79bb\u3001\u4ee3\u7406\u6ca1\u4fdd\u5b58\u3001\u624b\u673a\u6ca1\u8fde\u540c\u4e00 Wi-Fi\uff09\u3002\n- \u5927\u91cf `dial DIRECT ... --> 127.0.0.1:<port> error: actively refused` \u2192 \u5bf9\u7aef\u5728\u627e\u5b83\u81ea\u5df1\u7684\u672c\u5730\u670d\u52a1\uff0c\u4e0e\u672c\u4efb\u52a1\u65e0\u5173\uff0c\u522b\u5f53\u7ebf\u7d22\u3002\n\n## 4. \u5bf9\u7aef\uff08\u624b\u673a\uff09\u4fa7\u914d\u7f6e\n\n\u540c\u4e00 Wi-Fi \u2192 Wi-Fi \u8be6\u60c5 \u2192 \u4ee3\u7406\u300c\u624b\u52a8\u300d\u2192 \u4e3b\u673a = PC \u7684 LAN IP\uff0c\u7aef\u53e3 = `mixed-port`\uff0c\u7ed5\u8fc7\u5217\u8868\u7559\u9ed8\u8ba4\u3002\n\n- \u7cfb\u7edf\u63d0\u793a\"\u8be5\u6d4f\u89c8\u5668\u4f7f\u7528 HTTP \u4ee3\u7406\uff0c\u4f46\u5176\u4ed6\u5e94\u7528\u53ef\u80fd\u4e0d\u4f1a\u4f7f\u7528\"**\u4e0d\u53ef\u4fe1**\uff1a\u4ee5\u65e5\u5fd7\u91cc\u51fa\u73b0\u54ea\u4e9b\u5e94\u7528\u7684\u57df\u540d \u4e3a\u51c6\uff08\u5b9e\u6d4b\u534e\u4e3a\u4e0a\u5fae\u4fe1\u3001\u5730\u56fe\u3001\u7cfb\u7edf\u670d\u52a1\u90fd\u5728\u8d70\uff09\u3002\n- \u6821\u56ed\u7f51/\u5bbf\u820d\u7f51\u53ef\u80fd\u6709 AP \u9694\u79bb\uff1a\u5224\u636e\u5c31\u662f\u65e5\u5fd7\u91cc\u6709\u6ca1\u6709\u5bf9\u7aef IP\uff0c\u522b\u9760\u731c\u3002\n- \u5bf9\u7aef IP \u548c PC \u7684 LAN IP \u90fd\u662f DHCP\uff0c\u91cd\u8fde\u5c31\u53d8\uff1b\u6bcf\u6b21\u6392\u969c\u5148\u91cd\u65b0\u53d6\u4e00\u6b21 `Get-NetIPAddress`\u3002\n\n## 5. \u5df2\u77e5\u7ec8\u7aef\u5751\n\n- **\u534e\u4e3a\u81ea\u5e26\u6d4f\u89c8\u5668\u7ecf HTTP \u4ee3\u7406\u6253\u5f00 Google \u4f1a\u95ea\u9000**\uff08TCP \u5df2\u8fde\u4e0a\u3001\u65e5\u5fd7\u53ea\u6709\u4e00\u6761\u76ee\u6807\u57df\u8fde\u63a5\u5c31\u6ca1\u4e86\uff09\u3002\u6362\u7b2c\u4e09\u65b9\u6d4f\u89c8\u5668\uff08Edge/Firefox\uff09\u540e\u4ee3\u7406\u8bbe\u7f6e\u81ea\u52a8\u7ee7\u627f\uff1b\u6216\u76f4\u63a5\u7ed5\u5f00\u6d4f\u89c8\u5668\u2014\u2014\u6ce8\u518c/\u9a8c\u8bc1\u7c7b\u6d41\u7a0b\u4f18\u5148\u627e\"\u6362\u4e00\u79cd\u65b9\u5f0f/\u77ed\u4fe1\u9a8c\u8bc1\u7801\"\uff0c\u5bf9\u7aef\u53ea\u9700\u8981\u6536\u77ed\u4fe1\u3002\n- \u7ed9\u5bf9\u7aef\u4e0b\u8f7d\u4e1c\u897f\u65f6\uff0c\u628a\u6587\u4ef6\u653e\u5230\u7535\u8111\u4e0a\u8d77\u4e2a `http://<lan-ip>:<port>` \u9759\u6001\u9875\uff1b\u56fd\u5185 http \u5730\u5740\u5728\u81ea\u5e26\u6d4f\u89c8\u5668\u91cc\u80fd\u5f00\uff0c\u6b63\u597d\u7ed5\u5f00\u5b83\u5d29 Google \u7684\u95ee\u9898\u3002\n- `browser_exec` \u7684 `Page.navigate` \u5bf9\u4e0d\u53ef\u8fbe\u57df\u540d\u4f1a IPC \u8d85\u65f6\uff085s \u5361\u6b7b\u5b88\u62a4\u8fdb\u7a0b\uff09\uff0c\u5148 `curl` \u786e\u8ba4\u7f51\u7edc\u518d\u5f00\u6d4f\u89c8\u5668\uff0c\u522b\u628a\u8d85\u65f6\u5f53\u6210\u6d4f\u89c8\u5668\u5de5\u5177\u574f\u4e86\u3002\n\n## 6. \u4e8c\u7ef4\u7801\u7c7b\u8bf7\u6c42\uff08\u767b\u5f55/\u9a8c\u8bc1\u7801\u622a\u56fe\uff09\n\n\u5148\u89e3\u7801\u770b\u6e05\u662f\u4ec0\u4e48\uff0c\u518d\u51b3\u5b9a\u80fd\u4e0d\u80fd\u4ee3\u505a\uff1a\n\n```bash\ncd /tmp && uv run --quiet --with opencv-python-headless --with numpy python3 - <<'EOF'\nimport cv2\nimg = cv2.imread('<png>', cv2.IMREAD_GRAYSCALE)\nprint(cv2.QRCodeDetector().detectAndDecode(img)[0])\nEOF\n```\n\n**\u5b89\u5168\u8fb9\u754c\uff1a** \u4e8c\u7ef4\u7801\u5f80\u5f80\u662f\u7ed1\u5b9a\u5728\u7528\u6237\u5f53\u524d\u4f1a\u8bdd\u4e0a\u7684\u4e00\u6b21\u6027\u51ed\u8bc1\uff0c\u8c01\u626b\u8c01\u5c31\u9876\u66ff\"\u90a3\u53f0\u53d7\u4fe1\u4efb\u8bbe\u5907\"\u3002\u4e0d\u8981\u8ba9\u7b2c\u4e09\u65b9/\u4ee3\u7406 IP \u4e0a\u7684\u684c\u9762\u6d4f\u89c8\u5668\u53bb\u5b8c\u6210\u5b83\u2014\u2014\u65b0\u53f7\u4f1a\u7acb\u523b\u88ab\u5224\u5b9a\u5f02\u5e38\uff08\u6ce8\u518c\u5b8c\u5c31\u505c\u7528\uff09\u3002\u6b63\u786e\u987a\u5e8f\u662f\uff1a\u5148\u628a\u5bf9\u7aef\u81ea\u5df1\u7684\u8bbe\u5907\u5f04\u4e0a\u7f51\uff0c\u8ba9\u5b83\u81ea\u5df1\u626b\uff1b\u786e\u9700\u4ee3\u505a\u65f6\uff0c\u53ea\u505a\u5230\"\u770b\u6e05\u9875\u9762\u8981\u4ec0\u4e48\"\uff0c\u628a\u4e0d\u53ef\u9006\u7684\u90a3\u4e00\u4e0b\u4ea4\u7ed9\u7528\u6237\u51b3\u5b9a\u3002\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:10Z",
+  "updated_at": "2026-10-20T13:14:36Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/local/windows-lan-proxy-sharing",
+      "sha256": "1a6c0c5d11900bdd340892ec569455253bfc8ffde02ae7bf6bd8805095927883",
+      "retrieved_at": "2026-10-20T12:52:10Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:10Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:14:36Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:14:34Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "windows-lan-proxy-sharing",
+    "description": "Use when another device must borrow the PC's proxy.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "local/windows-lan-proxy-sharing",
+    "sha256": "1a6c0c5d11900bdd340892ec569455253bfc8ffde02ae7bf6bd8805095927883",
+    "tags": [
+      "windows-lan-proxy-sharing",
+      "windows",
+      "lan",
+      "proxy",
+      "sharing",
+      "Use",
+      "when",
+      "another",
+      "device"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'local' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

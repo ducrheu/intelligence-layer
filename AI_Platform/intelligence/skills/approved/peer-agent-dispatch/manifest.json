@@ -1,0 +1,86 @@
+{
+  "id": "peer-agent-dispatch",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Dispatch tasks to a peer agent runtime.",
+  "content": "---\nname: peer-agent-dispatch\ndescription: \"Dispatch tasks to a peer agent runtime.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux]\nmetadata:\n  hermes:\n    tags: [a2a, multi-agent, orchestration, delegation]\n---\n\n# Peer Agent Dispatch\n\nSending a task from one agent runtime to a *different* runtime and getting work back.\nDistinct from calling a peer of the same kind: the other runtime authenticates, exposes\none entry point, and routes to its own agents internally. Each layer fails in a way that\nlooks like a different layer's problem.\n\n## Order of operations\n\n1. **Credential.** Find the shared secret where the peer keeps it (typically an env file\n   under its home). Read it into a shell variable in the same command that uses it; never\n   print it, never write it into version control.\n2. **Send and poll.** POST JSON-RPC to the peer's endpoint with\n   `Authorization: Bearer <token>`; method `message/send`, then `tasks/get` with the\n   returned task id. **`message/send` blocks until the task finishes**, so use a short\n   client timeout plus polling: a task waiting on an approval never returns, and a task\n   that failed instantly still returns HTTP 200 with a FAILED state.\n3. **Read the failure text instead of assuming the layer it names.** HTTP 200 with a task\n   that flips straight to FAILED is a routing or authorization answer, not a transport\n   problem.\n4. **Prove the delegation happened.** A completed task proves only that the entry agent\n   answered. The delegation itself appears in the peer's log as a session lane naming the\n   target agent; grep the journal for it before reporting success.\n5. **Close the loop on traceability.** Have the worker put the dispatch's task id into\n   whatever it files downstream, so one dispatch is traceable end to end: dispatch \u2192\n   work \u2192 deposit \u2192 distillation \u2192 approval. A task id that exists only in a chat\n   transcript cannot be audited later.\n\n## The routing prerequisite nobody documents\n\nA task accepted and instantly failed with a message like *\"...channel default routing has\nno explicit owner\"* means auth and protocol are fine and the channel needs an owner. Add\nan explicit route binding on the peer, copying the shape of its own existing bindings,\nthen restart and re-probe (the listener needs ~10s to come back).\n\n## Addressing limits decide the architecture\n\nCheck what the peer's channel config actually accepts before designing dispatch. If it\ncarries only `{enabled, exposeAgents, peers}` and its binding engine does not match message\ntext, then **it cannot be addressed per agent from outside**, and the honest design is a\ntwo-level supervisor: expose one entry agent, send every task there, and let that agent\nhand work down through its own sub-agent allow-list.\n\nThat allow-list is commonly **empty by default**. \"The entry agent cannot delegate\" is\nusually configuration, not a broken feature \u2014 and it is the most common reason a supposed\nmulti-agent setup behaves like one agent doing everything.\n\n## A newly added agent is inert in two independent ways\n\n- **Model credential**: each agent typically has its own auth store, so a fresh agent\n  fails every turn with a sign-in error naming the provider. Configure it through the\n  runtime's own credential command (which prompts, so the value never enters a chat); do\n  not assume a copyable credential file exists.\n- **Command approval**: the tool allow-list is the *tool* surface, not the command\n  surface. Command execution passes a second layer with its own per-agent allow-list\n  (glob patterns) and standing grants. A task spawned over the network has no approval\n  channel to a human, so it **stalls silently on the first command it needs** \u2014 which\n  presents as \"the agent never answered\", not as an authorization error.\n\nGrant globs per agent and keep them narrow: this layer is the safety boundary, not a\nformality to clear once.\n\n## Editing another runtime's config\n\n- Back it up first; before removing an entry, walk the whole config to confirm nothing\n  references it.\n- Fields accept different vocabularies: a group name valid in a deny-list can be rejected\n  in an allow-list (the runtime logs `unknown entries` and ignores it). Removing a deny is\n  **not** the same as granting an allow \u2014 verify with a real turn.\n- Read the runtime's own docs before guessing key names: many packages ship a `docs/` tree\n  and a CLI that explains its own surfaces (`--help` on every subcommand).\n\n## Reporting\n\nDistinguish three states in every report: the task was delivered, the target agent\nactually ran, and the work came back. Collapsing them into \"dispatch works\" hides the\napproval stall waiting to happen on the next task.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:51:56Z",
+  "updated_at": "2026-10-20T13:12:26Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/autonomous-ai-agents/peer-agent-dispatch",
+      "sha256": "0ee2ec058bc242fa3a340502475e30a459af86a9ff553ee0acf65a48f83610bd",
+      "retrieved_at": "2026-10-20T12:51:56Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:51:56Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:12:26Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:12:25Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "peer-agent-dispatch",
+    "description": "Dispatch tasks to a peer agent runtime.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "autonomous-ai-agents/peer-agent-dispatch",
+    "sha256": "0ee2ec058bc242fa3a340502475e30a459af86a9ff553ee0acf65a48f83610bd",
+    "tags": [
+      "peer-agent-dispatch",
+      "peer",
+      "agent",
+      "dispatch",
+      "tasks"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

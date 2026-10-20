@@ -1,0 +1,86 @@
+{
+  "id": "imessage",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Send and receive iMessages/SMS via the imsg CLI on macOS.",
+  "content": "---\nname: imessage\ndescription: Send and receive iMessages/SMS via the imsg CLI on macOS.\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [macos]\nmetadata:\n  hermes:\n    tags: [iMessage, SMS, messaging, macOS, Apple]\nprerequisites:\n  commands: [imsg]\n---\n\n# iMessage\n\nUse `imsg` to read and send iMessage/SMS via macOS Messages.app.\n\n## Prerequisites\n\n- **macOS** with Messages.app signed in\n- Install: `brew install steipete/tap/imsg`\n- Grant Full Disk Access for terminal (System Settings \u2192 Privacy \u2192 Full Disk Access)\n- Grant Automation permission for Messages.app when prompted\n\n## When to Use\n\n- User asks to send an iMessage or text message\n- Reading iMessage conversation history\n- Checking recent Messages.app chats\n- Sending to phone numbers or Apple IDs\n\n## When NOT to Use\n\n- Telegram/Discord/Slack/WhatsApp messages \u2192 use the appropriate gateway channel\n- Group chat management (adding/removing members) \u2192 not supported\n- Bulk/mass messaging \u2192 always confirm with user first\n\n## Quick Reference\n\n### List Chats\n\n```bash\nimsg chats --limit 10 --json\n```\n\n### View History\n\n```bash\n# By chat ID\nimsg history --chat-id 1 --limit 20 --json\n\n# With attachments info\nimsg history --chat-id 1 --limit 20 --attachments --json\n```\n\n### Send Messages\n\n```bash\n# Text only\nimsg send --to \"+14155551212\" --text \"Hello!\"\n\n# With attachment\nimsg send --to \"+14155551212\" --text \"Check this out\" --file /path/to/image.jpg\n\n# Force iMessage or SMS\nimsg send --to \"+14155551212\" --text \"Hi\" --service imessage\nimsg send --to \"+14155551212\" --text \"Hi\" --service sms\n```\n\n### Watch for New Messages\n\n```bash\nimsg watch --chat-id 1 --attachments\n```\n\n## Service Options\n\n- `--service imessage` \u2014 Force iMessage (requires recipient has iMessage)\n- `--service sms` \u2014 Force SMS (green bubble)\n- `--service auto` \u2014 Let Messages.app decide (default)\n\n## Rules\n\n1. **Always confirm recipient and message content** before sending\n2. **Never send to unknown numbers** without explicit user approval\n3. **Verify file paths** exist before attaching\n4. **Don't spam** \u2014 rate-limit yourself\n\n## Example Workflow\n\nUser: \"Text mom that I'll be late\"\n\n```bash\n# 1. Find mom's chat\nimsg chats --limit 20 --json | jq '.[] | select(.displayName | contains(\"Mom\"))'\n\n# 2. Confirm with user: \"Found Mom at +1555123456. Send 'I'll be late' via iMessage?\"\n\n# 3. Send after confirmation\nimsg send --to \"+1555123456\" --text \"I'll be late\"\n```\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:51:53Z",
+  "updated_at": "2026-10-20T13:11:28Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/apple/imessage",
+      "sha256": "bc68b1648e301409bc25b1084ec26766213ca9f3c1b2fd3d3d6ebe3dbde9e967",
+      "retrieved_at": "2026-10-20T12:51:53Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:51:53Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:11:28Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:11:27Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "imessage",
+    "description": "Send and receive iMessages/SMS via the imsg CLI on macOS.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "apple/imessage",
+    "sha256": "bc68b1648e301409bc25b1084ec26766213ca9f3c1b2fd3d3d6ebe3dbde9e967",
+    "tags": [
+      "imessage",
+      "Send",
+      "and",
+      "receive",
+      "iMessages"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": "maps",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "candidate",
+  "version": "1.0.0",
+  "title": "Geocode, POIs, routes, timezones via OpenStreetMap/OSRM.",
+  "content": "---\nname: maps\ndescription: \"Geocode, POIs, routes, timezones via OpenStreetMap/OSRM.\"\nversion: 1.2.0\nauthor: Mibayy\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [maps, geocoding, places, routing, distance, directions, nearby, location, openstreetmap, nominatim, overpass, osrm]\n    category: productivity\n    requires_toolsets: [terminal]\n    supersedes: [find-nearby]\n---\n\n# Maps Skill\n\nLocation intelligence using free, open data sources. 8 commands, 44 POI\ncategories, zero dependencies (Python stdlib only), no API key required.\n\nData sources: OpenStreetMap/Nominatim, Overpass API, OSRM, TimeAPI.io.\n\nThis skill supersedes the old `find-nearby` skill \u2014 all of find-nearby's\nfunctionality is covered by the `nearby` command below, with the same\n`--near \"<place>\"` shortcut and multi-category support.\n\n## When to Use\n\n- User sends a Telegram location pin (latitude/longitude in the message) \u2192 `nearby`\n- User wants coordinates for a place name \u2192 `search`\n- User has coordinates and wants the address \u2192 `reverse`\n- User asks for nearby restaurants, hospitals, pharmacies, hotels, etc. \u2192 `nearby`\n- User wants driving/walking/cycling distance or travel time \u2192 `distance`\n- User wants turn-by-turn directions between two places \u2192 `directions`\n- User wants timezone information for a location \u2192 `timezone`\n- User wants to search for POIs within a geographic area \u2192 `area` + `bbox`\n\n## Prerequisites\n\nPython 3.8+ (stdlib only \u2014 no pip installs needed).\n\nScript path: `~/.hermes/skills/maps/scripts/maps_client.py`\n\n## Commands\n\n```bash\nMAPS=~/.hermes/skills/maps/scripts/maps_client.py\n```\n\n### search \u2014 Geocode a place name\n\n```bash\npython $MAPS search \"Eiffel Tower\"\npython $MAPS search \"1600 Pennsylvania Ave, Washington DC\"\n```\n\nReturns: lat, lon, display name, type, bounding box, importance score.\n\n### reverse \u2014 Coordinates to address\n\n```bash\npython $MAPS reverse 48.8584 2.2945\n```\n\nReturns: full address breakdown (street, city, state, country, postcode).\n\n### nearby \u2014 Find places by category\n\n```bash\n# By coordinates (from a Telegram location pin, for example)\npython $MAPS nearby 48.8584 2.2945 restaurant --limit 10\npython $MAPS nearby 40.7128 -74.0060 hospital --radius 2000\n\n# By address / city / zip / landmark \u2014 --near auto-geocodes\npython $MAPS nearby --near \"Times Square, New York\" --category cafe\npython $MAPS nearby --near \"90210\" --category pharmacy\n\n# Multiple categories merged into one query\npython $MAPS nearby --near \"downtown austin\" --category restaurant --category bar --limit 10\n```\n\n46 categories: restaurant, cafe, bar, hospital, pharmacy, hotel, guest_house,\ncamp_site, supermarket, atm, gas_station, parking, museum, park, school,\nuniversity, bank, police, fire_station, library, airport, train_station,\nbus_stop, church, mosque, synagogue, dentist, doctor, cinema, theatre, gym,\nswimming_pool, post_office, convenience_store, bakery, bookshop, laundry,\ncar_wash, car_rental, bicycle_rental, taxi, veterinary, zoo, playground,\nstadium, nightclub.\n\nEach result includes: `name`, `address`, `lat`/`lon`, `distance_m`,\n`maps_url` (clickable Google Maps link), `directions_url` (Google Maps\ndirections from the search point), and promoted tags when available \u2014\n`cuisine`, `hours` (opening_hours), `phone`, `website`.\n\n### distance \u2014 Travel distance and time\n\n```bash\npython $MAPS distance \"Paris\" --to \"Lyon\"\npython $MAPS distance \"New York\" --to \"Boston\" --mode driving\npython $MAPS distance \"Big Ben\" --to \"Tower Bridge\" --mode walking\n```\n\nModes: driving (default), walking, cycling. Returns road distance, duration,\nand straight-line distance for comparison.\n\n### directions \u2014 Turn-by-turn navigation\n\n```bash\npython $MAPS directions \"Eiffel Tower\" --to \"Louvre Museum\" --mode walking\npython $MAPS directions \"JFK Airport\" --to \"Times Square\" --mode driving\n```\n\nReturns numbered steps with instruction, distance, duration, road name, and\nmaneuver type (turn, depart, arrive, etc.).\n\n### timezone \u2014 Timezone for coordinates\n\n```bash\npython $MAPS timezone 48.8584 2.2945\npython $MAPS timezone 35.6762 139.6503\n```\n\nReturns timezone name, UTC offset, and current local time.\n\n### area \u2014 Bounding box and area for a place\n\n```bash\npython $MAPS area \"Manhattan, New York\"\npython $MAPS area \"London\"\n```\n\nReturns bounding box coordinates, width/height in km, and approximate area.\nUseful as input for the bbox command.\n\n### bbox \u2014 Search within a bounding box\n\n```bash\npython $MAPS bbox 40.75 -74.00 40.77 -73.98 restaurant --limit 20\n```\n\nFinds POIs within a geographic rectangle. Use `area` first to get the\nbounding box coordinates for a named place.\n\n## Working With Telegram Location Pins\n\nWhen a user sends a location pin, the message contains `latitude:` and\n`longitude:` fields. Extract those and pass them straight to `nearby`:\n\n```bash\n# User sent a pin at 36.17, -115.14 and asked \"find cafes nearby\"\npython $MAPS nearby 36.17 -115.14 cafe --radius 1500\n```\n\nPresent results as a numbered list with names, distances, and the\n`maps_url` field so the user gets a tap-to-open link in chat. For \"open\nnow?\" questions, check the `hours` field; if missing or unclear, verify\nwith `web_search` since OSM hours are community-maintained and not always\ncurrent.\n\n## Workflow Examples\n\n**\"Find Italian restaurants near the Colosseum\":**\n1. `nearby --near \"Colosseum Rome\" --category restaurant --radius 500`\n   \u2014 one command, auto-geocoded\n\n**\"What's near this location pin they sent?\":**\n1. Extract lat/lon from the Telegram message\n2. `nearby LAT LON cafe --radius 1500`\n\n**\"How do I walk from hotel to conference center?\":**\n1. `directions \"Hotel Name\" --to \"Conference Center\" --mode walking`\n\n**\"What restaurants are in downtown Seattle?\":**\n1. `area \"Downtown Seattle\"` \u2192 get bounding box\n2. `bbox S W N E restaurant --limit 30`\n\n## Pitfalls\n\n- Nominatim ToS: max 1 req/s (handled automatically by the script)\n- `nearby` requires lat/lon OR `--near \"<address>\"` \u2014 one of the two is needed\n- OSRM routing coverage is best for Europe and North America\n- Overpass API can be slow during peak hours; the script automatically\n  falls back between mirrors (overpass-api.de \u2192 overpass.kumi.systems)\n- `distance` and `directions` use `--to` flag for the destination (not positional)\n- If a zip code alone gives ambiguous results globally, include country/state\n\n## Verification\n\n```bash\npython ~/.hermes/skills/maps/scripts/maps_client.py search \"Statue of Liberty\"\n# Should return lat ~40.689, lon ~-74.044\n\npython ~/.hermes/skills/maps/scripts/maps_client.py nearby --near \"Times Square\" --category restaurant --limit 3\n# Should return a list of restaurants within ~500m of Times Square\n```\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:23Z",
+  "updated_at": "2026-10-20T12:52:23Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/productivity/maps",
+      "sha256": "775ef9f79be9cd147bc81e0c4a4ef952230a04736a6082f44dbac78554ef89ab",
+      "retrieved_at": "2026-10-20T12:52:23Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:23Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "maps",
+    "description": "Geocode, POIs, routes, timezones via OpenStreetMap/OSRM.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "productivity/maps",
+    "sha256": "775ef9f79be9cd147bc81e0c4a4ef952230a04736a6082f44dbac78554ef89ab",
+    "tags": [
+      "maps",
+      "Geocode",
+      "POIs",
+      "routes",
+      "timezones"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    }
+  }
+}

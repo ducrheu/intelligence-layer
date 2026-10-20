@@ -1,0 +1,89 @@
+{
+  "id": "inspecting-hermes-desktop-dom",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Read the live Hermes desktop DOM/CSS over CDP.",
+  "content": "---\nname: inspecting-hermes-desktop-dom\ndescription: \"Read the live Hermes desktop DOM/CSS over CDP.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [desktop, electron, cdp, dom, ui-verification, self-inspection]\n    related_skills: [node-inspect-debugger, systematic-debugging, dogfood]\n---\n\n# Inspecting the live Hermes desktop DOM\n\n## Overview\n\nWhen you are developing `apps/desktop` and the user is running that same app\n(`hgui` / `npm run dev`), you can read the **live rendered DOM** of the window\nthey are looking at \u2014 computed styles, geometry, which CSS rule actually won,\nconsole output \u2014 instead of inferring it from `.tsx` and being wrong.\n\nDev-server runs open a Chrome DevTools Protocol port on `127.0.0.1:9222`\nautomatically. The renderer is a Chromium page, so everything DevTools can read,\na script can read.\n\n**This does not replace looking at it.** CDP answers *factual* questions (\"what\nis the computed padding\", \"did this element render\", \"which selector matches\").\nIt cannot tell you whether the result looks good. Colour balance, spacing feel,\nand \"is this ugly\" still need the user's eyes or a screenshot. Answer facts with\nCDP; hand aesthetics to the user.\n\n## When to Use\n\n- Verifying a UI change actually took effect in the running app\n- \"Why is this element still X?\" \u2014 find the winning rule before editing anything\n- Locating a stable selector for a component you're about to change\n- Checking a design token's computed value on a real node\n- Reading renderer console errors the user mentions but can't copy out\n\n**Don't use for:** perf profiling or heap work (`node-inspect-debugger`,\n`debugging-hermes-desktop`), or anything where the real question is \"does this\nlook right\".\n\n## The port\n\nOpen on `127.0.0.1:9222` for any dev-server run. Closed in exactly two cases\n(`apps/desktop/electron/dev-cdp.ts`):\n\n- **packaged builds** \u2014 always, and no environment value overrides it;\n- **no `HERMES_DESKTOP_DEV_SERVER`** \u2014 an unpackaged `electron .` against\n  `dist/` is how the packaged app gets smoke tested, so it behaves like one.\n\n`HERMES_DESKTOP_CDP_PORT` moves the port (`=9333`) or disables it (`=off`).\n\nCheck before doing anything else:\n\n```bash\ncurl -s --max-time 3 http://127.0.0.1:${HERMES_DESKTOP_CDP_PORT:-9222}/json/version\n```\n\nEmpty \u2192 no port. Do not guess another port silently.\n\n**Never relaunch the user's app to get a port.** That destroys their session and\ntheir state. Launch your own isolated instance instead (below).\n\n## Reading the DOM\n\n`apps/desktop/scripts/eval.mjs` is the one-liner:\n\n```bash\ncd apps/desktop\nnode scripts/eval.mjs \"document.querySelectorAll('[data-slot]').length\"\n```\n\nFor multi-step work use the shared client \u2014 it has target discovery and\npromise-aware eval:\n\n```js\nimport { CDP, SELECTORS } from './scripts/perf/lib/cdp.mjs'\n\nconst cdp = await CDP.connect({ port: 9222, match: '5174' })\nconst out = await cdp.eval(`JSON.stringify({\n  radius: getComputedStyle(document.documentElement).getPropertyValue('--radius-scalar').trim(),\n  composer: !!document.querySelector('[data-slot=\"composer-rich-input\"]')\n})`)\ncdp.close()\n```\n\n`SELECTORS` in `scripts/perf/lib/cdp.mjs` holds the stable `data-slot` hooks\n(composer, thread viewport, assistant message, turn pair, profile rail). Prefer\nthem over inventing a `querySelector` \u2014 they are updated as a unit when\ncomponents move.\n\n## The question this is best at: which rule won?\n\nEditing every call site because a style \"isn't applying\" is the classic waste.\nRead the real node first:\n\n```js\nconst el = document.querySelector('[data-slot=\"aui_assistant-message-root\"] a')\nJSON.stringify({\n  ownClasses: el.className,\n  weight: getComputedStyle(el).fontWeight,\n  parents: (() => {\n    const out = []\n    let n = el\n    while ((n = n.parentElement) && out.length < 6) out.push(n.className)\n    return out\n  })()\n})\n```\n\nIf the node carries no class of its own, the value is **inherited** \u2014 sweeping\ncall sites will not fix it, and you need the ancestor rule. A plugin stylesheet\n(e.g. `@tailwindcss/typography`'s `prose a { font-weight: 500 }`) routinely beats\na utility class; override on the shared class, not at each usage.\n\n## Your own isolated instance\n\nWhen there is no port, or you must not disturb the user's window:\n\n```bash\ncd apps/desktop\nHERMES_HOME=/tmp/cdp-probe-home \\\nHERMES_DESKTOP_DEV_SERVER=http://127.0.0.1:5174 \\\nHERMES_DESKTOP_CDP_PORT=9333 \\\n  npx electron . --user-data-dir=/tmp/cdp-probe-userdata\n```\n\nThe separate `--user-data-dir` dodges Electron's single-instance lock, so it\ncannot collide with a running `hgui`; the separate `HERMES_HOME` keeps it away\nfrom real sessions. Pick a port other than 9222 for the same reason. Run it in\nthe background and kill it when done.\n\n`npm run perf:serve` does the same with a temp `HERMES_HOME` baked in, if you\nalso want the perf harness.\n\n## Pitfalls\n\n- **Never kill the user's dev server or app to \"free\" anything.** A mid-serve\n  kill nukes Chromium's socket pool, and the resulting `ERR_NETWORK_CHANGED`\n  gets blamed on whatever you just changed.\n- **A throwaway `HERMES_HOME` has no backend.** The app logs `ECONNREFUSED` for\n  `hermes:api` and may exit on its own. The renderer still mounts and the DOM is\n  readable \u2014 read promptly, and don't mistake a self-exited probe for a broken\n  port. Chromium logs `DevTools listening on ws://127.0.0.1:<port>/\u2026` when it\n  binds; that line is the proof the port opened.\n- **Poll, don't probe once.** A just-launched app needs a second or two before\n  the port answers.\n- **Never dump the whole DOM.** The desktop renders hundreds of nodes and\n  `outerHTML` will bury your context. Project down to a small JSON object inside\n  the evaluated expression.\n- **Pass `match` to `CDP.connect`.** Without it you may attach to the pet\n  overlay, quick-entry window, or a devtools target instead of the main window.\n- **`cdp.eval` returns the value; raw `Runtime.evaluate` double-nests it**\n  (`.result.result.value`). Use the wrapper.\n- **`import.meta.env.DEV` is `true` under `vite dev`** in this repo. The note in\n  `apps/desktop/scripts/profile-typing-lag.md` claiming otherwise is stale.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:44Z",
+  "updated_at": "2026-10-20T13:11:31Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/inspecting-hermes-desktop-dom",
+      "sha256": "a78a5f8d277a1d6d39fccd5ecf1e76ce519a1ace831f06078dfcc91cb54a3399",
+      "retrieved_at": "2026-10-20T12:52:44Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:44Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:11:31Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:11:30Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "inspecting-hermes-desktop-dom",
+    "description": "Read the live Hermes desktop DOM/CSS over CDP.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/inspecting-hermes-desktop-dom",
+    "sha256": "a78a5f8d277a1d6d39fccd5ecf1e76ce519a1ace831f06078dfcc91cb54a3399",
+    "tags": [
+      "inspecting-hermes-desktop-dom",
+      "inspecting",
+      "hermes",
+      "desktop",
+      "dom",
+      "Read",
+      "the",
+      "live"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

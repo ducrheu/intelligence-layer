@@ -18,7 +18,10 @@ TRANSITIONS: dict[str, dict[str, set[str]]] = {
         "archived": set(),
     },
     "skill": {
-        "candidate": {"experimental", "archived"},
+        # A text-only skill has nothing to trial, so it may go straight to
+        # validated. A skill that ships scripts still has an experimental stop:
+        # it gets tried before anyone claims it works.
+        "candidate": {"experimental", "validated", "archived"},
         "experimental": {"validated", "candidate", "archived"},
         "validated": {"approved", "experimental", "archived"},
         "approved": {"deprecated"},

@@ -115,14 +115,26 @@ def evaluate(artifact: dict[str, Any], submitter: str | None,
     if kind in NON_EXECUTABLE_KINDS:
         reasons.append(f"{kind} carries no executable payload to verify")
     elif kind == "skill":
-        # A skill is admissible when someone other than its author already ran its
-        # tests and the gateway can re-check that the same bytes still pass for a
-        # matching artifact. The gateway never executes the author's code itself.
-        proven, detail = verify_test_evidence(artifact, artifact.get("evidence") or [], disk_hashes)
-        if proven:
-            reasons.append(detail)
+        metadata = artifact.get("metadata") or {}
+        if not artifact.get("tests") and metadata.get("verification") == "static-review":
+            # Text-only skill: no payload runs, so the risk is a bad instruction
+            # to read -- the same class as knowledge -- and the same tier applies.
+            # Anything with a test or an executable attachment goes down the
+            # evidence path below, where a second identity must have run it.
+            if metadata.get("executable_attachments"):
+                blocking.append(
+                    "skill ships executable attachments: a human reads what they do before it is shared")
+            else:
+                reasons.append("static-review skill: no executable payload to verify")
         else:
-            blocking.append(f"skill is not verified: {detail}")
+            # A skill is admissible when someone other than its author already ran its
+            # tests and the gateway can re-check that the same bytes still pass for a
+            # matching artifact. The gateway never executes the author's code itself.
+            proven, detail = verify_test_evidence(artifact, artifact.get("evidence") or [], disk_hashes)
+            if proven:
+                reasons.append(detail)
+            else:
+                blocking.append(f"skill is not verified: {detail}")
     else:
         blocking.append(f"kind {kind!r} has no automated verification path")
 

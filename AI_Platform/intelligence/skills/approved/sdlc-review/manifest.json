@@ -1,0 +1,87 @@
+{
+  "id": "sdlc-review",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Review Kanban handoffs and route verified outcomes.",
+  "content": "---\nname: sdlc-review\ndescription: Review Kanban handoffs and route verified outcomes.\nversion: 1.1.0\nauthor: Jakub Wolniewicz (@frizikk) + Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [kanban, review, quality, verification]\n    category: devops\n    requires_toolsets: [kanban]\nenvironments:\n  - kanban\n---\n\n# SDLC Review Skill\n\nIndependently verify work handed from a Kanban implementation run to the review lane, then approve it, request changes, or escalate. This skill reviews the deliverable and its evidence; it does not take over the implementer's work.\n\n## When to Use\n\nUse this skill when all of the following are true:\n\n- the dispatcher spawned you for a task claimed from the `review` lane;\n- an implementer submitted a `review_requested` handoff;\n- the task needs an independent verdict before it can be completed.\n\nDo not use it for a separate downstream review card. A downstream card is ordinary implementation work with a review-oriented specification and completes through its own lifecycle.\n\n## Prerequisites\n\n- A Kanban worker context with the current task and run identifiers.\n- Native Kanban tools: `kanban_show`, `kanban_comment`, `kanban_complete`, `kanban_request_changes`, and `kanban_block`.\n- Workspace access through `read_file`, `search_files`, and `terminal` when the deliverable is code.\n- The task's original specification, acceptance criteria, handoff summary, and prior run history must be available through `kanban_show`.\n\n## How to Run\n\nThis skill is loaded automatically by the review dispatcher. Start with `kanban_show` before inspecting files or choosing a verdict.\n\n1. Read the task specification and the latest `review_requested` handoff.\n2. Inspect the actual deliverable and run relevant verification.\n3. Choose exactly one verdict: approve, request changes, or escalate.\n4. Record concrete evidence in the terminal Kanban transition.\n\n## Quick Reference\n\n| Verdict | When | Final action |\n|---|---|---|\n| Approve | Acceptance criteria and verification pass | `kanban_complete` |\n| Request changes | Correctable implementation defects remain | `kanban_comment`, then `kanban_request_changes` |\n| Escalate | A human decision or external prerequisite is required | `kanban_block` |\n\nA requested-changes transition returns the task to its original implementer. When that implementer requests review again without naming a reviewer, the persisted reviewer provenance routes the re-review back to the same reviewer profile.\n\n## Review Lenses\n\nVary how you look at the work on each round instead of repeating the same inspection. Decorrelated lenses catch different defect classes: a cold read of the artifact surfaces design and correctness problems that the implementer's narrative would have framed away, execution surfaces claims that do not reproduce, and a strict contract audit surfaces quiet scope drift. Repeating the round-1 lens on round 3 mostly re-finds what round 1 already found.\n\nDetermine the current round from the history the task record already gives you: count the `changes_requested` entries in the \"Prior attempts on this task\" section of your worker context (also visible as prior runs in `kanban_show`). The current review round is that count plus one. Round 1 therefore shows zero `changes_requested` attempts; round 2 shows one; and so on.\n\n| Round | Lens | How to apply it |\n|---|---|---|\n| 1 | Artifact | Read the diff or deliverable cold, before the implementer's summary. Form an independent judgment, then compare it against the handoff narrative and investigate every mismatch. |\n| 2 | Execution | Check out the work and actually run it via `terminal`: build, test, and exercise the reported behavior yourself. Verify each handoff claim empirically instead of re-reading the artifact. |\n| 3+ | Contract | Re-read the ORIGINAL task body and acceptance criteria, then audit the deliverable strictly against them. Also verify that every item from every prior `kanban_request_changes` round actually landed. |\n\nThe baseline duties in the Procedure section still apply on every round; the lens sets which inspection you lead with and weight most heavily.\n\n### Lens variation for ad-hoc review fan-outs\n\nThe same principle applies outside the Kanban review lane. When spawning multiple parallel reviewers via `delegate_task`, give each reviewer a different lens \u2014 one diff-only brief, one full-context brief, one checkout-and-run brief \u2014 rather than identical briefs. Identical briefs produce correlated verdicts and duplicate findings; varied briefs cover more defect classes for the same review spend.\n\n## Procedure\n\n### 1. Orient from the durable task record\n\nCall `kanban_show` and identify:\n\n- the original task body and acceptance criteria;\n- the latest implementation summary and structured metadata;\n- changed files, commit identifiers, and test evidence;\n- comments and decisions from earlier runs;\n- findings from prior review rounds.\n\nTreat the handoff as a claim to verify, not as proof that the work is correct.\n\n### 2. Compare requested behavior with delivered behavior\n\nMap every acceptance criterion to concrete implementation or output evidence. Note omissions, changed semantics, and unrelated scope before deciding whether to run deeper checks.\n\nFor code work:\n\n1. Use `read_file` and `search_files` to inspect the changed paths and their callers.\n2. Use `terminal` to inspect the diff and run the project's existing focused tests, lint, type checks, or build commands.\n3. Exercise the reported failure path and at least one ordinary control path when practical.\n4. Check error handling, edge cases, concurrency boundaries, data preservation, security boundaries, and cross-platform behavior relevant to the change.\n5. Confirm that tests assert behavior rather than merely snapshotting source text or constants.\n\nFor non-code work:\n\n1. Inspect the complete deliverable rather than only its summary.\n2. Check correctness, completeness, formatting, and provenance.\n3. Validate referenced URLs or external facts with the appropriate native tools when they affect the verdict.\n\n### 3. Choose one verdict\n\n#### Approve\n\nApprove only when the acceptance criteria are satisfied and the evidence is sufficient. Call:\n\n```text\nkanban_complete(\n    summary=\"Reviewed and approved. <what was verified>\",\n    metadata={\"review_outcome\": \"approved\", \"reviewer_checks\": [...]}\n)\n```\n\nInclude the exact checks that passed and any bounded caveat that does not block acceptance.\n\n#### Request changes\n\nUse this for specific, correctable defects. First record actionable findings:\n\n```text\nkanban_comment(\n    task_id=\"<current-task-id>\",\n    body=\"Changes requested:\\n1. <file or artifact + defect>\\n2. <required correction>\",\n)\n```\n\nThen return the same task to its implementer:\n\n```text\nkanban_request_changes(\n    reason=\"<concise summary of the required corrections>\"\n)\n```\n\nState where the defect is, how it reproduces, why it violates the task, and what minimum outcome would resolve it. The transition does not use blocker recurrence accounting.\n\n#### Escalate\n\nUse escalation only when the reviewer and implementer cannot resolve the problem without a human decision or external prerequisite:\n\n```text\nkanban_block(\n    reason=\"escalation: <decision or prerequisite required>\"\n)\n```\n\nExplain the blocked decision and the smallest information needed to continue.\n\n### 4. Preserve role separation\n\nDo not edit the implementation while acting as reviewer. Request changes and let the implementer produce the next candidate; then independently verify that candidate in the next review run.\n\n## Pitfalls\n\n- **Rubber-stamping:** A passing handoff summary is not independent evidence.\n- **Reviewer implementation:** Editing the deliverable hides ownership and weakens the re-review boundary.\n- **Vague findings:** \u201cNeeds work\u201d does not give the implementer a reproducible correction target.\n- **Style-only blocking:** Do not request changes for preference-level nits when behavior and repository standards are satisfied.\n- **Skipping prior rounds:** Re-review must confirm both the requested corrections and preservation of previously passing behavior.\n- **Using blockers for ordinary rework:** Correctable defects belong in `kanban_request_changes`; reserve `kanban_block` for genuine external blockers or human decisions.\n- **Completing without evidence:** Every approval summary must name the checks or artifacts actually inspected.\n\n## Verification\n\nBefore submitting the verdict, confirm:\n\n- [ ] `kanban_show` was read for the current task and run.\n- [ ] Every acceptance criterion was mapped to evidence.\n- [ ] The actual deliverable was inspected.\n- [ ] Relevant focused checks were run or an explicit reason was recorded when execution was impossible.\n- [ ] Prior requested changes were re-tested on re-review.\n- [ ] Unrelated regressions and scope changes were considered.\n- [ ] The verdict uses exactly one terminal action.\n- [ ] The summary contains concrete, non-secret evidence.\n- [ ] No implementation files were edited by the reviewer.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:01Z",
+  "updated_at": "2026-10-20T13:13:19Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/devops/sdlc-review",
+      "sha256": "ce90e8a3e145cce69c62880dc85921700110879f9290952d6cec28218503155f",
+      "retrieved_at": "2026-10-20T12:52:01Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:01Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:13:19Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:13:18Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "sdlc-review",
+    "description": "Review Kanban handoffs and route verified outcomes.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "devops/sdlc-review",
+    "sha256": "ce90e8a3e145cce69c62880dc85921700110879f9290952d6cec28218503155f",
+    "tags": [
+      "sdlc-review",
+      "sdlc",
+      "review",
+      "Kanban",
+      "handoffs",
+      "and"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

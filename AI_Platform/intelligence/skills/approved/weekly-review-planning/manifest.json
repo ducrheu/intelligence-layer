@@ -1,0 +1,88 @@
+{
+  "id": "weekly-review-planning",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Weekly reset: commitments, stalled work, next-week plan.",
+  "content": "---\nname: weekly-review-planning\ndescription: \"Weekly reset: commitments, stalled work, next-week plan.\"\nversion: 0.1.0\nauthor: Ben Barclay (benbarclay), Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [Weekly-Review, Planning, Tasks, Calendar, Productivity]\n    related_skills: [obsidian, notion, airtable, google-workspace, email-inbox-triage]\n---\n\n# Weekly Review and Planning\n\nRun a bounded weekly reset across the user's chosen systems. This is a concrete recurring task, not a generic productivity methodology \u2014 the `weekly-review` Automation Blueprint schedules it as a cron job.\n\n## When to Use\n\n- \"Run my weekly review.\"\n- \"What did I commit to and what is slipping?\"\n- \"Plan next week from my calendar, tasks, and notes.\"\n- \"Find stale projects and waiting items.\"\n- A cron tick fires for a scheduled weekly review.\n\nDon't use for: daily briefs (see the `google-workspace` daily-brief reference) or single-inbox triage (`email-inbox-triage`).\n\n## Procedure\n\n### 1. Set systems and window\n\nConfirm timezone, review period, planning horizon, authoritative task/project store, calendars, inboxes, and allowed writes. Default to recommendations/drafts, not mutations. Done when source-of-truth conflicts have a declared winner.\n\n### 2. Review calendar evidence\n\nLoad `google-workspace` or the relevant calendar connector. Inspect the completed week for meetings and commitments, then the next 1-2 weeks for deadlines, travel, preparation, and capacity. Capture follow-ups implied by past events and conflicts ahead. Done when both retrospective and horizon are covered.\n\n### 3. Clear capture inboxes\n\nReview the task inbox, notes (`obsidian`, `notion`), flagged email (`email-inbox-triage` owns thread-level triage), and other declared capture points. Convert each item to next action, project, waiting, scheduled, someday, reference, archive, or delete proposal. Do not mutate until scope is approved. Done when remaining unprocessed items are counted and stated.\n\n### 4. Reconcile active projects\n\nFor each project identify desired outcome, next action, owner, deadline, blocker, last meaningful activity, and source link. Flag projects with no next action, missed dates, duplicate records, or contradictory status. Done when every active project is actionable or explicitly paused.\n\n### 5. Review waiting and commitments\n\nFind promises made by the user and items owed by others. Propose follow-ups with dates and channels. Do not infer that silence means completion. Done when each waiting item has an owner and next review/follow-up date.\n\n### 6. Build a capacity-aware plan\n\nEstimate fixed calendar load and select a small set of weekly outcomes plus near-term next actions. Rank by consequence, deadline, dependency, and effort; do not fill every free hour. Done when the plan fits actual capacity and names deferred work.\n\n### 7. Apply approved updates\n\nUpdate tasks/projects, create calendar holds, archive processed items, and draft follow-ups only as approved. Read every changed record back from the provider. Done when verified writes match the review summary.\n\n## Output Shape\n\n1. Wins and completed commitments\n2. Overdue or at risk\n3. Waiting/follow-ups\n4. Stalled or ambiguous projects\n5. Next week's outcomes and calendar constraints\n6. Proposed updates awaiting approval\n7. Coverage gaps\n\n## Pitfalls\n\n- Planning from tasks without calendar capacity.\n- Carrying every unfinished item forward as high priority.\n- Marking projects active with no next action.\n- Silently deleting or rescheduling personal commitments.\n- Treating silence from others as completion.\n\n## Verification\n\n- [ ] Both the completed week and the planning horizon were covered, or gaps are stated.\n- [ ] Every stalled/waiting flag traces to a specific record, event, or thread.\n- [ ] No task, event, or note was mutated without approval; approved writes were read back.\n- [ ] The plan names what was deferred, not just what was chosen.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:29Z",
+  "updated_at": "2026-10-20T13:14:28Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/productivity/weekly-review-planning",
+      "sha256": "a689257facb937cfca9bc5507dd9e729f287f0cd3f6abbf73448eb25f73fbaab",
+      "retrieved_at": "2026-10-20T12:52:29Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:29Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:14:28Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:14:26Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "weekly-review-planning",
+    "description": "Weekly reset: commitments, stalled work, next-week plan.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "productivity/weekly-review-planning",
+    "sha256": "a689257facb937cfca9bc5507dd9e729f287f0cd3f6abbf73448eb25f73fbaab",
+    "tags": [
+      "weekly-review-planning",
+      "weekly",
+      "review",
+      "planning",
+      "reset",
+      "commitments",
+      "stalled"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

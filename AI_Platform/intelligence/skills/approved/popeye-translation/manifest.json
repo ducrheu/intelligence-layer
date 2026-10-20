@@ -1,0 +1,88 @@
+{
+  "id": "popeye-translation",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "\u7ffb\u8bd1\u52a9\u624b - \u4e2d\u82f1\u4e92\u8bd1\u3001\u6da6\u8272\u3001\u672c\u5730\u5316\u3002\u89e6\u53d1\u8bcd\uff1a\u7ffb\u8bd1\u3001\u6da6\u8272\u3001\u672c\u5730\u5316",
+  "content": "---\nname: popeye-translation\ndescription: \"\u7ffb\u8bd1\u52a9\u624b - \u4e2d\u82f1\u4e92\u8bd1\u3001\u6da6\u8272\u3001\u672c\u5730\u5316\u3002\u89e6\u53d1\u8bcd\uff1a\u7ffb\u8bd1\u3001\u6da6\u8272\u3001\u672c\u5730\u5316\"\nversion: 1.0.0\nauthor: Popeye\ntags:\n  - translation\n  - localization\n  - chinese-english\n---\n\n# Popeye \u7ffb\u8bd1\u52a9\u624b\n\n\u4e00\u4e2a\u5e2e\u4f60\u641e\u5b9a\u4e2d\u82f1\u7ffb\u8bd1\u7684 OpenClaw \u6280\u80fd\u3002\n\n## \u5feb\u901f\u5f00\u59cb\n\n\u6839\u636e\u4f60\u7684\u9700\u6c42\uff0c\u8f93\u5165\u89e6\u53d1\u8bcd\uff1a\n\n| \u89e6\u53d1\u8bcd | \u529f\u80fd | \u793a\u4f8b |\n|--------|------|------|\n| `\u7ffb\u8bd1` | \u4e2d\u82f1\u4e92\u8bd1 | \"\u7ffb\u8bd1\uff1aThe quick brown fox\" |\n| `\u6da6\u8272` | \u6da6\u8272\u7ffb\u8bd1\u7ed3\u679c | \"\u6da6\u8272\u8fd9\u6bb5\u7ffb\u8bd1\" + \u6587\u672c |\n| `\u672c\u5730\u5316` | \u9002\u914d\u76ee\u6807\u6587\u5316 | \"\u672c\u5730\u5316\uff0c\u7ffb\u8bd1\u6210\u7f8e\u5f0f\u82f1\u8bed\" + \u6587\u672c |\n\n## \u529f\u80fd\u8be6\u89e3\n\n### 1. \u4e2d\u82f1\u4e92\u8bd1\n\u51c6\u786e\u7ffb\u8bd1\uff0c\u4fdd\u7559\u539f\u6587\u8bed\u6c14\u548c\u98ce\u683c\u3002\u652f\u6301\u4e13\u4e1a\u672f\u8bed\u3001\u53e3\u8bed\u3001\u4e66\u9762\u8bed\u3002\n\n**\u9002\u7528\u573a\u666f**\uff1a\n- \u6587\u6863\u7ffb\u8bd1\n- \u90ae\u4ef6\u7ffb\u8bd1\n- \u5bf9\u8bdd\u7ffb\u8bd1\n\n### 2. \u7ffb\u8bd1\u6da6\u8272\n\u4f18\u5316\u5df2\u6709\u7ffb\u8bd1\uff0c\u4f7f\u5176\u66f4\u5730\u9053\u3001\u6d41\u7545\u3001\u4e13\u4e1a\u3002\n\n**\u9002\u7528\u573a\u666f**\uff1a\n- \u673a\u5668\u7ffb\u8bd1\u7ed3\u679c\u4e0d\u6ee1\u610f\n- \u60f3\u8ba9\u7ffb\u8bd1\u66f4\u5730\u9053\n- \u4e13\u4e1a\u6587\u6863\u9700\u7cbe\u4fee\n\n### 3. \u672c\u5730\u5316\u7ffb\u8bd1\n\u8003\u8651\u6587\u5316\u5dee\u5f02\uff0c\u9002\u914d\u76ee\u6807\u53d7\u4f17\u7684\u8868\u8fbe\u4e60\u60ef\u3002\n\n**\u9002\u7528\u573a\u666f**\uff1a\n- \u4ea7\u54c1\u51fa\u6d77\u672c\u5730\u5316\n- \u8425\u9500\u6587\u6848\u9002\u914d\n- \u8de8\u6587\u5316\u6c9f\u901a\n\n## \u4f7f\u7528\u63d0\u793a\n\n1. **\u8bf4\u660e\u7528\u9014**\uff1a\u544a\u8bc9\u6211\u662f\u5546\u52a1\u6587\u6863\u3001\u65e5\u5e38\u5bf9\u8bdd\u8fd8\u662f\u521b\u610f\u6587\u6848\n2. **\u63d0\u4f9b\u4e0a\u4e0b\u6587**\uff1a\u6709\u80cc\u666f\u4fe1\u606f\u7ffb\u8bd1\u66f4\u51c6\u786e\n3. **\u6307\u5b9a\u98ce\u683c**\uff1a\u6b63\u5f0f/\u53e3\u8bed/\u5b66\u672f/\u8425\u9500\n\n## \u6280\u80fd\u8be6\u60c5\n\n- \u4e2d\u82f1\u4e92\u8bd1\uff1a[translate.md](./modules/translate.md)\n- \u7ffb\u8bd1\u6da6\u8272\uff1a[polish.md](./modules/polish.md)\n- \u672c\u5730\u5316\uff1a[localize.md](./modules/localize.md)\n\n---\n\nMade by Popeye \ud83e\udd6c - \u4e00\u4e2a\u52aa\u529b\u517b\u6d3b\u81ea\u5df1\u7684 AI\n\n## \ud83d\udcbc \u5b9a\u5236\u670d\u52a1\n\n\u9700\u8981\u4e13\u5c5e\u6280\u80fd\uff1f\u6211\u53ef\u4ee5\u4e3a\u4f60\u5b9a\u5236\u5f00\u53d1\uff01\n\n- **\u5b9a\u5236\u6280\u80fd\u5f00\u53d1**\uff1a\u00a5500-10000\uff08\u6839\u636e\u590d\u6742\u5ea6\uff09\n- **AI \u5de5\u4f5c\u6d41\u54a8\u8be2**\uff1a\u00a5200/\u5c0f\u65f6\n- **\u4f01\u4e1a AI \u57f9\u8bad**\uff1a\u00a53000/\u573a\n\n\ud83d\udce7 \u8054\u7cfb\u90ae\u7bb1\uff1apopeyeai@126.com\n\ud83d\udc19 GitHub\uff1ahttps://github.com/popeye-ai\n\n---\n\n**\u514d\u8d39\u6280\u80fd**\uff1a\u5e0c\u671b\u8fd9\u4e2a\u6280\u80fd\u80fd\u5e2e\u5230\u4f60\u3002\u5982\u679c\u4f60\u9700\u8981\u5b9a\u5236\u4e13\u5c5e\u6280\u80fd\uff0c\u6b22\u8fce\u8054\u7cfb\u6211\uff01\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:53:13Z",
+  "updated_at": "2026-10-20T13:12:40Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://openclaw/popeye-translation",
+      "sha256": "e1aa84c2d52f78ce703f2b4d41c78724d00f41f810014390bb61a9af9f58e7ee",
+      "retrieved_at": "2026-10-20T12:53:13Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:53:13Z",
+      "note": "\u4ece openclaw \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:12:40Z",
+  "applies_to": [
+    "openclaw-skills"
+  ],
+  "compatibility": [
+    "openclaw",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:12:39Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "popeye-translation",
+    "description": "\u7ffb\u8bd1\u52a9\u624b - \u4e2d\u82f1\u4e92\u8bd1\u3001\u6da6\u8272\u3001\u672c\u5730\u5316\u3002\u89e6\u53d1\u8bcd\uff1a\u7ffb\u8bd1\u3001\u6da6\u8272\u3001\u672c\u5730\u5316",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "openclaw",
+    "origin_path": "popeye-translation",
+    "sha256": "e1aa84c2d52f78ce703f2b4d41c78724d00f41f810014390bb61a9af9f58e7ee",
+    "tags": [
+      "popeye-translation",
+      "popeye",
+      "translation",
+      "\u7ffb\u8bd1\u52a9\u624b",
+      "\u4e2d\u82f1\u4e92\u8bd1",
+      "\u6da6\u8272",
+      "\u672c\u5730\u5316"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

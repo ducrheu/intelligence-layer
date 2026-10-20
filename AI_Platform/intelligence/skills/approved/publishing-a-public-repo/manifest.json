@@ -1,0 +1,88 @@
+{
+  "id": "publishing-a-public-repo",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Use when publishing a local project to a public repo.",
+  "content": "---\nname: publishing-a-public-repo\ndescription: \"Use when publishing a local project to a public repo.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [git, github, publishing, privacy, ci, verification]\n    related_skills: [github]\n---\n\n# Publishing a Local Project to a Public Repo\n\nTurning a working directory into a repository a stranger can clone, run and read -\nwithout publishing the operator's private context along with it.\n\n## When to Use\n\n- \"Upload this as a complete project\", \"put it on my GitHub\", \"make it public\".\n- A project has never been under version control and is about to be.\n- A repository is going public for the first time (the only moment a leak is cheap to fix).\n\n## Procedure\n\n1. **Make a rollback point before touching anything.** `git init` + a first commit, or a tarball\n   copy if the tree is unversioned and you still need to edit code inside it. This is what lets you\n   revert the sanitisation or a bad structural edit later.\n2. **Classify every file as code, content, or runtime state.** Runtime state (audit trails, usage\n   counters, credential hashes, caches, generated dashboards) is what most often must not be\n   published, and the fix is a design change rather than a `.gitignore` entry: give those paths an\n   environment override (e.g. `INTELLIGENCE_STATE`) pointing outside the checkout, keep the in-tree\n   default working for local development, then `git rm --cached` and ignore them. Ignoring without\n   relocating keeps writing private data into a directory that is now published.\n3. **Scan the exact tracked set for personal data - not the working tree.** Enumerate paths from\n   the index (`git ls-files`, or a dry-run add) and grep each for absolute home paths, Windows user\n   profile paths, hostnames, the operator's private project names, real email addresses and\n   credential-shaped strings. Report findings and get a decision before publishing.\n4. **Sanitise mechanically, and know which fields are load-bearing.** Replace environment paths and\n   private names with neutral placeholders (`$HOME`, `<USERPROFILE>`, `<host>`, `example-project`),\n   then re-scan the same tracked set and print \"no residual personal data\" as a result, not a claim.\n   Caution: if the project digests or hashes its own records, editing a *digested* field changes the\n   identity of that record - in a governance system that silently invalidates evidence attached to\n   it. Prefer editing non-digested fields, and prefer excluding a file over rewriting a signed record.\n5. **Write the README as if the reader is deciding whether to trust the project.** What it is, the\n   invariant it protects, the layout, what lives outside the repo and why, how to run the tests, and\n   an explicit *known gaps* section. An honest gap list reads as engineering judgement; omitting it\n   reads as marketing and gets distrusted at the first surprise.\n6. **Make CI runnable with nothing installed.** A suite that needs no third-party packages, no\n   network and no model server runs on a clean runner and proves the project is self-contained. Pin\n   the versions it claims, loop the test files, fail on any non-zero exit, and do not `set -e` your\n   way past a failure you meant to collect.\n7. **Commit, then push, then verify against the remote** - see Verification. A successful push\n   output is the sender's claim, not a fact about the remote.\n\n## Rules\n\n- **Verify in the environment the stranger has, not the one you work in.** Unset every convenience\n  variable (`PYTHONPATH`, `PATH` additions, proxies, credentials) before the closing check. A\n  harness that sets the very variable under test proves nothing about a clone: it passes while the\n  clone fails in CI.\n- **Locate a project root by looking for the package, not by counting parent directories.** A fixed\n  `parents[N]` breaks as soon as the tree is laid out differently (a clone, a worktree, a CI\n  checkout) and surfaces as `ModuleNotFoundError`, which reads like a missing dependency.\n- **The clone test is the real proof of shipping.** Clone into a scratch directory, run the suite\n  there with a clean environment, and check the clone does not contain the private files. Do it for\n  the *published shape*, because root layout and ignored paths are properties of the repo, not of\n  your working copy.\n- **The first push to a public repo is irreversible.** It gets indexed and scraped, so the privacy\n  scan and the sanitisation come before it - and so does author attribution, because amending after\n  a push needs a force-push.\n- **Attribute commits to the account that owns the repo.** A placeholder email leaves commits\n  unlinked and the contributor invisible. Use the host's noreply address derived from the account\n  id and login (`<id>+<login>@users.noreply.github.com`), with the name the operator asked for.\n- **Never let a generated artifact into the repository.** Dashboards, caches and reports are\n  outputs; if a reader needs one, ship the script that makes it.\n\n## Pushing from a network that blocks the host\n\nSymptom: the push dies with a TLS reset and then a multi-minute connect timeout, while the host's\n*API* subdomain answers fine. That split is diagnostic, not random, and it is worth one probe each:\n`curl` the web host, the API host and the SSH-over-443 host, and compare status codes and latency.\n\nThen push through whatever local proxy the machine already runs, **for that command only**:\n\n```bash\ngit -c http.proxy=http://127.0.0.1:<port> -c https.proxy=http://127.0.0.1:<port> \\\n    -c credential.helper='!gh auth git-credential' push -u origin main\n```\n\nThe inline credential helper borrows the CLI's stored credential without writing a global git\nconfig entry, and an explicit `-c` proxy leaves the operator's configuration untouched. Tell them\nthe one line to run if they want it to apply permanently - their decision, since a global proxy\nchanges behaviour for every repository.\n\n## Pushing a repo that other automation also commits to\n\nA scheduled job that commits (a nightly anchor, a state digest, a generated manifest) accumulates\ncommits you did not write and did not review. `git push` sends the whole branch, so name what will\ngo before sending it:\n\n```bash\ngit log @{u}..HEAD --oneline     # exactly what this push adds\ngit status --short               # what stays behind, still unpublished\n```\n\n- **Commit path-scoped, not index-wide.** `git commit -m msg -- <path>\u2026` publishes the files you mean\n  and leaves someone else's in-flight work (a half-finished data migration, a lifecycle move waiting\n  on a human) untouched. Never `git add -A` in a shared tree, and never `git checkout .` /\n  `git reset --hard` to \"clean up\": the uncommitted set has an owner, and a deletion staging pair is\n  often the two halves of a move that only looks like a removal.\n- **Read your own commit back**: `git show --stat --format='' HEAD` \u2014 the tool's line, not memory.\n- **Say when machine-generated commits ride along.** Sending three automation commits with your one\n  feature commit is normally correct; unreported it reads to the operator as unexplained change.\n- **An untracked artifact is invisible to CI.** A file sitting in the working tree is absent from the\n  checkout the runner tests, so committing it can change a green run. Re-run the same consistency\n  check locally against the newly tracked set before pushing, not after.\n\n## Keeping CI healthy after the first green run\n\n- **A deprecation warning on a green run is work, not noise \u2014 but only some warnings are.** \"Targets\n  Node 20, is forced to run on Node 24\" names the exact actions to bump; a label migrating to a newer\n  runner image on a future date needs no action. Report them differently.\n- **Read the release notes of the major you are jumping to.** Check the template for inputs it\n  dropped and event guards it added (`pull_request_target`): a major bump is safe in one workflow and\n  unsafe in the next, and the changelog is what says which.\n- **Verify by re-running**: the suite green per job *and* the warning gone. A bump that silences the\n  annotation while changing behaviour is the failure this step exists to catch.\n- **Major tag versus full-SHA pinning is a real trade-off, so state your side.** A SHA is immune to a\n  moved tag and receives no fixes until someone bumps it (Dependabot can automate that); a major tag\n  receives security fixes and trusts the publisher. Pick one, say why, and offer the other.\n\n## Verification\n\n- Local `HEAD` equals the remote branch's SHA, read back with `ls-remote`/`fetch` - not the push output.\n- The host reports the intended visibility, and the remote tree holds the expected file count.\n- The remote tree contains none of the files classified as private (name each one, check each one).\n- CI triggered by the push concludes `success`, per step; a run that was green before a fix and red\n  after it means one of the two was not reading reality.\n- The last check belongs to the operator: a message delivered is not a message received, a repo\n  published is not a repo they can read.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:47Z",
+  "updated_at": "2026-10-20T13:12:49Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/publishing-a-public-repo",
+      "sha256": "d7918e2a83897f75e6123eda290247c6b038e60e50087b31757d5ae9c83ea2a8",
+      "retrieved_at": "2026-10-20T12:52:47Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:47Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:12:49Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:12:48Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "publishing-a-public-repo",
+    "description": "Use when publishing a local project to a public repo.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/publishing-a-public-repo",
+    "sha256": "d7918e2a83897f75e6123eda290247c6b038e60e50087b31757d5ae9c83ea2a8",
+    "tags": [
+      "publishing-a-public-repo",
+      "publishing",
+      "public",
+      "repo",
+      "Use",
+      "when",
+      "local"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "id": "hermes-channel-delivery",
+  "kind": "skill",
+  "scope": "local",
+  "status": "candidate",
+  "version": "1.0.0",
+  "title": "Use when wiring a chat platform into Hermes for alerts.",
+  "content": "---\nname: hermes-channel-delivery\ndescription: \"Use when wiring a chat platform into Hermes for alerts.\"\nversion: 1.0.0\nauthor: \u5c0f\u4e3b\u4eba (operator), Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [hermes, gateway, messaging, cron, delivery]\n    related_skills: [governed-kb-write-loop]\n---\n\n# Hermes Channel Delivery\n\nGetting scheduled output (cron reports, alerts, digests) to actually reach the operator on a\nmessaging platform \u2014 and proving it did, rather than reporting that it should.\n\n## When to Use\n\n- A report/alert job exists but nothing arrives: \"the automation runs, nobody receives it\".\n- Wiring a new platform (QQ Bot, Telegram, DingTalk, WeCom, Feishu, ntfy, \u2026) as a delivery target.\n- The operator asks for push instead of pull.\n\n## Procedure\n\n1. **Establish the platform's real contract from the installed tree, not from docs.** Docs can lag\n   the code. Resolve the install: `head -1 \"$(which hermes)\"` gives the venv python; an editable\n   install leaves `site-packages/__editable__*.pth` plus `direct_url.json` naming the app directory.\n   Then read `gateway/platforms/<name>/adapter.py` \u2014 its module docstring states the accepted config\n   keys and environment variable names \u2014 and `gateway/config.py`'s `Platform` enum lists the platform\n   keys `hermes config set` accepts.\n2. **Enable it and set the strictest policy that still works.**\n   `hermes config set gateway.platforms.<key>.enabled true`, then the platform's own DM/group policy\n   keys (`dm_policy: pairing`, `group_policy: disabled` is the right starting point for an agent with\n   tool access). Settings go into `config.yaml` through `hermes config set` \u2014 never hand-edit the\n   file, never put non-secrets in `.env`.\n3. **Credentials only through the platform's onboarding, only into `.env`.** Prefer the wizard\n   (`hermes gateway setup` \u2192 pick the platform): scan-to-configure paths bind the account without\n   anyone typing a secret. Install the wizard's optional renderer dependency first (e.g.\n   `uv pip install --python <venv>/bin/python3 \"qrcode>=7,<9\"`) so the recommended scan path does not\n   silently fall back to manual entry. A secret is never pasted into a chat or passed as a tool\n   argument; if the operator offers one, direct them to `.env`.\n4. **Expect graceful degradation while unbound.** A platform enabled without credentials warns once\n   (`\u2717 <platform> failed to connect`, naming the missing variable) and the gateway retries on a\n   watcher every ~60s. That is correct behaviour, not a fault to \"fix\" by disabling the platform \u2014\n   but tell the operator the retry line will keep appearing in the log until the bind completes.\n5. **Wire the delivery targets.** Cron `deliver` grammar: a bare platform name resolves to that\n   platform's **home channel**; `platform:chat_id` and `platform:chat_id:thread_id` pin an exact\n   target; `local` saves without pushing; `all` hits every connected home channel. Set the home\n   channel during onboarding (the wizard offers it) \u2014 a bare name is the stable choice because it\n   survives the chat id changing.\n6. **Prove delivery end to end before saying it works.** Push once directly\n   (`hermes send -t <platform> \"test\"`, no agent loop involved) and take a *receipt*, not a success\n   line: `hermes send --json` returns the vendor's own `message_id`, which means the vendor's servers\n   accepted the message - still not proof the client displayed it, so ask the operator to confirm.\n   Then check the credentials independently of the adapter by exchanging them at the vendor's token\n   endpoint (a 200 there means the secret is live even if the adapter is misconfigured), and on each\n   scheduled job check `last_delivery_error` / `last_delivery_unverified` after its next fire. A\n   configured target is not a delivered message.\n7. **Say out loud what the channel cannot promise.** Bot platforms commonly throttle messages the\n   user did not ask for (proactive pushes), which is exactly the shape of scheduled reports. Name\n   that risk when wiring the channel instead of discovering it as \"the report is sometimes missing\",\n   and give the operator the cheap workarounds (open the conversation first, or deliver into a group\n   whose rules differ) - as their decision, since a group widens who receives it.\n\n## Pitfalls\n\n- **Authorization often has two sources.** A config key (`dm_policy`) and a legacy env switch\n  (`<PLATFORM>_ALLOW_ALL_USERS`, `*_ALLOWED_USERS`) can both be read. When a policy change seems\n  ignored, check both before assuming the code is wrong.\n- **Pairing is the safe default, and it needs the operator's hand.** With pairing policy the first DM\n  from an unknown user parks as a request; approve with `hermes pairing list` / `approve`. An agent\n  with terminal and file tools must never be reachable by an unapproved stranger.\n- **Only the scan is the operator's; the bind flow itself can be the agent's.** The interactive\n  wizard is a poor fallback: when it dies midway it leaves no credential behind and nothing in the\n  log says why. Drive the vendor's bind-task flow directly instead - the module beside the adapter\n  (e.g. `gateway/platforms/<name>/onboard.py`) exposes create-task -> connect-URL -> poll -> decrypt,\n  and the AES key never leaves the process that created the task, so the whole flow must run in ONE\n  process: start it in the background, poll to completion, and write the returned credentials with\n  the CLI's own `save_env_value` helper. Never print them; restore the credential file's mode (600)\n  after writing. Deliver the connect URL to the operator as a **scannable PNG** they can open from the\n  chat (the wizard's optional `qrcode` dependency renders it) - far more reliable than terminal QR art\n  or a URL they must retype.\n- **\"I already did the setup\" is not evidence it landed.** Verify by artifact, not by report: the\n  credential file's key names *and* its modification time, the gateway's own per-platform state file\n  (`~/.hermes/gateway_state.json`: `state` / `error_code` / `error_message`), and the pairing store\n  (`hermes pairing list` - \"no pairing data\" means nothing ever reached the bot). A wizard that failed\n  silently leaves the file untouched, and the adapter's retry warnings look identical either way.\n- **Vendor-side registration is outside Hermes.** A bot application may need the vendor's own\n  verification before any scan succeeds; a failed bind there is a platform gate, not a config bug.\n- **A report-only job's silence depends on its WHOLE output, not just stdout.** Quiet monitors emit a\n  silence token (e.g. `NO_REPLY`) and the delivery layer suppresses only when that token is the *entire*\n  output \u2014 auxiliary chatter on **stdout or stderr** breaks it, and the monitor then pushes a message\n  every tick while reporting nothing. A helper that has nothing to do must print nothing: log actions to\n  a file, keep a `--verbose` flag for humans, and redirect the call site (`>/dev/null 2>&1`) as a second\n  layer. (A job that exits non-zero also raises an alert.)\n  Verify by isolating the streams \u2014 `bash job.sh >/tmp/o 2>/tmp/e` and assert `wc -c` gives exactly the\n  token and zero \u2014 then confirm the delivery outcome is `last delivery: not-delivered` /\n  `last delivery suppression: silent`, not `delivered`. Reading the script's output is not enough; read\n  the channel's verdict.\n  Note the asymmetry: discarding stderr hides real errors in a *diagnostic* run (a swallowed connection\n  timeout can look like an empty page for hours), so only the quiet scheduled path may drop it.\n- **A recurring failure pings every run until someone acks it \u2014 that, not the schedule, is the real\n  noise source.** Cron groups failures into incidents keyed by `(job, normalized error signature)`, and\n  the per-run failure notice is withheld only once the incident reaches `closed` (= an operator acked\n  it). Nothing acks on its own, so one broken job sends one push per tick: a single incident was\n  measured producing 12 pushes across nine hours. A *changed* error text mints a NEW incident, so a\n  different fault still alerts. Inspect and drive it with `hermes cron incidents\n  [--state detected|alerted|closed]` and `hermes cron incidents ack <incident_id>`; the rows live in\n  `~/.hermes/cron/executions.db` table `cron_incidents` (`first_seen_at` / `last_seen_at` / `closed_at`).\n  Fold automatically instead of relying on the operator: run a small no_agent job that closes incidents\n  already in `alerted` past a grace window, and re-notify for any incident whose `last_seen_at` has moved\n  past its `closed_at` (it is still failing after being folded). `scripts/incident-autoclose.py` does\n  exactly this and is installed as `~/.hermes/scripts/incident-autoclose.py` \u2014 keep the two copies in step.\n- **Count what actually went out from the delivery ledger, never from the schedules.** The jobs' cron\n  expressions describe intent; `~/.hermes/cron/executions.db` records it. Group the `executions` table by\n  day and job and read `delivery_outcome`: `delivered` is a real message, `suppressed` is silence by\n  design (empty stdout, unchanged monitor), `suppressed_acked` is a failure notice withheld because the\n  operator acked that signature. A no_agent monitor can run 60+ times a day and push nothing. This is how\n  \"this automation spams me\" gets settled with data rather than agreement \u2014 including when the accuser is\n  another agent.\n- **The operator's attention is shared with every other agent that pushes to the same chat.** Agree who\n  owns which slot before adding one, and check the other runtime's own schedule rather than assuming its\n  nominal rate: several silent internal jobs plus one or two announce jobs look identical from the outside.\n- **Write what you deliver in the operator's working language, not the source's.** This operator works in\n  Simplified Chinese and asks for *every* deliverable - replies, alerts, reports, documents, notes, code\n  comments, summaries - in Chinese, with English kept only where the domain forces it (identifiers,\n  library API names, quoted source text). A peer runtime's stored preference record is not authoritative\n  for this: the operator's current instruction wins, and it is dated later than the peer's copy.\n\n## Verification checklist\n\n- `hermes config get gateway.platforms` shows the platform with `enabled: true` and the policy keys.\n- Gateway log shows `Connecting to <platform>...` followed by either a connect or a named missing\n  variable.\n- `hermes cron list` shows the intended `Deliver:` target per job.\n- For a job that has been failing, `hermes cron incidents` shows the incident and its state, and after a\n  fold the incident list still carries the record \u2014 folded is not forgotten.\n- `~/.hermes/gateway_state.json` shows the platform `connected` - the gateway's own verdict, which\n  survives a log you may have grepped with the wrong window.\n- `hermes send --json` returned a vendor `message_id`, and the operator confirmed the message showed\n  up in their client.\n- After a fire, `last_delivery_error` is null.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:05Z",
+  "updated_at": "2026-10-20T12:52:05Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/local/hermes-channel-delivery",
+      "sha256": "b7af045cd1233add7ff3f76a6d3d52cc25e974caf7c9935bea247735053bc03a",
+      "retrieved_at": "2026-10-20T12:52:05Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:05Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "hermes-channel-delivery",
+    "description": "Use when wiring a chat platform into Hermes for alerts.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "local/hermes-channel-delivery",
+    "sha256": "b7af045cd1233add7ff3f76a6d3d52cc25e974caf7c9935bea247735053bc03a",
+    "tags": [
+      "hermes-channel-delivery",
+      "hermes",
+      "channel",
+      "delivery",
+      "Use",
+      "when",
+      "wiring",
+      "chat"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    }
+  }
+}

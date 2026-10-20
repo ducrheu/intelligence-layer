@@ -1,0 +1,87 @@
+{
+  "id": "design-md",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Author/validate/export Google's DESIGN.md token spec files.",
+  "content": "---\nname: design-md\ndescription: Author/validate/export Google's DESIGN.md token spec files.\nversion: 1.1.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [design, design-system, tokens, ui, accessibility, wcag, tailwind, dtcg, google]\n    related_skills: [popular-web-designs, claude-design, excalidraw, architecture-diagram]\n---\n\n# DESIGN.md Skill\n\nDESIGN.md is Google's open spec (Apache-2.0, `google-labs-code/design.md`) for\ndescribing a visual identity to coding agents. One file combines:\n\n- **YAML front matter** \u2014 machine-readable design tokens (normative values)\n- **Markdown body** \u2014 human-readable rationale, organized into canonical sections\n\nTokens give exact values. Prose tells agents *why* those values exist and how to\napply them. The CLI (`npx @google/design.md`) lints structure + WCAG contrast,\ndiffs versions for regressions, and exports to Tailwind or W3C DTCG JSON.\n\n## When to use this skill\n\n- User asks for a DESIGN.md file, design tokens, or a design system spec\n- User wants consistent UI/brand across multiple projects or tools\n- User pastes an existing DESIGN.md and asks to lint, diff, export, or extend it\n- User asks to port a style guide into a format agents can consume\n- User wants contrast / WCAG accessibility validation on their color palette\n\nFor purely visual inspiration or layout examples, use `popular-web-designs`\ninstead. For *process and taste* when designing a one-off HTML artifact\nfrom scratch (prototype, deck, landing page, component lab), use\n`claude-design`. This skill is for the *formal spec file* itself.\n\n## File anatomy\n\n```md\n---\nversion: alpha\nname: Heritage\ndescription: Architectural minimalism meets journalistic gravitas.\ncolors:\n  primary: \"#1A1C1E\"\n  secondary: \"#6C7278\"\n  tertiary: \"#B8422E\"\n  neutral: \"#F7F5F2\"\ntypography:\n  h1:\n    fontFamily: Public Sans\n    fontSize: 3rem\n    fontWeight: 700\n    lineHeight: 1.1\n    letterSpacing: \"-0.02em\"\n  body-md:\n    fontFamily: Public Sans\n    fontSize: 1rem\nrounded:\n  sm: 4px\n  md: 8px\n  lg: 16px\nspacing:\n  sm: 8px\n  md: 16px\n  lg: 24px\ncomponents:\n  button-primary:\n    backgroundColor: \"{colors.tertiary}\"\n    textColor: \"#FFFFFF\"\n    rounded: \"{rounded.sm}\"\n    padding: 12px\n  button-primary-hover:\n    backgroundColor: \"{colors.primary}\"\n---\n\n## Overview\n\nArchitectural Minimalism meets Journalistic Gravitas...\n\n## Colors\n\n- **Primary (#1A1C1E):** Deep ink for headlines and core text.\n- **Tertiary (#B8422E):** \"Boston Clay\" \u2014 the sole driver for interaction.\n\n## Typography\n\nPublic Sans for everything except small all-caps labels...\n\n## Components\n\n`button-primary` is the only high-emphasis action on a page...\n```\n\n## Token types\n\n| Type | Format | Example |\n|------|--------|---------|\n| Color | any CSS color (hex, `rgb()`, `oklch()`, named) | `\"#1A1C1E\"`, `\"oklch(62% 0.18 250)\"` |\n| Dimension | number + unit (`px`, `em`, `rem`) | `48px`, `-0.02em` |\n| Token reference | `{path.to.token}` | `{colors.primary}` |\n| Typography | object with `fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `fontFeature`, `fontVariation` | see above |\n\nComponent property whitelist: `backgroundColor`, `textColor`, `typography`,\n`rounded`, `padding`, `size`, `height`, `width`. Variants (hover, active,\npressed) are **separate component entries** with related key names\n(`button-primary-hover`), not nested.\n\n## Canonical section order\n\nSections are optional, but present ones should appear in this order. The\nlinter flags out-of-order sections (`section-order`, warning) and duplicate\nheadings \u2014 consumers per the spec reject duplicates, so fix both before\nreturning the file.\n\n1. Overview (alias: Brand & Style)\n2. Colors\n3. Typography\n4. Layout (alias: Layout & Spacing)\n5. Elevation & Depth (alias: Elevation)\n6. Shapes\n7. Components\n8. Do's and Don'ts\n\nUnknown sections are preserved, not errored. Unknown token names are accepted\nif the value type is valid. Unknown component properties produce a warning.\n\n## Workflow: authoring a new DESIGN.md\n\n1. **Ask the user** (or infer) the brand tone, accent color, and typography\n   direction. If they provided a site, image, or vibe, translate it to the\n   token shape above.\n2. **Write `DESIGN.md`** in their project root using `write_file`. Always\n   include `name:` and `colors:`; other sections optional but encouraged.\n3. **Use token references** (`{colors.primary}`) in the `components:` section\n   instead of re-typing hex values. Keeps the palette single-source.\n4. **Lint it** (see below). Fix any broken references or WCAG failures\n   before returning.\n5. **If the user has an existing project**, also write Tailwind or DTCG\n   exports next to the file (`tailwind.theme.json`, `tokens.json`).\n\n## Workflow: lint / diff / export\n\nThe CLI is `@google/design.md` (Node). Use `npx` \u2014 no global install needed.\n\n```bash\n# Validate structure + token references + WCAG contrast\nnpx -y @google/design.md lint DESIGN.md\n\n# Compare two versions, fail on regression (exit 1 = regression)\nnpx -y @google/design.md diff DESIGN.md DESIGN-v2.md\n\n# Export to Tailwind v3 theme JSON (`tailwind` is a back-compat alias)\nnpx -y @google/design.md export --format json-tailwind DESIGN.md > tailwind.theme.json\n\n# Export to a Tailwind v4 CSS @theme block (--color-*, --text-*, --radius-*, ...)\nnpx -y @google/design.md export --format css-tailwind DESIGN.md > theme.css\n\n# Export to W3C DTCG (Design Tokens Format Module) JSON\nnpx -y @google/design.md export --format dtcg DESIGN.md > tokens.json\n\n# Print the spec itself \u2014 useful when injecting into an agent prompt\nnpx -y @google/design.md spec --rules-only --format json\n```\n\nAll commands accept `-` for stdin. `lint` returns exit 1 on errors (warnings\nalone exit 0). `export` exits 0 on a successful export regardless of lint\nfindings in the source \u2014 run `lint` separately to gate on those. Output is\nJSON by default; parse it if you need to report findings structurally.\n\nOn Windows, the `design.md` bin name can collide with the `.md` file\nassociation (silent no-op or the file opens in an editor). Use the dot-free\nalias: `npx -y -p @google/design.md designmd lint DESIGN.md`.\n\n### Lint rule reference (the 9 rules, as of CLI 0.3.0)\n\n- `broken-ref` (error) \u2014 `{colors.missing}` points at a non-existent token\n- `contrast-ratio` (warning) \u2014 component `textColor` vs `backgroundColor`\n  below WCAG AA (4.5:1)\n- `missing-primary` (warning) \u2014 colors defined but no `primary` token\n- `missing-typography` (warning) \u2014 colors defined but no typography tokens\n- `orphaned-tokens` (warning) \u2014 color tokens never referenced by a component\n- `section-order` (warning) \u2014 sections out of the canonical order\n- `unknown-key` (warning) \u2014 top-level YAML key that looks like a typo of a\n  schema key (`colours:` \u2192 `colors:`); custom extension keys stay silent\n- `token-summary`, `missing-sections` (info) \u2014 counts and absent optional\n  sections\n\nWhen the user cares about accessibility, call this out explicitly in your\nsummary \u2014 WCAG findings are the most load-bearing reason to use the CLI.\n\n## Pitfalls\n\n- **Don't nest component variants.** `button-primary.hover` is wrong;\n  `button-primary-hover` as a sibling key is right.\n- **Hex colors must be quoted strings.** YAML will otherwise choke on `#` or\n  truncate values like `#1A1C1E` oddly.\n- **Negative dimensions need quotes too.** `letterSpacing: -0.02em` parses as\n  a YAML flow \u2014 write `letterSpacing: \"-0.02em\"`.\n- **Section order matters even though the linter only warns.** If the user\n  gives you prose in a random order, reorder it to match the canonical list\n  before saving \u2014 spec-compliant consumers expect it.\n- **Typography sub-property typos are silently dropped.** As of CLI 0.3.0 a\n  typo like `fontwight:` produces no finding and the value vanishes from\n  exports \u2014 double-check sub-property names against the schema\n  (`fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`,\n  `fontFeature`, `fontVariation`).\n- **`version: alpha` is the current spec version** (as of Jul 2026, CLI\n  0.3.0). The spec is marked alpha \u2014 watch for breaking changes.\n- **Token references resolve by dotted path.** `{colors.primary}` works;\n  `{primary}` does not.\n\n## Spec source of truth\n\n- Repo: https://github.com/google-labs-code/design.md (Apache-2.0)\n- CLI: `@google/design.md` on npm\n- License of generated DESIGN.md files: whatever the user's project uses;\n  the spec itself is Apache-2.0.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:51:58Z",
+  "updated_at": "2026-10-20T13:10:30Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/creative/design-md",
+      "sha256": "7ed56bba40ffc9573fa51b33b2424f37fb5f774e9ecb7e76e737797afd0b62ae",
+      "retrieved_at": "2026-10-20T12:51:58Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:51:58Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:10:30Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:10:28Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "design-md",
+    "description": "Author/validate/export Google's DESIGN.md token spec files.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "creative/design-md",
+    "sha256": "7ed56bba40ffc9573fa51b33b2424f37fb5f774e9ecb7e76e737797afd0b62ae",
+    "tags": [
+      "design-md",
+      "design",
+      "Author",
+      "validate",
+      "export",
+      "Google"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

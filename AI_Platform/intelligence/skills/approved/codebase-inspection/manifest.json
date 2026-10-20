@@ -1,0 +1,88 @@
+{
+  "id": "codebase-inspection",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Inspect codebases w/ pygount: LOC, languages, ratios.",
+  "content": "---\nname: codebase-inspection\ndescription: \"Inspect codebases w/ pygount: LOC, languages, ratios.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [LOC, Code Analysis, pygount, Codebase, Metrics, Repository]\n    related_skills: [github]\nprerequisites:\n  commands: [pygount]\n---\n\n# Codebase Inspection with pygount\n\nAnalyze repositories for lines of code, language breakdown, file counts, and code-vs-comment ratios using `pygount`.\n\n## When to Use\n\n- User asks for LOC (lines of code) count\n- User wants a language breakdown of a repo\n- User asks about codebase size or composition\n- User wants code-vs-comment ratios\n- General \"how big is this repo\" questions\n\n## Prerequisites\n\n```bash\npip install --break-system-packages pygount 2>/dev/null || pip install pygount\n```\n\n## 1. Basic Summary (Most Common)\n\nGet a full language breakdown with file counts, code lines, and comment lines:\n\n```bash\ncd /path/to/repo\npygount --format=summary \\\n  --folders-to-skip=\".git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,.eggs,*.egg-info\" \\\n  .\n```\n\n**IMPORTANT:** Always use `--folders-to-skip` to exclude dependency/build directories, otherwise pygount will crawl them and take a very long time or hang.\n\n## 2. Common Folder Exclusions\n\nAdjust based on the project type:\n\n```bash\n# Python projects\n--folders-to-skip=\".git,venv,.venv,__pycache__,.cache,dist,build,.tox,.eggs,.mypy_cache\"\n\n# JavaScript/TypeScript projects\n--folders-to-skip=\".git,node_modules,dist,build,.next,.cache,.turbo,coverage\"\n\n# General catch-all\n--folders-to-skip=\".git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,vendor,third_party\"\n```\n\n## 3. Filter by Specific Language\n\n```bash\n# Only count Python files\npygount --suffix=py --format=summary .\n\n# Only count Python and YAML\npygount --suffix=py,yaml,yml --format=summary .\n```\n\n## 4. Detailed File-by-File Output\n\n```bash\n# Default format shows per-file breakdown\npygount --folders-to-skip=\".git,node_modules,venv\" .\n\n# Sort by code lines (pipe through sort)\npygount --folders-to-skip=\".git,node_modules,venv\" . | sort -t$'\\t' -k1 -nr | head -20\n```\n\n## 5. Output Formats\n\n```bash\n# Summary table (default recommendation)\npygount --format=summary .\n\n# JSON output for programmatic use\npygount --format=json .\n\n# Pipe-friendly: Language, file count, code, docs, empty, string\npygount --format=summary . 2>/dev/null\n```\n\n## 6. Interpreting Results\n\nThe summary table columns:\n- **Language** \u2014 detected programming language\n- **Files** \u2014 number of files of that language\n- **Code** \u2014 lines of actual code (executable/declarative)\n- **Comment** \u2014 lines that are comments or documentation\n- **%** \u2014 percentage of total\n\nSpecial pseudo-languages:\n- `__empty__` \u2014 empty files\n- `__binary__` \u2014 binary files (images, compiled, etc.)\n- `__generated__` \u2014 auto-generated files (detected heuristically)\n- `__duplicate__` \u2014 files with identical content\n- `__unknown__` \u2014 unrecognized file types\n\n## Pitfalls\n\n1. **Always exclude .git, node_modules, venv** \u2014 without `--folders-to-skip`, pygount will crawl everything and may take minutes or hang on large dependency trees.\n2. **Markdown shows 0 code lines** \u2014 pygount classifies all Markdown content as comments, not code. This is expected behavior.\n3. **JSON files show low code counts** \u2014 pygount may count JSON lines conservatively. For accurate JSON line counts, use `wc -l` directly.\n4. **Large monorepos** \u2014 for very large repos, consider using `--suffix` to target specific languages rather than scanning everything.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:39Z",
+  "updated_at": "2026-10-20T13:10:07Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/codebase-inspection",
+      "sha256": "d62554263461919dff7d77c3c0c284c2190c894f312a84d7a770a030dab642dc",
+      "retrieved_at": "2026-10-20T12:52:39Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:39Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:10:07Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:10:05Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "codebase-inspection",
+    "description": "Inspect codebases w/ pygount: LOC, languages, ratios.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/codebase-inspection",
+    "sha256": "d62554263461919dff7d77c3c0c284c2190c894f312a84d7a770a030dab642dc",
+    "tags": [
+      "codebase-inspection",
+      "codebase",
+      "inspection",
+      "Inspect",
+      "codebases",
+      "pygount",
+      "LOC"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

@@ -86,7 +86,13 @@ def validate_artifact(value: dict[str, Any]) -> None:
         if missing:
             raise ArtifactValidationError(f"skill metadata missing: {sorted(missing)}")
         if not value["tests"]:
-            raise ArtifactValidationError("skills require at least one test")
+            # A prompt-shaped skill has nothing to execute. The old rule required
+            # a test and refused 119 of 129 real skills, which is a rule shape
+            # mismatch rather than a quality bar. Such a skill may be admitted,
+            # but it must say so: no silent "approved without tests".
+            if (value.get("metadata") or {}).get("verification") != "static-review":
+                raise ArtifactValidationError(
+                    "a skill without tests must declare metadata.verification=static-review")
     if value["kind"] == "source":
         for item in value["source"]:
             if "type" not in item or "retrieved_at" not in item:

@@ -1,0 +1,89 @@
+{
+  "id": "governance-auth-hardening",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Use when a service trusts a self-reported identity.",
+  "content": "---\nname: governance-auth-hardening\ndescription: \"Use when a service trusts a self-reported identity.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux, macos]\nmetadata:\n  hermes:\n    tags: [security, authorization, governance, audit, migration]\n    related_skills: [publishing-a-public-repo]\n---\n\n# Hardening a Governance Service's Identity Layer\n\nMaking the security claims a governed service advertises actually true. The failure this\nskill exists to catch is subtle: everything is implemented, the tests pass, the docs are\nconfident - and the central guarantee is not enforced anywhere.\n\n## When to Use\n\n- A service distinguishes identities (author / verifier / approver) and something depends on\n  that separation being real: approval, promotion, trust lists, audit attribution.\n- An identity is presented as a header, a name, a token, or a `created_by` field.\n- Before claiming \"only a human can approve\", \"only the author can withdraw\", or \"this producer\n  is trusted\".\n\n## The pattern that looks like authentication and is not\n\n**A presented identifier is a claim until it is a secret.** If the token *is* the identity name, or\nif a policy decision reads a field the submitter wrote (`created_by`, `owner`, `producer`), then\nanyone who can reach the port - or simply writes a different value - becomes that identity. Probe it\nexplicitly: send the human/approver identity's name as the credential and see whether you are that\nidentity. If yes, every guarantee resting on it is a request, not a gate.\n\nWhat follows, and what to do instead:\n\n- **Mint per-identity secrets; store only their hashes.** The hash index can live beside the data\n  (it is not a secret), while plaintext belongs in each identity owner's own credential file, mode\n  600, outside any published tree. Compare with a constant-time check.\n- **Never derive a privilege from a self-reported field.** Resolve the actor from the presented\n  credential and take provenance from an append-only audit log written by the service itself.\n- **Preserve the error contract while changing the check.** An unknown credential must keep raising\nthe exception type the HTTP layer already maps to 401/403; raising a fresh type turns a refusal\n  into a 500 and hides it. Read the service's JSON error body - it usually names the exception - \n  instead of guessing from the status code.\n- **Migrate one identity at a time behind an explicit switch.** Add the hash index, accept minted\n  tokens *and* the old form while `ALLOW_LEGACY_*` is on, then move each identity's credential\n  holders (each API client, each CLI tool, each foreign runtime integration) and verify a real\n  request per identity before the next. Only after the last one, turn the switch off and re-run the\n  acceptance suite. A single global flip breaks every caller at once and tells you nothing about\n  which one failed.\n- **Say what is still unenforced.** While the switch is on, the honest statement is \"approval is\n  gated by policy, not by authentication\". Record it where the next session will read it, together\n  with the exact condition that ends it.\n\n## The boundary field that nothing enforces\n\nA record carries `scope`, `tenant`, `visibility` or `classification`; an identity carries a scope\nset; the design says \"the guest may read the shared ones\". **Check the read path before believing\nthat.** The field is typically only a *caller-supplied filter* \u2014 a query parameter the client may\npass \u2014 so every identity holding the read action sees the whole category and the marker governs\nnothing. This is the same failure as a self-reported identity, one layer up.\n\n- **Audit the filter, not the schema.** Grep the retrieval/listing path for where the field is\n  compared and against *what*. A filter parameterised by the caller is a convenience, not a\n  restriction. The only trustworthy statement about exposure is a live request made **as the\n  identity in question**, read back in full.\n- **Intersection is the rule.** An identity's permitted values and the caller's requested filter\n  combine by intersection \u2014 a caller may narrow, never widen. `None` means unrestricted so existing\n  identities keep their behaviour and their existing tests prove the change is inert.\n- **Enumerate the exposure before minting anything.** Narrowing a field usually reveals the corpus is\n  not classified by it yet: on a small store the permitted bucket may hold exactly one record, and it\n  may be the one carrying internal detail. List what the new identity *would* see first, and fix the\n  classification (a human action) before it exists.\n- **Enabling the field changes what it means.** Once `shared` gates access, records must have been\n  labelled correctly all along. Treat the change as a data-review task with a migration window, not\n  only as a code change \u2014 the labels were documentation while nothing read them.\n- **Filter inside the retrieval predicate, not after it.** A post-retrieval filter is not\n  equivalent: the number of results returned, and any similarity score beside them, leak the\n  existence and rough size of what was removed. Push the permitted-value set into the query, and\n  return **nothing** rather than a filtered subset when the check fails, so that \"denied\" and\n  \"nothing matched\" are indistinguishable from outside.\n- **Cache per identity, and re-check at read time.** A retrieval cache keyed on the query alone\n  serves one identity's rows to another, and a record demoted out of the readable set has to\n  disappear on the very next read \u2014 so the check belongs at retrieval, never only at ingestion.\n- **When the operator asks for \"the guest sees everything\" *and* \"nothing about me\", the collision is\n  in the corpus, not in the controls.** Enumerate the records that carry the personal or business\n  detail and show them that list; then offer the data-side fix together with its cost \u2014 a\n  **deny-list** is cheap and needs no re-versioning but is enumeration-based maintenance (every\n  future record of that kind must be remembered), while a **classification value** is\n  self-describing but costs a human re-version for each already-approved record. Do not resolve the\n  contradiction with prompt text; the vendor-neutral wording is OWASP's: *\"the system prompt should\n  not be considered a secret, nor should it be used as a security control.\"*\n\n### Once a deny-list is the chosen fix\n\n- **Filtering records is not enough: a reference is an id in plain sight.** A visible record's\n  `source` / `provenance` entries name other records by id, and the id usually encodes its subject\n  (`experience:<owner>-<project>-<version>`), so an unscrubbed reference list re-publishes exactly\n  what the control withheld \u2014 the record is gone and the subject is still on the screen. Drop every\n  reference naming a withheld record, and drop it **silently**: a `[redacted]` placeholder hands back\n  the fact that something was removed. Check which fields each response shape actually emits \u2014 a\n  by-id fetch returns the whole record while a ranked search returns a trimmed subset, so both paths\n  need their own scrub and the by-id one is the wider hole.\n- **Mark the exempt identities, and fail closed.** Tag the external identities explicitly rather than\n  matching an id pattern, so the owner's identities are provably untouched. A missing file,\n  unparsable JSON, or an identity with no entry must mean **nothing readable** \u2014 \"no list\" must never\n  read as \"no restriction\". A deny-all needs its own distinct representation (an absent value), because\n  collapsing it into the empty set is what makes the two cases confusable.\n- **A count taken from a search result is not a census.** Enumerating the corpus through the query\n  path measures only what that query matched, so a subset-specific number reads as a whole-corpus\n  claim. Walk the store's own record list and evaluate the check per record, and verify both directions\n  in the same run: the external identity loses exactly the listed records, the owner's view is\n  unchanged.\n- **Assert the property, not the shape.** \"The reference is gone\" is the invariant; \"the reference\n  list is now empty\" is an over-specified snapshot that fails on a correct implementation keeping the\n  entries that named nothing withheld.\n- **State the residual in the write-up.** Structured references can be scrubbed; an id or a name\n  embedded in a body cannot, and every future record of the withheld kind has to be remembered by\n  hand. That maintenance cost is the price of choosing the deny-list, and it belongs wherever the next\n  session will read it.\n\n## Editing the service safely\n\nGovernance code is often the least version-controlled code in a project, which is backwards: it is\nthe code whose edits you must be able to undo.\n\n- **Create a rollback point first** - a commit, or at minimum a copy. A structural edit that eats a\n  neighbouring definition is otherwise unrecoverable from a running process.\n- **An anchor for a splice must be unique *and* at the indentation you mean.** A substring search\n  matches inside deeper-indented lines: an anchor meant for a class-level method can land on a\n  nested handler's method and delete the enclosing class header along with everything between them.\n  Read the surrounding lines before replacing a region; prefer the smallest anchored edit.\n- **Never insert bootstrap code above `from __future__`** (or above a module docstring): the file\n  stops parsing.\n- **In `__init__`, assign before use.** A helper that reads `self.<attr>` fails the whole service if\n  the assignment sits a few lines lower - the symptom is every request returning 500.\n- **After every structural edit run, in order: syntax check, full test suite, live acceptance.**\n  Each failure mode above looks like a total outage and each was caught within a minute by exactly\n  that sequence.\n- **A missing import is the most common 500.** Adding a code path that uses `hashlib`, `os`, `hmac`\n  or similar without importing it fails only at request time, not at import time.\n\n## Turning the legacy switch off\n\nThe flip is the moment the guarantee becomes real, and it fails in ways no unit test sees.\n\n- **Resolve identity -> secret inside each client; keep the identity name in configuration.** One\n  shared resolver module (identity name in, minted token out, env override honored) wired into every\n  client lets config files, peer runtimes and committed defaults keep naming the identity while the\n  wire carries only the secret. Secrets stay out of published files, and a client you missed fails in\n  one obvious place instead of quietly authenticating by name.\n- **A resolver that falls back to the identity name turns every credential problem into an\n  authentication error.** Trace the fallback chain before believing a 403: when \"no token found\"\n  degrades to \"present the identity name\", a credential file in the wrong *shape*, an override\n  pointing at the wrong path, and a genuinely wrong secret all arrive as the same\n  `unknown identity token`. The concrete trap is the file format \u2014 a nested\n  `{\"scheme\": \u2026, \"tokens\": {\"<id>\": \u2026}}` wrapper looks reasonable and is read as \"no entry\" by a\n  resolver doing a flat `json.load(f).get(identity)`. Copy the shape an existing client already reads,\n  and make the minting tool assert **the shape it wrote**, not only the hash it recorded: a\n  hash-matches check passes while every client silently falls back.\n- **Probe each identity from its own credential file.** A credential override set for the whole probe\n  process makes the *other* identities resolve to nothing, fall back to their names and get refused \u2014\n  so a run that checks the owner and the external identity together reports both as denied and reads\n  like a regression in the change you just made. Resolve per identity, inside its own context, and when\n  a live probe contradicts a green test suite, suspect the harness before the service.\n- **In-process callers and HTTP callers need different things.** A tool that imports the service\n  module and calls it directly wants the *identity*; a tool that makes an HTTP request wants the\n  *token*. Cross-wiring them fails at runtime with an unknown-actor style error, not at review time -\n  give the local call path the identity, the transport path the token, and comment which is which.\n- **A client already running keeps its old credentials.** Process-scoped resolution (servers spawned\n  by a host app, long-lived daemons) is fixed only by a restart; after the flip the old process\n  presents the old form and gets refused. Prove that path by starting the server yourself over its\n  own transport and making one real call, rather than assuming a restart reached it.\n- **Verify the switch reaches the process, not just the file.** Environment settings can be placed\n  where the supervisor silently ignores them - anything after the last section header of a systemd\n  unit, for instance. The flip then *looks* applied while the old form still succeeds. Check the\n  supervisor's own view (`grep -n '^\\[' unit; grep -n '^Environment=' unit`), then re-run the\n  impersonation probe: names refused, minted tokens accepted, every client still working.\n- **Never restart the process that hosts your session.** Restarting the host from inside a turn\n  kills the turn and reads to the user as an unexplained stop. Schedule a deferred, detached restart\n  (`systemd-run --user --on-active=45 --unit=<name> ...`) instead, and never `pkill -f` a pattern\n  that can match your own command line.\n\n## Verification\n\n- The impersonation probe fails: presenting another identity's name (or a guessed token) is refused\n  while a minted token succeeds - both checked live, not in a unit test alone.\n- A scope-denied request still returns its documented 4xx, not 500.\n- A withheld record fetched **by id** is indistinguishable from an id that never existed \u2014 same status,\n  same body. Compare the two responses side by side in the same run; a `403` on the withheld one and a\n  `404` on the invented one hands back an enumeration oracle, and the search path returning nothing\n  says nothing about the by-id path.\n- Every identity in the table has a minted token before the legacy switch is turned off, or the flip\n  locks someone out.\n- The audit log's actor field comes from the credential, and the documentation no longer claims a\n  guarantee the code does not enforce.\n- No readable record names a withheld one: dump a visible record's `source`, `provenance` and any\n  other reference field and grep it for the withheld ids \u2014 the record list looking clean says nothing\n  about the references pointing out of it.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:42Z",
+  "updated_at": "2026-10-20T13:10:58Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/governance-auth-hardening",
+      "sha256": "0d695c47c881a137218a92982e783572ef1ed997dcdc336baa99e41c500bb1bd",
+      "retrieved_at": "2026-10-20T12:52:42Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:42Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:10:58Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:10:56Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "governance-auth-hardening",
+    "description": "Use when a service trusts a self-reported identity.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/governance-auth-hardening",
+    "sha256": "0d695c47c881a137218a92982e783572ef1ed997dcdc336baa99e41c500bb1bd",
+    "tags": [
+      "governance-auth-hardening",
+      "governance",
+      "auth",
+      "hardening",
+      "Use",
+      "when",
+      "service",
+      "trusts"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

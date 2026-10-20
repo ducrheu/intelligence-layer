@@ -1,0 +1,80 @@
+{
+  "id": "youtube-content",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "candidate",
+  "version": "1.0.0",
+  "title": "YouTube transcripts to summaries, threads, blogs.",
+  "content": "---\nname: youtube-content\ndescription: \"YouTube transcripts to summaries, threads, blogs.\"\nversion: 1.0.0\nauthor: Teknium (teknium1), Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [YouTube, Video, Transcripts, Media]\n    related_skills: []\n---\n\n# YouTube Content Tool\n\n## When to use\n\nUse when the user shares a YouTube URL or video link, asks to summarize a video, requests a transcript, or wants to extract and reformat content from any YouTube video. Transforms transcripts into structured content (chapters, summaries, threads, blog posts).\n\nExtract transcripts from YouTube videos and convert them into useful formats.\n\n## Setup\n\nUse `uv` so the dependency is installed into the same Hermes-managed environment\nthat runs the helper script:\n\n```bash\nuv pip install youtube-transcript-api\n```\n\n## Helper Script\n\n`SKILL_DIR` is the directory containing this SKILL.md file. The script accepts any standard YouTube URL format, short links (youtu.be), shorts, embeds, live links, or a raw 11-character video ID.\n\n```bash\n# JSON output with metadata\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"https://youtube.com/watch?v=VIDEO_ID\"\n\n# Plain text (good for piping into further processing)\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"URL\" --text-only\n\n# With timestamps\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"URL\" --timestamps\n\n# Specific language with fallback chain\nuv run python SKILL_DIR/scripts/fetch_transcript.py \"URL\" --language tr,en\n```\n\n## Output Formats\n\nAfter fetching the transcript, format it based on what the user asks for:\n\n- **Chapters**: Group by topic shifts, output timestamped chapter list\n- **Summary**: Concise 5-10 sentence overview of the entire video\n- **Chapter summaries**: Chapters with a short paragraph summary for each\n- **Thread**: Twitter/X thread format \u2014 numbered posts, each under 280 chars\n- **Blog post**: Full article with title, sections, and key takeaways\n- **Quotes**: Notable quotes with timestamps\n\n### Example \u2014 Chapters Output\n\n```\n00:00 Introduction \u2014 host opens with the problem statement\n03:45 Background \u2014 prior work and why existing solutions fall short\n12:20 Core method \u2014 walkthrough of the proposed approach\n24:10 Results \u2014 benchmark comparisons and key takeaways\n31:55 Q&A \u2014 audience questions on scalability and next steps\n```\n\n## Workflow\n\n1. **Fetch** the transcript using the helper script with `--text-only --timestamps` via `uv run python`.\n2. **Validate**: confirm the output is non-empty and in the expected language. If empty, retry without `--language` to get any available transcript. If still empty, tell the user the video likely has transcripts disabled.\n3. **Chunk if needed**: if the transcript exceeds ~50K characters, split into overlapping chunks (~40K with 2K overlap) and summarize each chunk before merging.\n4. **Transform** into the requested output format. If the user did not specify a format, default to a summary.\n5. **Verify**: re-read the transformed output to check for coherence, correct timestamps, and completeness before presenting.\n\n## Error Handling\n\n- **Transcript disabled**: tell the user; suggest they check if subtitles are available on the video page.\n- **Private/unavailable video**: relay the error and ask the user to verify the URL.\n- **No matching language**: retry without `--language` to fetch any available transcript, then note the actual language to the user.\n- **Dependency missing**: run `uv pip install youtube-transcript-api` and retry.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:13Z",
+  "updated_at": "2026-10-20T12:52:13Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/media/youtube-content",
+      "sha256": "52349e30ac74a3c2693c43588e9392a53236526b4b7d92769a64045a9782308e",
+      "retrieved_at": "2026-10-20T12:52:13Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:13Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "youtube-content",
+    "description": "YouTube transcripts to summaries, threads, blogs.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "media/youtube-content",
+    "sha256": "52349e30ac74a3c2693c43588e9392a53236526b4b7d92769a64045a9782308e",
+    "tags": [
+      "youtube-content",
+      "youtube",
+      "content",
+      "transcripts",
+      "summaries",
+      "threads"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "id": "github",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "candidate",
+  "version": "1.0.0",
+  "title": "GitHub via gh CLI: PRs, issues, reviews, repos, auth.",
+  "content": "---\nname: github\ndescription: \"GitHub via gh CLI: PRs, issues, reviews, repos, auth.\"\nversion: 2.0.0\nauthor: Ben Barclay (benbarclay), Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [github, gh, git, pull-requests, issues, code-review, repos, auth, ci]\n    category: software-development\n    related_skills: [codebase-inspection, requesting-code-review]\n---\n\n# GitHub\n\nWork GitHub end to end with the `gh` CLI (REST fallback where noted): auth,\nissues, the PR lifecycle, issue-to-PR delivery, code review, and repo\nmanagement. This skill consolidates six former skills; each workflow lives\ncomplete in its reference file \u2014 ALWAYS read the matching reference before\nstarting that workflow, the body below only routes.\n\n## Routing\n\n| Task | Read first |\n|---|---|\n| Auth broken / new machine / token or SSH setup / gh login | `references/auth.md` |\n| Create, triage, label, assign, close issues | `references/issues.md` |\n| Branch, commit, open PR, watch CI, merge | `references/pr-workflow.md` |\n| Carry an ISSUE to a verified PR (full delivery loop) | `references/issue-to-pr.md` |\n| Review someone's PR: diffs, inline comments, verdict | `references/code-review.md` |\n| Clone/create/fork repos, remotes, releases | `references/repo-management.md` |\n\nSupporting assets: `scripts/gh-env.sh` + `scripts/git-credential-token.py`\n(auth helpers), `templates/` (PR bodies, bug report, feature request),\n`references/ci-troubleshooting.md`, `references/conventional-commits.md`,\n`references/github-api-cheatsheet.md`, `references/review-output-template.md`.\n\n## Core discipline (applies to every workflow)\n\n- Preflight once per session: `gh auth status` \u2014 if it fails, go to\n  `references/auth.md` before anything else.\n- Prefer `gh` over raw REST; drop to `gh api` only for endpoints the\n  porcelain lacks (the cheatsheet lists them).\n- Never report CI green without checking `gh pr checks` yourself; never\n  claim merged without verifying `state,mergedAt`.\n- Read full context before writing: `gh issue view --comments` /\n  `gh pr view --comments` \u2014 decisions live in threads, not titles.\n- Sweep for duplicates before creating anything:\n  `gh pr list --search` / `gh issue list --search`.\n\n## Verification\n\n- The workflow's own reference file defines done for that task.\n- Cross-cutting: every claim about remote state (CI, merge, release,\n  issue state) is backed by a fresh `gh` read, never memory.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:41Z",
+  "updated_at": "2026-10-20T12:52:41Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/github",
+      "sha256": "9d70e7c842fe7db75b5a50526552a69862f5bcfc1e59aa93785241649a09d5a3",
+      "retrieved_at": "2026-10-20T12:52:41Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:41Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "github",
+    "description": "GitHub via gh CLI: PRs, issues, reviews, repos, auth.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 2 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/github",
+    "sha256": "9d70e7c842fe7db75b5a50526552a69862f5bcfc1e59aa93785241649a09d5a3",
+    "tags": [
+      "github",
+      "via",
+      "CLI",
+      "PRs"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    }
+  }
+}

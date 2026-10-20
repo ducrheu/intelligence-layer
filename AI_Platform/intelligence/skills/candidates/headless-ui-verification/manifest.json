@@ -1,0 +1,81 @@
+{
+  "id": "headless-ui-verification",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "candidate",
+  "version": "1.0.0",
+  "title": "Use when verifying a local web UI without a browser.",
+  "content": "---\nname: headless-ui-verification\ndescription: Use when verifying a local web UI without a browser.\nversion: 1.0.0\ntags: [ui, css, accessibility, screenshots, wsl, chrome, wcag, frontend]\nplatforms: [linux]\ntriggers:\n  - UI looks wrong / text unreadable\n  - verify a local web page or service UI\n  - screenshot a page in WSL\n  - contrast / accessibility check\n  - restyle a dashboard\n---\n\n# Headless UI verification (no browser, no root)\n\nYou cannot judge a UI from its HTML. This is how to actually see it, and how to\nback \"readable\" with a number instead of an opinion.\n\n## 1. Get a working Chromium without root (WSL)\n\nPlaywright's Chromium usually fails with `error while loading shared libraries:\nlibnspr4.so` because the NSS/NSPR runtime libs are missing, and `sudo apt install`\nneeds a password you must not ask for. Unpack the debs into your home instead:\n\n```bash\nmkdir -p ~/.local/chromium-libs /tmp/kbdeb && cd /tmp/kbdeb\napt-get download libnspr4 libnss3        # works unprivileged\nfor d in *.deb; do dpkg-deb -x \"$d\" ~/.local/chromium-libs/; done\nLIBS=~/.local/chromium-libs/usr/lib/x86_64-linux-gnu\nldd $(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | tail -1) | grep -c 'not found'   # expect 0\n```\n\n## 2. Screenshot\n\nUse `scripts/screenshot.sh <url> <out.png> [w] [h]`, or by hand:\n\n```bash\nCH=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | tail -1)\nLD_LIBRARY_PATH=$LIBS $CH --headless=old --no-sandbox --disable-gpu --no-first-run \\\n  --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=3000 \\\n  --window-size=1400,3600 --screenshot=/tmp/shot.png \"http://127.0.0.1:8790/?theme=dark\"\n```\n\nRules that matter:\n* `--headless=old`. Plain `--headless` (new) hangs until the command times out here.\n* `--virtual-time-budget=3000` so JS/DOM is settled before the capture.\n* Oversize `--window-size` for a full-page look; a capture never scrolls.\n* Control light/dark from the page (`?theme=dark`), not from CLI flags: emulating\n  `prefers-color-scheme` from the command line is unreliable, and `--force-dark-mode`\n  also repaints the page (auto-dark), so what you see is not the CSS you wrote.\n* Windows `chrome.exe` under `/mnt/c/...` also renders and screenshots, but on this\n  machine it produced colours that did not match the page's own CSS - never judge\n  colour from it.\n* Look at the PNG with `vision_analyze`; for a long page pass `region=[x1,y1,x2,y2]`\n  (original pixels) to inspect the lower half at full resolution.\n\n## 3. Back \"readable\" with numbers\n\nWCAG 2.2 AA floors: 4.5:1 normal text, 3:1 large text and non-text marks\n(WCAG 1.4.11: borders, focus rings, status dots). GitHub's Primer team checks every\nforeground/background pair with a script on every change rather than by eye.\nCopy that: keep a small checker that mirrors the token values used by the UI\n(see `tools/kb-ui-contrast-check.py` beside the knowledge-base UIs) and run it after\nevery colour edit; it must exit non-zero on failure.\n\nFailures this catches in practice:\n* `color-scheme: light dark` declared with **no explicit background** - on a dark-mode\n  host the browser paints a dark canvas under the page's near-black text.\n* secondary greys picked ad hoc (`#9ca3af` on white = 2.2:1), and `opacity: .55`\n  stacked on top of an already-low-contrast grey.\n* `white` on mid-green/red buttons (4.5:1 needs a darker fill: `#1a7f37`, `#238636`).\n\n## 4. Design rules worth copying (published practice)\n\n* GitHub Primer: one semantic role per token (`canvas`, `canvas.subtle`, `fg.default`,\n  `fg.muted`, `border.muted`, `accent`) - never a raw hex at a call site.\n* Radix Colors 12-step discipline: 1-2 backgrounds, 3-5 component surfaces\n  (3 normal / 4 hover / 5 pressed), 6-8 borders (6 subtle / 7 interactive / 8 focus),\n  9-10 solid fills (9 normal / 10 hover), 11-12 text (11 muted / 12 high contrast).\n  Text comes in exactly two weights, not an improvised grey per component.\n* Status is never colour alone: every chip carries a dot AND a label, so state\n  survives greyscale printing and colour-vision deficiency.\n* Set `background` explicitly on `body`; do not let the UA decide.\n* Toggle pattern that works for local tools: system preference by default, a corner\n  button writing `localStorage`, `data-theme` on `<html>` for the override, and a\n  `?theme=` URL param for screenshots.\n\n## 5. Verify the served page, not just the file\n\nTemplates can render fine while the running service still serves the old CSS.\nAfter a restart: `curl -s -o /tmp/x.html -w '%{http_code}' URL` and `grep -c` for a\nnew class name; count interactive elements (`grep -c 'data-*'`) to confirm a rewrite\nkept them; for a gated page also check the 403 path.\n\n## 6. This machine's knowledge-base UIs\n\n* Read-only dashboard: `http://127.0.0.1:8790/`, source `tools/intelligence-dashboard.py`.\n* Approval console: `http://127.0.0.1:8795/?t=<token>`, source\n  `tools/intelligence-approval-console.py`; token lives in\n  `~/.local/state/intelligence-layer/console.env` (never print it, never put it in chat).\n* Both are systemd user units: `systemctl --user restart kb-dashboard kb-approval-console`.\n* Source files sit in `/mnt/d/OpenClaw/tools/` (not a git repo); the rendered\n  `/mnt/d/intelligence-layer/dashboard.html` is gitignored.\n* Colour tokens are mirrored in `tools/kb-ui-contrast-check.py` - update both\n  together or the check stops meaning anything. Backups of the previous UI are kept\n  as `*.bak-<timestamp>` next to the scripts.\n* Restyling must not touch the approval path: the token check, the cookie, the POST\n  field names (`kind`/`id`/`decision`/`reason`) and \"only a human approves\" stay as\n  they are. The console shells out to the human-owned approve/reject tools; keep it\n  that way.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:43Z",
+  "updated_at": "2026-10-20T12:52:43Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/headless-ui-verification",
+      "sha256": "6118ea1876e690867f1479fd3d68882fedaf851de880be6826756dedb0f91caf",
+      "retrieved_at": "2026-10-20T12:52:43Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:43Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "headless-ui-verification",
+    "description": "Use when verifying a local web UI without a browser.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 1 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/headless-ui-verification",
+    "sha256": "6118ea1876e690867f1479fd3d68882fedaf851de880be6826756dedb0f91caf",
+    "tags": [
+      "headless-ui-verification",
+      "headless",
+      "verification",
+      "Use",
+      "when",
+      "verifying",
+      "local"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    }
+  }
+}

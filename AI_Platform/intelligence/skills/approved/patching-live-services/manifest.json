@@ -1,0 +1,87 @@
+{
+  "id": "patching-live-services",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Patch live services: verified edits, safe restarts.",
+  "content": "---\nname: patching-live-services\ndescription: \"Patch live services: verified edits, safe restarts.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux]\nmetadata:\n  hermes:\n    tags: [services, systemd, editing, restart, verification]\n---\n\n# Patching Live Services\n\nEditing the files and configuration of services that are running right now\n(systemd user units, gateway processes, daemons other work depends on), and\nrestarting them without breaking the thing hosting you. Every rule here came from a\nfailure that reached a live surface.\n\n## Procedure\n\n1. **Back up the target.** Files you rewrite, and any other runtime's config:\n   `cp cfg cfg.bak-$(date +%Y%m%d-%H%M%S)`. Say where the backup is.\n2. **Choose the edit position structurally, not by a string you happened to see.**\n   A new definition goes *after the last top-level import in the first ~40 lines*.\n   Never insert at an anchor you have not checked for enclosing brackets: a block\n   inserted inside `X = pathlib.Path(` is a SyntaxError, a block placed after its\n   own first use is an import-time NameError, and a block placed after a definition\n   it must precede is a call-time NameError.\n3. **Assert the edit landed.** Patch scripts must prove the replacement matched:\n   `before = text; text = text.replace(old, new, 1); assert text != before`, or a\n   printed match count. A script that prints \"done\" unconditionally reports success\n   for a no-op, and you then debug a bug that was never introduced.\n4. **Verify in this order:** syntax-check the edited file \u2192 run the full suite \u2192 run\n   the live probe that talks to the running service. A diff is not evidence.\n5. **Restart, then re-probe.** A listener needs ~10s after restart; probing too early\n   returns a connection failure that reads like a crash.\n6. **Report what changed, what was verified, by which probe, and what is still\n   unverified.** Never upgrade \"the file now contains X\" into \"the system now does X\".\n\n## Rotating a shared secret\n\nRotating a credential that a running service verifies is its own procedure with its own\nfailure mode: silent authentication refusal, and self-lockout if the old value is\noverwritten before the new one is proven. See `references/secret-rotation.md`.\n\n## Restarting without killing yourself\n\n- **The process hosting your own tool loop is off-limits mid-turn.** Restarting it\n  SIGTERMs the turn in flight. Schedule it detached and tell the user the UI will\n  blink:\n  `systemd-run --user --on-active=45 --unit=<name> --collect /bin/systemctl --user restart <units>`\n- **`pkill -f <pattern>` kills your own shell when the pattern also matches your own\n  command line.** Kill by pid, or pick a pattern that cannot appear in the invocation.\n- **Start long-running servers through the tool's background option**, not\n  `nohup ... &` inside a foreground call; verify readiness with a separate probe\n  instead of a blind sleep.\n- **Keep inline shell payloads moderate.** Oversized or heredoc-heavy one-liners get\n  refused by the runtime; move a long script to a file and run the file.\n\n## Editing files that contain secrets\n\n**Never put a redacted placeholder in the find-string of a patch.** Runtimes redact\nsecret-shaped values on the way into the model's context, so the line you see as\n`API_KEY=***` is a different string from the one on disk; fuzzy matching then anchors on\nthe key name and writes your placeholder *over the real secret* \u2014 a self-inflicted\ncredential loss, discovered later as a login failure. Edit secrets by key, with a filter\nover the raw bytes, and prove the result:\n\n```bash\ncp .env .env.bak-$(date +%Y%m%d-%H%M%S)\ngrep -v '^TERMINAL_ENV=' .env.bak-... > .env.new && mv .env.new .env && chmod 600 .env\n```\n\nThen assert every remaining key still holds a value of plausible length (not `***`,\nnot empty) before you report the edit. Backups of secret files inherit the same\nsensitivity: keep them `600` and adjacent, and say where they are.\n\n## Configuration that silently does nothing\n\n- **Check the other home of the setting before deleting one.** When a setting can live\n  in both a config file and an env/secrets file, removing the config copy does not\n  remove the behavior \u2014 it silently promotes the env copy to the effective value. A\n  leftover `TERMINAL_ENV=ssh` in a profile `.env` is invisible while the config file\n  also sets the backend, and becomes a total outage (\"requires ssh_host and ssh_user\")\n  the moment the config key is reformatted away.\n- In a systemd unit, **`Environment=` lines after `[Install]` are ignored**. A\n  settings block outside `[Service]` looks applied and is inert, so the process runs\n  on code defaults while the config file reads like documentation. Check placement\n  before believing a setting: `grep -n \"^\\[\\|^Environment=\" <unit>`, then observe the\n  effect \u2014 a value that matches the code default hides the bug completely.\n- **Different fields accept different vocabularies.** A group name valid in a\n  deny-list may be rejected in an allow-list; the runtime logs `unknown entries` and\n  ignores it. A permission is unproven until something runs under it.\n- **Check nothing else references a key before removing it**: walk the whole config\n  for the value, excluding its own entry.\n- **Read the runtime's own documentation before guessing keys**: installed packages\n  often ship a `docs/` tree, and most CLIs describe their own surfaces (`--help` on\n  every subcommand). That beats searching the web for the same information.\n- **`systemctl enable --now` is a no-op on a unit that is already running.** An\n  installer that writes new config and then \"enables\" the service leaves the *old\n  process serving the old config*, while every check that reads files on disk still\n  passes \u2014 including a verifier that only asks \"is the service active\". Ship `enable`\n  followed by **`restart`** (restart on a stopped unit is just start), and make the\n  verifier compare the unit's start time against the mtime of the config it should have\n  loaded: `date -d \"$(systemctl show <unit> -p ActiveEnterTimestamp --value)\" +%s` vs\n  `stat -c %Y <config>` \u2014 a process older than its config has not taken effect.\n  **\"Deployed\" and \"in effect\" are different claims**; only the second is worth\n  reporting, and a checker that cannot tell them apart reports success for a change\n  that never ran.\n\n## When something behaves differently from the config\n\nCompare two configurations on the same input instead of re-reading the file: restore\nthe old value (or set the missing variable) and re-run the driver. A claim that a\nsetting is broken should be a measured difference, not a memory of a failure.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:46Z",
+  "updated_at": "2026-10-20T13:12:22Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/software-development/patching-live-services",
+      "sha256": "2d42ef85f8c028d8c205e49fc80e65f7fd88aab90415327ea926f057f7245fb7",
+      "retrieved_at": "2026-10-20T12:52:46Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:46Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:12:22Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:12:21Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "patching-live-services",
+    "description": "Patch live services: verified edits, safe restarts.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "software-development/patching-live-services",
+    "sha256": "2d42ef85f8c028d8c205e49fc80e65f7fd88aab90415327ea926f057f7245fb7",
+    "tags": [
+      "patching-live-services",
+      "patching",
+      "live",
+      "services",
+      "Patch",
+      "verified"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

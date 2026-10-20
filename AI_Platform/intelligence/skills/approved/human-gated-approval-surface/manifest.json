@@ -1,0 +1,89 @@
+{
+  "id": "human-gated-approval-surface",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Let a human approve items from a UI, not a remote gate.",
+  "content": "---\nname: human-gated-approval-surface\ndescription: \"Let a human approve items from a UI, not a remote gate.\"\nversion: 1.0.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux]\nmetadata:\n  hermes:\n    tags: [approval, ui, governance, human-in-the-loop, systemd]\n---\n\n# Human-Gated Approval Surfaces\n\nSome workflows are automated end to end except for one step that only a human may do:\npublishing, approving, deleting, spending. Commands are a bad interface for that step\n(the user re-types an id per item), but the fix must not be an approval endpoint.\n\n## The rule that shapes every decision\n\n**An approval is only as human as its weakest path.** No autonomous and no remote path\nmay approve. So the console is a process the human starts, bound to loopback, which\n*invokes* the human-owned tool instead of holding an approval capability of its own.\nNever add an approve route to a service that runs whether or not a human is present,\nand never let the UI's convenience become the security model.\n\n## Procedure\n\n1. **Enumerate the queue from the same source the service uses.** Two independent\n   scanners over one store will disagree (different file layouts, different nested\n   shapes), and a count nobody can reconcile is worse than no count. Prefer the\n   service's own read API; if you must scan files, say which source produced a number.\n2. **Render one card per item with everything needed to decide**: full body, id,\n   version, review interval, source references, submitting identity \u2014 and **which agent\n   produced it**, because a shared write identity makes every artifact anonymous.\n3. **Wire the two actions to the real mechanisms**: approve \u2192 run the human-only tool\n   as a subprocess (kind + id); reject \u2192 archive *with a mandatory reason* recorded in\n   the audit trail. Rejection is not deletion: content leaves the retrieval surface\n   while the reason and history stay.\n4. **Gate the page**: bind `127.0.0.1`, mint a one-time token at startup, print the full\n   URL \u2014 then make the token survivable with a cookie set on the first valid visit plus\n   an \"unlock\" form that accepts the token. A token that lives only in a URL is a dead\n   end the moment the query string is lost, and users open the bare host.\n5. **Keep the UI token in its own class.** It guards against other local processes\n   clicking approve; it is not an application credential. Put it in a 600 file the user\n   can read, name that path in the report, and say plainly that it is not the same thing\n   as the service's identity credentials.\n6. **Make it resident only if asked**, and then properly: a systemd user unit with\n   `Restart=on-failure`, an `EnvironmentFile=` pointing at the token file (stable and\n   inspectable token), `WantedBy=default.target`, verified by `is-active` + `is-enabled`\n   + an HTTP probe. Keep a read-only overview and a decision console as two separately\n   described surfaces rather than one page with modes.\n7. **Verify the gate itself**: missing/wrong token refused, correct token renders, the\n   cookie alone keeps working afterwards. Report all three, plus the loopback bind.\n\n## Pitfalls\n\n- **Verify each decision by reading the state back** (status changed, reason present in\n  the audit), not by the click handler returning 200.\n- **\"Nothing waiting\" is a real, reportable answer** \u2014 it says the pipeline, not the UI,\n  is idle.\n- **Do not let the console become the only way to act.** Keep the underlying command\n  working and documented; the UI is a convenience over a procedure that stands alone.\n- **Attribute work at write time, not display time.** If the writing runtimes cannot\n  record who did the work, no UI recovers it later \u2014 push the attribution field into\n  the writer before building the viewer.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:21Z",
+  "updated_at": "2026-10-20T13:11:18Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/productivity/human-gated-approval-surface",
+      "sha256": "8ad0cef2c69ee8e70e0485e9d213c2d8e2a19879676d197464c43be93e279862",
+      "retrieved_at": "2026-10-20T12:52:21Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:21Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:11:18Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:11:17Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "human-gated-approval-surface",
+    "description": "Let a human approve items from a UI, not a remote gate.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "productivity/human-gated-approval-surface",
+    "sha256": "8ad0cef2c69ee8e70e0485e9d213c2d8e2a19879676d197464c43be93e279862",
+    "tags": [
+      "human-gated-approval-surface",
+      "human",
+      "gated",
+      "approval",
+      "surface",
+      "Let",
+      "approve",
+      "items"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

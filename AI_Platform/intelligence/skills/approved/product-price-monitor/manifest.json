@@ -1,0 +1,88 @@
+{
+  "id": "product-price-monitor",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Watch product, flight, or listing prices; alert on target.",
+  "content": "---\nname: product-price-monitor\ndescription: \"Watch product, flight, or listing prices; alert on target.\"\nversion: 0.1.0\nauthor: Ben Barclay (benbarclay), Hermes Agent\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [Prices, Availability, Shopping, Travel, Alerts]\n    related_skills: [maps]\n---\n\n# Product Price Monitor\n\nMonitor a concrete purchasable item and alert on a normalized all-in price or availability condition. Handle variants, taxes, fees, currencies, stock, cancellation terms, and duplicate alerts explicitly. Setup runs once in the foreground; the recurring check runs as a `cronjob` tick (the `price-watch` automation blueprint scaffolds this).\n\n## When to Use\n\n- \"Alert me when this laptop drops below $1,000.\"\n- \"Watch these flights for a fare under $500.\"\n- \"Tell me when this hotel has a refundable room.\"\n- \"Track ticket/listing availability.\"\n- A cron tick fires for an existing price watch (steps 4-6).\n\nDon't use for: one-off \"what does this cost right now\" lookups (use `web_search`/`web_extract` directly).\n\n## Procedure \u2014 Setup (foreground, once)\n\n### 1. Define the exact item\n\nRecord source URL/provider, product/listing ID where available, variant, quantity, location, dates, travelers/guests, membership/login assumptions, condition, seller, and acceptable substitutes. Done when two variants cannot be confused.\n\n### 2. Define the alert condition\n\nSpecify currency, all-in vs pre-tax price, maximum price, availability/stock rule, shipping, refundability, cabin/room/ticket class, cooldown, and notification destination. Done when synthetic examples have deterministic alert decisions.\n\n### 3. Establish a live baseline, then schedule\n\nFetch a bounded live result with `web_extract` or `browser_navigate` and record retrieval time, source price, fees/taxes, availability, and terms. Do not schedule until one foreground fetch works. Write the watch contract (item, condition, baseline observation) to a state file under `~/.hermes/price-watches/<watch-slug>.json`, then create the job:\n\n```\ncronjob(action=\"create\",\n        schedule=\"every 6h\",\n        prompt=\"Load the product-price-monitor skill and run the tick for the watch contract at ~/.hermes/price-watches/<watch-slug>.json.\",\n        deliver=<user's destination>)\n```\n\nPick a cadence that respects rate limits and site terms. Done when the baseline matches the exact item contract and the job exists.\n\n## Procedure \u2014 Tick (each scheduled run)\n\n### 4. Fetch and normalize\n\nRe-fetch the source. Convert currency only with a timestamped rate and retain the source currency. Separate base price, mandatory fees, shipping/taxes, total, and availability. Exclude volatile page metadata. A failed fetch means unknown state: report or skip, but never overwrite the last good observation with an error page. Done when the observation is comparable to the baseline or explicitly marked failed.\n\n### 5. Compare and suppress duplicates\n\nAlert on threshold entry, qualifying availability, material lower price, or recovery as requested. Store the last good observation and last alert fingerprint in the state file. Replaying the same offer must send no second alert; respect the cooldown. Done when the alert decision is deterministic against stored state.\n\n### 6. Deliver or stay silent\n\nWhen a condition is met, the alert includes: exact item/variant, observed all-in price and source currency, availability/terms, threshold, retrieval timestamp, source link, and important uncertainty. Never claim inventory is reserved. When nothing qualifies, stay silent \u2014 no \"still watching\" noise unless a periodic all-clear was requested. Done when the state file reflects this run.\n\n## Pitfalls\n\n- Comparing a base fare with an all-in threshold.\n- Alerting on the wrong size, seller, cabin, dates, or room terms.\n- Overwriting a last-known-good value with an error page.\n- Polling aggressively enough to trigger blocking or violate site terms.\n- Scheduling before a single foreground fetch has succeeded.\n\n## Verification\n\n- [ ] The watch contract pins the item so two variants cannot be confused.\n- [ ] One foreground fetch succeeded before any job was created.\n- [ ] Alert decisions replay deterministically from the state file; duplicates suppressed.\n- [ ] Failed fetches never replaced last-known-good state.\n- [ ] Alerts carry all-in price, source currency, timestamp, and source link.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:26Z",
+  "updated_at": "2026-10-20T13:12:45Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/productivity/product-price-monitor",
+      "sha256": "b87bf2102fed13d2c7c64759fa153f24f5e43a0afcf6f8ec5e13def92a6642ef",
+      "retrieved_at": "2026-10-20T12:52:26Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:26Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:12:45Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:12:44Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "product-price-monitor",
+    "description": "Watch product, flight, or listing prices; alert on target.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "productivity/product-price-monitor",
+    "sha256": "b87bf2102fed13d2c7c64759fa153f24f5e43a0afcf6f8ec5e13def92a6642ef",
+    "tags": [
+      "product-price-monitor",
+      "product",
+      "price",
+      "monitor",
+      "Watch",
+      "flight",
+      "listing"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

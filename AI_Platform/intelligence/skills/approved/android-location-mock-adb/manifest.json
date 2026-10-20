@@ -1,0 +1,89 @@
+{
+  "id": "android-location-mock-adb",
+  "kind": "skill",
+  "scope": "local",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Use when setting mock location on Android via adb.",
+  "content": "---\nname: android-location-mock-adb\ndescription: Use when setting mock location on Android via adb.\n---\n\n# \u7528 adb \u7ed9\u5b89\u5353\u624b\u673a\u914d\u865a\u62df\u5b9a\u4f4d\n\n\u65e0 root\u3001\u4e0d\u88c5\u6a21\u5757\uff0c\u9760\u7cfb\u7edf mock provider\u3002\u9002\u7528\u4e8e\u9e3f\u8499 4.x / \u666e\u901a Android 11+\u3002\n\n## \u672c\u673a\u7ea6\u5b9a\n\n- `adb.exe` \u5728 `C:\\platform-tools\\adb.exe`\uff0c\u4ece WSL \u76f4\u63a5\u8c03\u7528\uff08\u5b83\u662f Windows \u7a0b\u5e8f\uff09\u3002\n- **\u4f20\u7ed9 adb \u7684\u8def\u5f84\u5fc5\u987b\u662f `C:\\...`**\uff0c\u5199\u6210 `/mnt/c/...` \u4f1a\u62a5 `failed to stat`\u3002\n\n## \u6d41\u7a0b\n\n```bash\nADB=/mnt/c/platform-tools/adb.exe\n$ADB devices -l                       # \u8981\u770b\u5230 device\uff0c\u4e0d\u662f unauthorized\n$ADB push \"C:\\path\\app.apk\" /data/local/tmp/a.apk   # \u534e\u4e3a\u7528 push+pm install\uff0cstreamed install \u5e38\u62a5 User rejected\n$ADB shell \"pm install -r -g /data/local/tmp/a.apk\"\nP=com.zcshou.gogogo\n$ADB shell \"appops set $P android:mock_location allow\"   # \u7b49\u4ef7\u4e8e\u5f00\u53d1\u8005\u9009\u9879\u91cc\u9009\u201c\u6a21\u62df\u4f4d\u7f6e\u4fe1\u606f\u5e94\u7528\u201d\n$ADB shell \"pm grant $P android.permission.ACCESS_FINE_LOCATION\"\n$ADB shell \"dumpsys deviceidle whitelist +$P\"            # \u9632\u540e\u53f0\u88ab\u6740\n$ADB shell \"settings put global wifi_scan_always_enabled 0\"  # \u5173\u952e\uff1a\u4e0d\u5173\u8fd9\u4e2a\uff0cApp \u81ea\u5df1\u626b WiFi \u53cd\u67e5\u4f1a\u628a\u4f60\u62c9\u56de\u53bb\n```\n\n## \u7eaf shell \u6ce8\u5165\uff08\u4e0d\u88c5 App \u4e5f\u80fd\u9a8c\uff09\n\n```bash\n$ADB shell \"appops set --uid 2000 android:mock_location allow\"   # \u5426\u5219 SecurityException\n$ADB shell \"cmd location providers add-test-provider gps --supportsAltitude --requiresSatellite\"\n$ADB shell \"cmd location providers set-test-provider-enabled gps true\"\n$ADB shell \"cmd location providers set-test-provider-location gps --location 1.3521,103.8198 --accuracy 10\"\n$ADB shell \"cmd location providers remove-test-provider gps\"     # \u7528\u5b8c\u6e05\u6389\uff0c\u5426\u5219 App \u7684 addTestProvider \u4f1a\u51b2\u7a81\n```\n\n## \u9a8c\u8bc1\n\n```bash\n$ADB shell \"dumpsys location\" | grep -E \"provider \\[mock\\]|last location\"\n```\n\n`gps provider [mock]` \u548c `network provider [mock]` **\u4e24\u4e2a\u90fd\u53d8 mock** \u624d\u7b97\u6210\u2014\u2014\u53ea\u6539 gps\uff0cApp \u4f1a\u4ece network provider \u62ff\u5230\u771f\u5b9e\u4f4d\u7f6e\u3002\n\n## \u5751\n\n- \u534e\u4e3a `adb install` \u62a5 `INSTALL_FAILED_ABORTED: User rejected permissions`\uff1a\u6539 `adb push` + `pm install`\uff1b\u7eaf\u51c0\u6a21\u5f0f\u6321\u7684\u8bdd\u5148\u9000\u51fa\u3002\n- \u5f71\u68ad\u9996\u5c4f\u90a3\u4e2a\u590d\u9009\u6846 `clickable=false`\uff0c\u70b9\u5b83\u6ca1\u7528\uff1b\u6b63\u786e\u5165\u53e3\u662f\u300c\u8fdb\u5165\u5e94\u7528\u300d\u2192 \u534f\u8bae\u9875 \u2192\u300c\u540c\u610f\u5e76\u7ee7\u7eed\u300d\u3002\u5750\u6807\u8f93\u5165\u5728\u53f3\u4fa7\u5b9a\u4f4d\u56fe\u6807\u4e0a\uff08\u201c\u8f93\u5165\u4f4d\u7f6e\u201d\uff09\uff0c\u7ecf\u7eac\u5ea6\u987a\u5e8f\u662f**\u5148\u7ecf\u5ea6\u540e\u7eac\u5ea6**\uff0c\u5750\u6807\u7cfb\u9009 GPS\u3002\n- \u9ad8\u5fb7 / \u5fae\u4fe1 / \u5927\u4f17\u70b9\u8bc4\u8fd9\u7c7b\u81ea\u5e26\u5b9a\u4f4d SDK \u7684 App **\u4e0d\u5403\u7cfb\u7edf mock**\uff0c\u4f1a\u81ea\u5df1\u626b WiFi/\u57fa\u7ad9\u53cd\u67e5\uff0c\u7167\u6837\u663e\u793a\u771f\u5b9e\u4f4d\u7f6e\u3002\u8fd9\u4e0d\u662f\u914d\u7f6e\u95ee\u9898\uff0c\u65e0 root \u65e0\u89e3\u3002\n- \u81ea\u5e26\u7684 Android \u7cfb\u7edf App\uff08\u5929\u6c14\u7b49\uff09\u5e38\u5e38\u663e\u793a\u7528\u6237\u624b\u9009\u7684\u5e38\u9a7b\u57ce\u5e02\uff0c\u4e0d\u80fd\u7528\u6765\u5224\u65ad mock \u662f\u5426\u751f\u6548\uff1b\u4ee5 `dumpsys location` \u4e3a\u51c6\u3002\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:03Z",
+  "updated_at": "2026-10-20T13:09:14Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/local/android-location-mock-adb",
+      "sha256": "3afbee7940ac94c6d362b8c75dfaa07e4dfaadf64fe3bb4961b0dc5c6e98fc62",
+      "retrieved_at": "2026-10-20T12:52:03Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:03Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:09:14Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:09:13Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "android-location-mock-adb",
+    "description": "Use when setting mock location on Android via adb.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "local/android-location-mock-adb",
+    "sha256": "3afbee7940ac94c6d362b8c75dfaa07e4dfaadf64fe3bb4961b0dc5c6e98fc62",
+    "tags": [
+      "android-location-mock-adb",
+      "android",
+      "location",
+      "mock",
+      "adb",
+      "Use",
+      "when",
+      "setting"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'local' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

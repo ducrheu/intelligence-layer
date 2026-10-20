@@ -1,0 +1,79 @@
+{
+  "id": "docx",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "candidate",
+  "version": "1.0.0",
+  "title": "Create, read, edit, template, and review Word .docx files.",
+  "content": "---\nname: docx\ndescription: Create, read, edit, template, and review Word .docx files.\nversion: 1.1.0\nauthor: Nous Research\nlicense: MIT\nplatforms: [linux, macos, windows]\nmetadata:\n  hermes:\n    tags: [word, docx, documents, office, templates, revisions, comments]\n    category: productivity\n    related_skills: [pdf, xlsx, powerpoint]\n---\n\n# Docx Skill\n\nCreate, read, edit, and template Microsoft Word `.docx` files with\npython-docx via small CLIs. It handles text, styles, lists, tables,\nimages, headers/footers, `{{token}}` templating, tracked changes\n(list/accept/reject), comments (list/add/delete), TOC and page-number\nfields, and package health checks. It does not render documents itself\n(PDF needs LibreOffice \u2014 see Converting to PDF) or edit legacy `.doc`.\n\n## When to Use\n\n- The user asks to generate a Word document (report, letter, contract).\n- You need the text, outline, styles, or embedded images of a `.docx`.\n- You must change an existing `.docx`: replace text, edit table cells,\n  insert/delete paragraphs, apply styles, merge fragmented runs.\n- You have a `.docx` template with `{{placeholders}}` to fill from data.\n- The document has tracked changes to review, accept, or reject.\n- You need to read reviewers' comments, or add/delete comments.\n- A `.docx` won't open or behaves oddly and you need corruption triage.\n- The document needs a table of contents or \"Page X of Y\" footers.\n- Not for: `.doc` (legacy), `.odt`, or WYSIWYG layout work.\n\n## Prerequisites\n\n- Python 3.10+ with `python-docx` installed:\n  `pip install python-docx` (import name is `docx`; lxml comes with it).\n- Comments `add` uses the native API on python-docx >= 1.2 and an XML\n  fallback on older versions \u2014 both are automatic.\n- For image blocks: the image files must exist locally (PNG/JPEG).\n\n## How to Run\n\nAll helpers live in `scripts/` next to this file. Run them with the\n`terminal` tool; each supports `--help` and prints JSON to stdout.\n\n```bash\npython scripts/docx_create.py spec.json out.docx\npython scripts/docx_read.py out.docx --text\npython scripts/docx_edit.py replace out.docx --find old --replace new\npython scripts/docx_template.py tpl.docx values.json filled.docx\npython scripts/docx_revisions.py list out.docx\npython scripts/docx_comments.py list out.docx\npython scripts/docx_validate.py out.docx\n```\n\n## Quick Reference\n\n| Task | Command |\n| --- | --- |\n| Create from JSON spec | `docx_create.py spec.json out.docx` |\n| Full text (body+tables+headers/footers) | `docx_read.py f.docx --text` |\n| Heading outline + table shapes | `docx_read.py f.docx --structure` |\n| Styles actually used | `docx_read.py f.docx --styles` |\n| Extract embedded images | `docx_read.py f.docx --images outdir/` |\n| Detect tracked changes/comments | `docx_read.py f.docx --revisions` |\n| Find/replace (formatting kept) | `docx_edit.py replace f.docx --find A --replace B -o out.docx` |\n| Set a table cell | `docx_edit.py set-cell f.docx --table 0 --row 1 --col 2 --text X` |\n| Insert paragraph before index N | `docx_edit.py insert f.docx --index N --text X --style Normal` |\n| Delete paragraph N | `docx_edit.py delete f.docx --index N` |\n| Apply style to paragraph N | `docx_edit.py style f.docx --index N --style \"Heading 1\"` |\n| Merge equal-format adjacent runs | `docx_edit.py normalize f.docx -o out.docx` |\n| Insert TOC field before para N | `docx_edit.py toc f.docx --index N -o out.docx` |\n| \"Page X of Y\" footer fields | `docx_edit.py page-numbers f.docx` |\n| Fill `{{tokens}}` | `docx_template.py tpl.docx values.json out.docx --strict` |\n| List revisions (id/author/date/text) | `docx_revisions.py list f.docx` |\n| Accept / reject all revisions | `docx_revisions.py accept-all f.docx -o out.docx` (or `reject-all`) |\n| Accept / reject one revision | `docx_revisions.py accept f.docx --id 3 -o out.docx` |\n| List comments (+anchored text) | `docx_comments.py list f.docx` |\n| Add comment anchored to text | `docx_comments.py add f.docx --target \"phrase\" --text \"note\" --author You` |\n| Delete comment by id | `docx_comments.py delete f.docx --id 0` |\n| Health-check the package | `docx_validate.py f.docx` (exit 1 on errors) |\n\n## Procedure\n\n1. **Create.** Write a JSON spec with `write_file`, then run\n   `scripts/docx_create.py`. The spec supports: `page` (size + margins in\n   mm), `header`/`footer` strings, `footer_page_numbers` (adds a\n   \"Page X of Y\" field footer), `styles` (custom paragraph styles with\n   font, size, bold/italic, hex `color`), and `blocks` \u2014 `heading`\n   (level 1-9), `paragraph` (either `text` or a `runs` list where each run\n   may set `bold`/`italic`/`underline`), `bullet_list`, `numbered_list`,\n   `table` (`header` row rendered bold, `rows`, optional built-in table\n   `style` such as `Table Grid`), `image` (`path`, optional `width_mm`),\n   `toc` (Table of Contents field), and `page_break`. The full spec\n   format is documented at the top of `scripts/docx_create.py`.\n2. **Read.** Use `scripts/docx_read.py` with exactly one mode flag.\n   `--text` returns body paragraphs, all table cell text, and\n   header/footer text as JSON. `--structure` returns the heading outline\n   plus paragraph/table/section counts. `--images DIR` copies every file\n   under `word/media/` out of the package.\n3. **Edit.** Use `scripts/docx_edit.py`. `replace` walks body, tables\n   (nested included), headers and footers, and preserves run formatting;\n   add `--body-only` to skip headers/footers. Pass `-o out.docx` to keep\n   the original; omit it to edit in place. Paragraph indices for\n   `insert`/`delete`/`style`/`toc` refer to `--structure`/`--text` body\n   order. Run `normalize` first on documents that came out of heavy Word\n   editing \u2014 it merges adjacent runs with identical formatting so later\n   find-replace matches reliably.\n4. **Review revisions.** `docx_revisions.py list` reports every `w:ins`\n   and `w:del` (id, author, date, affected text) anywhere in body,\n   tables, headers, or footers. `accept-all` / `reject-all` resolve them\n   in bulk; `accept`/`reject --id N` handles a single revision. Accept\n   keeps insertions and drops deleted text; reject does the reverse.\n5. **Comments.** `docx_comments.py list` returns each comment's id,\n   author, date, body text, and the document text it is anchored to.\n   `add --target \"some phrase\"` anchors a new comment to the first\n   occurrence of that phrase (runs are split as needed; formatting is\n   preserved). `delete --id N` removes the comment and its markers\n   without touching document text.\n6. **Template.** Put `{{name}}`-style tokens in the document. Run\n   `scripts/docx_template.py` with a JSON object of values. Use\n   `--strict` to fail when tokens remain unfilled; the JSON output lists\n   `filled` counts and `unfilled_tokens` either way.\n7. **Verify** (always): re-read the output with `--text` or\n   `--structure`, and run `docx_validate.py` on anything you produced\n   via revision/comment surgery.\n\n## Converting to PDF\n\nNo script needed. When LibreOffice is installed, convert headlessly:\n\n```bash\nsoffice --headless --convert-to pdf --outdir outdir/ file.docx\n```\n\nCheck availability first (`command -v soffice || command -v\nlibreoffice`). If neither exists, tell the user PDF conversion is\nunavailable in this environment rather than improvising \u2014 python-docx\ncannot render PDFs, and layout fidelity requires a real renderer.\n\n## Pitfalls\n\n- **Tokens split across runs.** Word often fragments text into several\n  runs. The replace helpers collapse matched runs (replacement inherits\n  the first run's formatting); running `docx_edit.py normalize` first\n  reduces fragmentation for all later edits.\n- **Revision coverage.** `docx_revisions.py` resolves run-level\n  insertions and deletions (the overwhelming majority). Paragraph-mark\n  and table-row revisions, format-change records, and moves are detected\n  by `--revisions` but not auto-resolved \u2014 see\n  `references/revisions-and-comments.md` and hand those to Word.\n- **Comment threading.** Replies and \"resolved\" status live in\n  `commentsExtended.xml`, which this skill ignores; comments it adds are\n  plain top-level comments.\n- **Field results are computed by Word.** `toc`, `page-numbers`, and the\n  `toc`/`footer_page_numbers` spec options write *field codes*.\n  Word/LibreOffice populates the actual entries and numbers when the\n  file is opened (Word may prompt to update fields); python-docx never\n  computes them, so placeholder text shows until then.\n- **Validation is a health check, not schema validation.**\n  `docx_validate.py` verifies the zip, required parts, relationship\n  targets, image magic bytes, and referenced styles. It is NOT XSD\n  validation \u2014 a file can pass and still contain XML Word dislikes.\n- **Style names must exist.** Applying a style that isn't defined in the\n  document raises `KeyError`. Built-ins like `Heading 1`, `List Bullet`,\n  `List Number`, `Table Grid` exist in the default template; custom\n  styles must be declared in the create spec first.\n- **Numbered lists restart.** `List Number` relies on Word's default\n  numbering; separate lists in one document may continue numbering\n  instead of restarting. Warn users needing precise multi-list numbering.\n- **Cell writes replace formatting.** `set-cell` uses `cell.text = ...`,\n  which resets runs in that cell to plain formatting.\n- **Encoding.** All JSON specs/values files are read as UTF-8 explicitly;\n  never rely on locale defaults when writing your own glue code.\n- **Don't unzip-and-sed the XML.** Edit through the scripts (or\n  python-docx); raw text substitution in `document.xml` corrupts files\n  easily. Use `patch`/`write_file` only for the JSON inputs, never on the\n  `.docx` itself.\n\n## Verification\n\n- After create/edit/template, run `docx_read.py out.docx --text` and\n  check the expected strings appear (and old strings are gone).\n- After accept/reject, `docx_revisions.py list` should return `[]` (or\n  only the ids you intentionally left); after comment surgery,\n  `docx_comments.py list` should reflect the change and `--text` output\n  must be unchanged.\n- `docx_validate.py out.docx` exits 0 with `\"ok\": true` on a healthy\n  package \u2014 run it after any revision/comment/field manipulation.\n- For templates run with `--strict`, or check `unfilled_tokens == []`.\n- Structure checks: `--structure` should show the expected heading\n  outline and table shapes; `--styles` confirms custom styles applied.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:17Z",
+  "updated_at": "2026-10-20T12:52:17Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/productivity/docx",
+      "sha256": "9678b14d5e7841d588b969f6a4696cd46bcc46c3e4ac1479edc7656a051aa5ff",
+      "retrieved_at": "2026-10-20T12:52:17Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:17Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": false,
+  "verified_by": null,
+  "verified_at": null,
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "docx",
+    "description": "Create, read, edit, template, and review Word .docx files.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "python3"
+    ],
+    "permissions": [
+      "read-only",
+      "runs 9 attached script(s)"
+    ],
+    "verification": "static-review",
+    "executable_attachments": true,
+    "origin_runtime": "hermes",
+    "origin_path": "productivity/docx",
+    "sha256": "9678b14d5e7841d588b969f6a4696cd46bcc46c3e4ac1479edc7656a051aa5ff",
+    "tags": [
+      "docx",
+      "Create",
+      "read",
+      "edit",
+      "template"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T3",
+      "auto_validate": false,
+      "auto_approve": false,
+      "reasons": [],
+      "blocking": [
+        "skill ships executable attachments: a human reads what they do before it is shared"
+      ]
+    }
+  }
+}

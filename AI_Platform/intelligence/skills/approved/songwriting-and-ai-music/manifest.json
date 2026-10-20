@@ -1,0 +1,87 @@
+{
+  "id": "songwriting-and-ai-music",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Songwriting craft and Suno AI music prompts.",
+  "content": "---\nname: songwriting-and-ai-music\ndescription: \"Songwriting craft and Suno AI music prompts.\"\nversion: 1.0.0\nauthor: Teknium (teknium1), Hermes Agent\nlicense: MIT\ntags: [songwriting, music, suno, parody, lyrics, creative]\nplatforms: [linux, macos, windows]\ntriggers:\n  - writing a song\n  - song lyrics\n  - music prompt\n  - suno prompt\n  - parody song\n  - adapting a song\n  - AI music generation\n---\n\n# Songwriting & AI Music Generation\n\nEverything here is a GUIDELINE, not a rule. Art breaks rules on purpose.\nUse what serves the song. Ignore what doesn't.\n\n---\n\n## 1. Song Structure (Pick One or Invent Your Own)\n\nCommon skeletons \u2014 mix, modify, or throw out as needed:\n\n```\nABABCB  Verse/Chorus/Verse/Chorus/Bridge/Chorus    (most pop/rock)\nAABA    Verse/Verse/Bridge/Verse (refrain-based)    (jazz standards, ballads)\nABAB    Verse/Chorus alternating                    (simple, direct)\nAAA     Verse/Verse/Verse (strophic, no chorus)     (folk, storytelling)\n```\n\nThe six building blocks:\n- Intro      \u2014 set the mood, pull the listener in\n- Verse      \u2014 the story, the details, the world-building\n- Pre-Chorus \u2014 optional tension ramp before the payoff\n- Chorus     \u2014 the emotional core, the part people remember\n- Bridge     \u2014 a detour, a shift in perspective or key\n- Outro      \u2014 the farewell, can echo or subvert the rest\n\nYou don't need all of these. Some great songs are just one section\nthat evolves. Structure serves the emotion, not the other way around.\n\n---\n\n## 2. Rhyme, Meter, and Sound\n\nRHYME TYPES (from tight to loose):\n- Perfect: lean/mean\n- Family: crate/braid\n- Assonance: had/glass (same vowels, different endings)\n- Consonance: scene/when (different vowels, similar endings)\n- Near/slant: enough to suggest connection without locking it down\n\nMix them. All perfect rhymes can sound like a nursery rhyme.\nAll slant rhymes can sound lazy. The blend is where it lives.\n\nINTERNAL RHYME: Rhyming within a line, not just at the ends.\n  \"We pruned the lies from bleeding trees / Distilled the storm\n   from entropy\" \u2014 \"lies/flies,\" \"trees/entropy\" create internal echoes.\n\nMETER: The rhythm of stressed vs unstressed syllables.\n- Matching syllable counts between parallel lines helps singability\n- The STRESSED syllables matter more than total count\n- Say it out loud. If you stumble, the meter needs work.\n- Intentionally breaking meter can create emphasis or surprise\n\n---\n\n## 3. Emotional Arc and Dynamics\n\nThink of a song as a journey, not a flat road.\n\nENERGY MAPPING (rough idea, not prescription):\n  Intro: 2-3  |  Verse: 5-6  |  Pre-Chorus: 7\n  Chorus: 8-9  |  Bridge: varies  |  Final Chorus: 9-10\n\nThe most powerful dynamic trick: CONTRAST.\n- Whisper before a scream hits harder than just screaming\n- Sparse before dense. Slow before fast. Low before high.\n- The drop only works because of the buildup\n- Silence is an instrument\n\n\"Whisper to roar to whisper\" \u2014 start intimate, build to full power,\nstrip back to vulnerability. Works for ballads, epics, anthems.\n\n---\n\n## 4. Writing Lyrics That Work\n\nSHOW, DON'T TELL (usually):\n- \"I was sad\" = flat\n- \"Your hoodie's still on the hook by the door\" = alive\n- But sometimes \"I give my life\" said plainly IS the power\n\nTHE HOOK:\n- The line people remember, hum, repeat\n- Usually the title or core phrase\n- Works best when melody + lyric + emotion all align\n- Place it where it lands hardest (often first/last line of chorus)\n\nPROSODY \u2014 lyrics and music supporting each other:\n- Stable feelings (resolution, peace) pair with settled melodies,\n  perfect rhymes, resolved chords\n- Unstable feelings (longing, doubt) pair with wandering melodies,\n  near-rhymes, unresolved chords\n- Verse melody typically sits lower, chorus goes higher\n- But flip this if it serves the song\n\nAVOID (unless you're doing it on purpose):\n- Cliches on autopilot (\"heart of gold\" without earning it)\n- Forcing word order to hit a rhyme (\"Yoda-speak\")\n- Same energy in every section (flat dynamics)\n- Treating your first draft as sacred \u2014 revision is creation\n\n---\n\n## 5. Parody and Adaptation\n\nWhen rewriting an existing song with new lyrics:\n\nTHE SKELETON: Map the original's structure first.\n- Count syllables per line\n- Mark the rhyme scheme (ABAB, AABB, etc.)\n- Identify which syllables are STRESSED\n- Note where held/sustained notes fall\n\nFITTING NEW WORDS:\n- Match stressed syllables to the same beats as the original\n- Total syllable count can flex by 1-2 unstressed syllables\n- On long held notes, try to match the VOWEL SOUND of the original\n  (if original holds \"LOOOVE\" with an \"oo\" vowel, \"FOOOD\" fits\n   better than \"LIFE\")\n- Monosyllabic swaps in key spots keep rhythm intact\n  (Crime -> Code, Snake -> Noose)\n- Sing your new words over the original \u2014 if you stumble, revise\n\nCONCEPT:\n- Pick a concept strong enough to sustain the whole song\n- Start from the title/hook and build outward\n- Generate lots of raw material (puns, phrases, images) FIRST,\n  then fit the best ones into the structure\n- If you need a specific line somewhere, reverse-engineer the\n  rhyme scheme backward to set it up\n\nKEEP SOME ORIGINALS: Leaving a few original lines or structures\nintact adds recognizability and lets the audience feel the connection.\n\n---\n\n## 6. Suno AI Prompt Engineering\n\n### Style/Genre Description Field\n\nFORMULA (adapt as needed):\n  Genre + Mood + Era + Instruments + Vocal Style + Production + Dynamics\n\n```\nBAD:  \"sad rock song\"\nGOOD: \"Cinematic orchestral spy thriller, 1960s Cold War era, smoky\n       sultry female vocalist, big band jazz, brass section with\n       trumpets and french horns, sweeping strings, minor key,\n       vintage analog warmth\"\n```\n\nDESCRIBE THE JOURNEY, not just the genre:\n```\n\"Begins as a haunting whisper over sparse piano. Gradually layers\n in muted brass. Builds through the chorus with full orchestra.\n Second verse erupts with raw belting intensity. Outro strips back\n to a lone piano and a fragile whisper fading to silence.\"\n```\n\nTIPS:\n- V4.5+ supports up to 1,000 chars in Style field \u2014 use them\n- NO artist names or trademarks. Describe the sound instead.\n  \"1960s Cold War spy thriller brass\" not \"James Bond style\"\n  \"90s grunge\" not \"Nirvana-style\"\n- Specify BPM and key when you have a preference\n- Use Exclude Styles field for what you DON'T want\n- Unexpected genre combos can be gold: \"bossa nova trap\",\n  \"Appalachian gothic\", \"chiptune jazz\"\n- Build a vocal PERSONA, not just a gender:\n  \"A weathered torch singer with a smoky alto, slight rasp,\n   who starts vulnerable and builds to devastating power\"\n\n### Metatags (place in [brackets] inside lyrics field)\n\nSTRUCTURE:\n  [Intro] [Verse] [Verse 1] [Pre-Chorus] [Chorus]\n  [Post-Chorus] [Hook] [Bridge] [Interlude]\n  [Instrumental] [Instrumental Break] [Guitar Solo]\n  [Breakdown] [Build-up] [Outro] [Silence] [End]\n\nVOCAL PERFORMANCE:\n  [Whispered] [Spoken Word] [Belted] [Falsetto] [Powerful]\n  [Soulful] [Raspy] [Breathy] [Smooth] [Gritty]\n  [Staccato] [Legato] [Vibrato] [Melismatic]\n  [Harmonies] [Choir] [Harmonized Chorus]\n\nDYNAMICS:\n  [High Energy] [Low Energy] [Building Energy] [Explosive]\n  [Emotional Climax] [Gradual swell] [Orchestral swell]\n  [Quiet arrangement] [Falling tension] [Slow Down]\n\nGENDER:\n  [Female Vocals] [Male Vocals]\n\nATMOSPHERE:\n  [Melancholic] [Euphoric] [Nostalgic] [Aggressive]\n  [Dreamy] [Intimate] [Dark Atmosphere]\n\nSFX:\n  [Vinyl Crackle] [Rain] [Applause] [Static] [Thunder]\n\nPut tags in BOTH style field AND lyrics for reinforcement.\nKeep to 5-8 tags per section max \u2014 too many confuses the AI.\nDon't contradict yourself ([Calm] + [Aggressive] in same section).\n\n### Custom Mode\n- Always use Custom Mode for serious work (separate Style + Lyrics)\n- Lyrics field limit: ~3,000 chars (~40-60 lines)\n- Always add structural tags \u2014 without them Suno defaults to\n  flat verse/chorus/verse with no emotional arc\n\n---\n\n## 7. Phonetic Tricks for AI Singers\n\nAI vocalists don't read \u2014 they pronounce. Help them:\n\nPHONETIC RESPELLING:\n- Spell words as they SOUND: \"through\" -> \"thru\"\n- Proper nouns are highest failure rate \u2014 test early\n- \"Nous\" -> \"Noose\" (forces correct pronunciation)\n- Hyphenate to guide syllables: \"Re-search\", \"bio-engineering\"\n\nDELIVERY CONTROL:\n- ALL CAPS = louder, more intense\n- Vowel extension: \"lo-o-o-ove\" = sustained/melisma\n- Ellipses: \"I... need... you\" = dramatic pauses\n- Hyphenated stretch: \"ne-e-ed\" = emotional stretch\n\nALWAYS:\n- Spell out numbers: \"24/7\" -> \"twenty four seven\"\n- Space acronyms: \"AI\" -> \"A I\" or \"A-I\"\n- Test proper nouns/unusual words in a short 30-second clip first\n- Once generated, pronunciation is baked in \u2014 fix in lyrics BEFORE\n\n---\n\n## 8. Workflow\n\n1. Write the concept/hook first \u2014 what's the emotional core?\n2. If adapting, map the original structure (syllables, rhyme, stress)\n3. Generate raw material \u2014 brainstorm freely before structuring\n4. Draft lyrics into the structure\n5. Read/sing aloud \u2014 catch stumbles, fix meter\n6. Build the Suno style description \u2014 paint the dynamic journey\n7. Add metatags to lyrics for performance direction\n8. Generate 3-5 variations minimum \u2014 treat them like recording takes\n9. Pick the best, use Extend/Continue to build on promising sections\n10. If something great happens by accident, keep it\n\nEXPECT: ~3-5 generations per 1 good result. Revision is normal.\nStyle can drift in extensions \u2014 restate genre/mood when extending.\n\n---\n\n## 9. Lessons Learned\n\n- Describing the dynamic ARC in the style field matters way more\n  than just listing genres. \"Whisper to roar to whisper\" gives\n  Suno a performance map.\n- Keeping some original lines intact in a parody adds recognizability\n  and emotional weight \u2014 the audience feels the ghost of the original.\n- The bridge slot in a song is where you can transform imagery.\n  Swap the original's specific references for your theme's metaphors\n  while keeping the emotional function (reflection, shift, revelation).\n- Monosyllabic word swaps in hooks/tags are the cleanest way to\n  maintain rhythm while changing meaning.\n- A strong vocal persona description in the style field makes a\n  bigger difference than any single metatag.\n- Don't be precious about rules. If a line breaks meter but hits\n  harder, keep it. The feeling is what matters. Craft serves art,\n  not the other way around.\n\n---\n\n## 10. Local / Open-Source Music Generation\n\nFor local, GPU-based generation instead of Suno, two optional skills\ncover this (heavy dependencies, so not installed by default):\n\n- **heartmula** \u2014 full songs with vocals from lyrics + tags\n  (open-source Suno alternative, 8-16GB VRAM):\n  `hermes skills install official/creative/heartmula`\n- **audiocraft** \u2014 Meta's MusicGen (instrumental text-to-music) and\n  AudioGen (sound effects):\n  `hermes skills install official/creative/audiocraft-audio-generation`\n\nThe lyric-writing and prompting craft in this skill applies to\nheartmula too \u2014 its input format is lyrics with bracketed structure\ntags plus comma-separated style tags.\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:52:01Z",
+  "updated_at": "2026-10-20T13:13:38Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/creative/songwriting-and-ai-music",
+      "sha256": "5dbf92dc336e9b17be45c35c92a5bb307e4655e39a86617f07b7654678f92583",
+      "retrieved_at": "2026-10-20T12:52:01Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:52:01Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:13:38Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:13:37Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "songwriting-and-ai-music",
+    "description": "Songwriting craft and Suno AI music prompts.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "creative/songwriting-and-ai-music",
+    "sha256": "5dbf92dc336e9b17be45c35c92a5bb307e4655e39a86617f07b7654678f92583",
+    "tags": [
+      "songwriting-and-ai-music",
+      "songwriting",
+      "and",
+      "music",
+      "craft",
+      "Suno"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

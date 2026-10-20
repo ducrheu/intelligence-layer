@@ -1,0 +1,87 @@
+{
+  "id": "agent-runtime-cost-audit",
+  "kind": "skill",
+  "scope": "domain",
+  "status": "approved",
+  "version": "1.0.0",
+  "title": "Audit an agent runtime's token cost: buckets, context, levers.",
+  "content": "---\nname: agent-runtime-cost-audit\ndescription: \"Audit an agent runtime's token cost: buckets, context, levers.\"\nversion: 1.2.0\nauthor: Hermes Agent\nlicense: MIT\nplatforms: [linux]\nmetadata:\n  hermes:\n    tags: [cost, context-window, compaction, agent-runtime, audit]\n---\n\n# Agent Runtime Cost Audit\n\nWhen an agent runtime (or a fleet of agents inside one) feels expensive, measure three\nlayers before changing anything: what the runtime *believes* about the model, how much\nhistory it carries, and what its storage actually holds. Guessing at the expensive layer\nwastes the fix.\n\n**Token volume is not cost \u2014 price the buckets first.** Providers bill three token classes at\nwildly different rates: cache-miss input is roughly 50x cache-read, output roughly 2x input.\nA runtime whose prompts are 96% cache hits can still spend most of its money on the 4% that\nmissed. Never rank levers by token count; multiply each bucket by its price, using the\nprovider's own price list rather than an imported catalog.\n\n**Cover every axis, not just input size.** For this user, an audit that only trims the prompt\nis an incomplete answer \u2014 he asks for it explicitly. Work all five and put a measured number\nand a named lever against each: (a) context carried per call, (b) output and reasoning tokens,\n(c) auxiliary per-turn model calls, (d) recurring jobs that should be deterministic scripts\ninstead of model calls, (e) model/effort routing for the cheap tasks. `references/cost-levers.md`\nholds the lever table; `references/measurement-sources.md` holds where each number comes from.\n\n## 1. Model declarations decide whether compaction ever runs\n\nThe model registry usually carries explicit `contextWindow` and `maxTokens` per model, and\nthey are not display values \u2014 they drive when history compaction triggers. A declared\nwindow far beyond the real model (a million-token declaration is the classic) means\ncompaction never fires and every single turn re-sends an enormous history. **Compare the\ndeclarations across providers in the same config: the outlier is the suspect.** Check it\nagainst the provider's own model docs before calling it a bug \u2014 a genuine million-token window\nis normal now, and then the declaration is CORRECT and the thing to change is the cost policy\n(an absolute cap), not the number. A copy-paste from a long-context provider into another\nprovider's block is how the false ones happen.\n\n## 2. Measure context per call, not context per session\n\nDivide the session's whole prompt volume by its API calls \u2014 `(input_tokens +\ncache_read_tokens) / api_call_count` \u2014 and rank sessions by that. The number that governs cost\nis the average prompt size of a SINGLE call, and one or two sessions usually sit far above the\nrest. Two mechanisms push it up; name both:\n\n- **Ratio-only compaction thresholds never fire on a huge window.** A 1M declared window with a\n  0.50 ratio trigger starts compacting at 500K, which a session never reaches. The fix is an\n  ABSOLUTE cap (Hermes: `compression.threshold_tokens` \u2014 it triggers at the lower of ratio and\n  count), not a smaller ratio, and it is safe precisely because it is a cost policy rather than\n  a correction of the declaration.\n- **Nothing prunes old tool output.** Tool results are the bulk of carried history and are\n  re-sent on every later call. Look for a deterministic no-LLM prune of stale results\n  (`compression.proactive_prune_tokens`) before reaching for LLM summarization.\n\n## 3. Auxiliary per-turn calls are a separate line item\n\nRuntimes run extra models every turn \u2014 approval classifiers, background reviewers, compression\nsummarizers, title generation. They are invisible in the main model's totals and billed the\nsame. Measure them per task (the Hermes usage table has a `task` column for exactly this) and\nremember that a review fork inherits the whole conversation: an automatic per-turn reviewer\nwith a 600K input cap costs more than the turn it reviews. Cheap fixes: cap the fork's input,\ndrop its reasoning effort, or route it to a local or free model via the runtime's per-task\nmodel pinning.\n\n## 4. Per-agent stores and retired sessions\n\nEach agent often has its own session and memory store (its own sqlite plus a sessions\ndirectory). Measure per agent, not in aggregate, because one agent typically dominates:\n\n- file sizes per agent store, and which of them dwarfs the rest;\n- live sessions versus retired ones (`*.jsonl.reset.*`, `*.jsonl.deleted.*`), because\n  retired files accumulate forever and are safe to move out, while live sessions are not.\n\n**Move retired sessions to an archive directory \u2014 never delete them.** The action stays\nreversible, and live sessions are left untouched.\n\n## 5. Before compacting a database: measure what is reclaimable\n\n```\npragma page_count     pragma freelist_count     pragma page_size\n```\n\n`freelist_count \u00d7 page_size` is what a vacuum would return. If that is a small fraction of\nthe file (single-digit MB out of hundreds), the bulk is **live data** \u2014 transcripts, memory\nchunks, vector indexes \u2014 and the lever is retention (prune old transcripts, rebuild\nindexes), not vacuuming. Do not disturb a database other agents are actively using to\nreclaim a rounding error; report the measurement and the real lever instead.\n\nInspect with a read-only connection (`file:<path>?mode=ro`, uri) so an audit cannot damage\nthe store, and list which tables actually hold the rows \u2014 that is what turns \"the store is\nbig\" into \"these rows are big\".\n\n## 6. Reasoning tokens and the effort knob\n\nOn a reasoning model, `reasoning_tokens` is routinely half of all output tokens \u2014 measure that\nratio before touching anything else in the output bucket. Effort ladders are narrow per wire\nand some models cannot disable thinking at all, so read the provider profile and set an\nexplicit level (unset means the server default, which is usually the high end); keep high\neffort for the main conversation and pin the auxiliary tasks down. Never invent a level the\nwire does not accept \u2014 clamp to the nearest supported one.\n\n## 7. Report\n\nLead with a bucket table \u2014 cache-miss input / output / cache-read, tokens and money per bucket,\nthen the percentage share \u2014 because the share is what tells the user which lever pays. Follow\nwith per-call context for the worst sessions, the auxiliary-call line items, the scheduled jobs\nthat should be scripts, and a ranked lever list where every row names the lever, its mechanism,\nand an expected monthly saving with the assumption stated. Reprice before quoting money: the\nruntime's own `estimated_cost_usd` comes from a model catalog that can overstate badly (a 2x\nhigh output price is common), so check it against the provider's official price list, and read\nthe provider's real remaining balance from its API when one exists. A cost audit that ends in\n\"looks fine\" without numbers is not an audit, and a config diff is not evidence that cost\nchanged \u2014 verify the effect (compaction actually firing, per-call context actually falling, the\nbalance actually moving) before claiming the win.\n\n### Reporting shape and gating for this user\n\n- Deliver the audit in Chinese (\u7b80\u4f53): bucket table first \u2014 bucket, tokens, money, share \u2014 with\nevery estimate labelled as an estimate and never mixed into the measured rows.\n- Split the findings into two labelled piles: **zero-trade-off** (apply it, then report what was\napplied) and **quality-trade-off** (present as options and WAIT for his call). Main-model\nthinking depth and the replay depth of the automatic memory/skill review belong to the second\npile \u2014 he keeps sedimentation quality over tokens and refuses a silent downgrade.\n- Give a range per lever with the trade-off at each setting, never a single number: he retunes\nthe value himself (a cap proposed at 200K came back as 256K). When he picks a different value,\nre-derive the expected saving for HIS number and say the basis changed, instead of repeating the\nearlier figure.\n- Any change that touches conversational continuity (context cap, session rollover/reset) gets\nexplained before any config is written, and is not applied until he agrees. State three things\nplainly: what changes (the history window that gets re-sent), what does NOT (stored transcripts\nand long-term memory survive and stay searchable), and the trigger (it fires only after a real\ngap in HIS messages \u2014 active work never trips it, because heartbeat and cron events do not count\nas interaction).\n",
+  "created_by": "local-hermes-writer",
+  "created_at": "2026-10-20T12:51:12Z",
+  "updated_at": "2026-10-20T13:09:07Z",
+  "source": [
+    {
+      "type": "skill-source",
+      "ref": "skill://hermes/autonomous-ai-agents/agent-runtime-cost-audit",
+      "sha256": "ba7bb1336477419132d2cb783f29fdb5b7199cbca4696c0d864ec548ebf13062",
+      "retrieved_at": "2026-10-20T12:51:12Z"
+    }
+  ],
+  "provenance": [
+    {
+      "type": "distillation",
+      "agent": "local-hermes-writer",
+      "created_at": "2026-10-20T12:51:12Z",
+      "note": "\u4ece hermes \u6280\u80fd\u76ee\u5f55\u540c\u6b65"
+    }
+  ],
+  "verified": true,
+  "verified_by": "policy-auto",
+  "verified_at": "2026-10-20T13:09:07Z",
+  "applies_to": [
+    "hermes-skills"
+  ],
+  "compatibility": [
+    "hermes",
+    "any-mcp-client"
+  ],
+  "expires_at": null,
+  "review_interval_days": 180,
+  "tests": [],
+  "evidence": [
+    {
+      "type": "qa",
+      "actor": "policy-auto",
+      "validated_at": "2026-10-20T13:09:03Z"
+    }
+  ],
+  "supersedes": null,
+  "superseded_by": null,
+  "metadata": {
+    "name": "agent-runtime-cost-audit",
+    "description": "Audit an agent runtime's token cost: buckets, context, levers.",
+    "inputs": [],
+    "outputs": [],
+    "dependencies": [
+      "none"
+    ],
+    "permissions": [
+      "read-only"
+    ],
+    "verification": "static-review",
+    "executable_attachments": false,
+    "origin_runtime": "hermes",
+    "origin_path": "autonomous-ai-agents/agent-runtime-cost-audit",
+    "sha256": "ba7bb1336477419132d2cb783f29fdb5b7199cbca4696c0d864ec548ebf13062",
+    "tags": [
+      "agent-runtime-cost-audit",
+      "agent",
+      "runtime",
+      "cost",
+      "audit",
+      "token"
+    ],
+    "auto_admission": {
+      "policy_version": "1.0.0",
+      "tier": "T2",
+      "auto_validate": true,
+      "auto_approve": true,
+      "reasons": [
+        "producer 'local-hermes-writer' is trusted, scope 'domain' is local, skill is non-executable",
+        "static-review skill: no executable payload to verify"
+      ],
+      "blocking": []
+    },
+    "approval_action": "human_approval"
+  }
+}

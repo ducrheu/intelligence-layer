@@ -224,6 +224,39 @@ python3 ~/hermes/tools/kb_connect.py --print-config mcporter    # 或者 hermes 
 stdio 适配器保留——它从令牌文件解析身份、不把明文令牌写进配置，对已接好的两个
 runtime 反而是更安全的选择。
 
-## 13. 许可证
+## 13. 技能共享：一个 agent 沉淀的 skill，另一个 agent 直接能用
+
+问题不是"技能没进库"，是**两边根本不共享**：Hermes 109 个技能、OpenClaw 20 个，
+同名 **0 个**。每边都从零长，同一个坑两边都踩一遍。
+
+更糟的是规则错配：`skill` 的准入门槛要求"有可运行测试"，而 129 个真实技能里
+只有 10 个带测试——119 个是"提示词 + 流程"，根本没有可执行载荷。**文本按代码治理，
+等于全部拒绝。**
+
+现在的规则按载荷分级：
+
+| 技能形态 | 准入 | 理由 |
+|---|---|---|
+| 纯文本（无脚本、无测试） | 自动批准，`metadata.verification=static-review` | 没有东西被执行；风险是"读到坏建议"，与 `knowledge` 同级 |
+| 附带脚本 | 人工 | 脚本是真载荷，人要先看它干什么 |
+| 有测试 + 他人验签 | 自动批准（原有路径） | 字节哈希可复核 |
+
+`skill` 的生命周期也随之放开 `candidate → validated`（纯文本技能没有"试用"这一环），
+带脚本的仍走 `experimental`。
+
+同步工具：
+
+```bash
+python3 ~/hermes/tools/kb_skill_sync.py --scan                 # 两边清单 + 与 KB 差异
+python3 ~/hermes/tools/kb_skill_sync.py --apply                # 提交候选
+python3 ~/hermes/tools/kb_skill_sync.py --install study-tutor --to ~/.hermes/skills/shared
+```
+
+`--install` 是"用"的那一步：从 KB 取 `content` 写成 SKILL.md。已验证**字节一致**，
+装完 `hermes skills list` 直接显示为 enabled。
+
+个人向的技能（`skills/local/**`）以 `scope=local` 入库：本机 agent 可读，外借身份不可读。
+
+## 14. 许可证
 
 未指定。仓库内产物（`knowledge/`、`skills/` 等）与代码的授权范围由所有者决定。
