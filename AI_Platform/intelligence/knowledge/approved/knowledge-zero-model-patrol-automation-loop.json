@@ -58,7 +58,17 @@
       ],
       "blocking": []
     },
-    "approval_action": "human_approval"
+    "approval_action": "human_approval",
+    "tags": [
+      "patrol",
+      "automation",
+      "zero-model",
+      "monitoring",
+      "xianyu",
+      "\u5de1\u5e97",
+      "\u5de1\u68c0",
+      "\u81ea\u52a8\u5316"
+    ]
   },
   "verified_by": "policy-auto",
   "verified_at": "2026-09-25T05:45:38Z"

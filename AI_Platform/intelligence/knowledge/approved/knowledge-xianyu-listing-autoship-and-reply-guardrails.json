@@ -58,7 +58,17 @@
       ],
       "blocking": []
     },
-    "approval_action": "human_approval"
+    "approval_action": "human_approval",
+    "tags": [
+      "xianyu",
+      "auto-ship",
+      "reply",
+      "guardrails",
+      "listing",
+      "\u95f2\u9c7c",
+      "\u81ea\u52a8\u53d1\u8d27",
+      "\u56de\u590d"
+    ]
   },
   "verified_by": "policy-auto",
   "verified_at": "2026-09-24T23:45:34Z"

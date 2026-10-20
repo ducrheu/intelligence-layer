@@ -76,6 +76,16 @@
       "get_governance_metadata"
     ],
     "human_gate": "approval by local-human is required before a read-only identity can read this",
-    "approval_action": "human_approval"
+    "approval_action": "human_approval",
+    "tags": [
+      "collaboration",
+      "cross-brain",
+      "a2a",
+      "governance",
+      "hermes",
+      "openclaw",
+      "\u534f\u4f5c",
+      "\u8de8\u8111"
+    ]
   }
 }

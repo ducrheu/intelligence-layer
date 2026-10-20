@@ -70,7 +70,16 @@
   "review_interval_days": 90,
   "metadata": {
     "audience": "hermes+openclaw",
-    "human_gate": "approval by local-human is required before anything may rely on this"
+    "human_gate": "approval by local-human is required before anything may rely on this",
+    "tags": [
+      "governance",
+      "write-surface",
+      "read-only",
+      "collaboration",
+      "\u5199\u5165\u9762",
+      "\u53ea\u8bfb",
+      "\u534f\u4f5c"
+    ]
   },
   "created_by": "local-hermes-writer",
   "created_at": "2026-09-20T05:10:55Z",

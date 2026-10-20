@@ -180,6 +180,13 @@ def _handler(api: ExperimentalAPI):
 
         def do_GET(self) -> None:
             try:
+                # Liveness probe, deliberately unauthenticated: a monitor has no
+                # identity, and a health check that needs a credential is one that
+                # never gets wired to a watchdog. It answers one bit - the listener
+                # is up - and says nothing about the corpus.
+                if urlparse(self.path).path.rstrip("/") == "/healthz":
+                    self._json(HTTPStatus.OK, {"status": "ok"})
+                    return
                 actor = self._actor()
                 parsed = urlparse(self.path)
                 parts = self._path_parts()

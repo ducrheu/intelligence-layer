@@ -65,7 +65,17 @@
       ],
       "blocking": []
     },
-    "approval_action": "human_approval"
+    "approval_action": "human_approval",
+    "tags": [
+      "governance",
+      "auto-admission",
+      "policy",
+      "tiering",
+      "approval",
+      "\u6cbb\u7406",
+      "\u81ea\u52a8\u51c6\u5165",
+      "\u5206\u7ea7"
+    ]
   },
   "created_by": "local-hermes-writer",
   "created_at": "2026-09-20T05:26:41Z",

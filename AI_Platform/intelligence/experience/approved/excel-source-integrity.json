@@ -28,8 +28,14 @@
   "verified": true,
   "verified_by": "phase1-migration-of-existing-approved-experience",
   "verified_at": "2026-09-16T00:00:00Z",
-  "applies_to": ["excel", "csv", "file-transformation"],
-  "compatibility": ["excel-merge-0.1.0"],
+  "applies_to": [
+    "excel",
+    "csv",
+    "file-transformation"
+  ],
+  "compatibility": [
+    "excel-merge-0.1.0"
+  ],
   "expires_at": null,
   "review_interval_days": 90,
   "tests": [
@@ -49,6 +55,16 @@
   "supersedes": null,
   "superseded_by": null,
   "metadata": {
-    "raw_transcript_imported": false
+    "raw_transcript_imported": false,
+    "tags": [
+      "excel",
+      "csv",
+      "source-integrity",
+      "merge",
+      "validation",
+      "\u6570\u636e\u6e90",
+      "\u5b8c\u6574\u6027",
+      "\u6821\u9a8c"
+    ]
   }
 }

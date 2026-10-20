@@ -73,7 +73,17 @@
       "identity_scope_denied"
     ],
     "owner_verified": false,
-    "approval_action": "human_approval"
+    "approval_action": "human_approval",
+    "tags": [
+      "mcp",
+      "read-only",
+      "onboarding",
+      "governance",
+      "auth",
+      "\u53ea\u8bfb",
+      "\u63a5\u5165",
+      "\u8ba4\u8bc1"
+    ]
   },
   "verified_by": "local-human",
   "verified_at": "2026-09-19T12:34:40Z"
